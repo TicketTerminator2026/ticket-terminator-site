@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Ticket Terminator — Free Case Review</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#080808;
+  --dark:#0F0F0F;
+  --dark2:#161616;
+  --dark3:#1E1E1E;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --orange:#FF7A00;
+  --red:#D63000;
+  --grad:linear-gradient(135deg,#FF7A00 0%,#D63000 100%);
+  --white:#FFFFFF;
+  --g1:#CCCCCC;
+  --g2:#888888;
+  --g3:#444444;
+  --success:#30D158;
+  --font:'Inter',sans-serif;
+}
+html,body{background:var(--black);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 40px;
+  background:rgba(8,8,8,0.9);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+/* CSS logo mark — no image background bleed */
+.nav-logo-mark{
+  width:40px;height:40px;
+  background:var(--grad);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+  box-shadow:0 0 20px rgba(255,122,0,0.3),0 2px 8px rgba(0,0,0,0.4);
+}
+.nav-wordmark{display:flex;flex-direction:column;line-height:1;}
+.nav-the{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:2px;}
+.nav-name{font-size:15px;font-weight:900;color:var(--white);letter-spacing:0.3px;}
+.nav-tag{font-size:9px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--g2);margin-top:2px;}
+.nav-right{font-size:12px;color:var(--g2);}
+.nav-right a{color:var(--orange);text-decoration:none;font-weight:700;}
+@media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:13px;}.nav-the{font-size:8px;}}
+
+/* ── HERO ── */
+.hero{
+  padding:120px 20px 52px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.hero-glow{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:800px;height:500px;
+  background:radial-gradient(ellipse at 50% 20%,rgba(255,122,0,0.1) 0%,rgba(214,48,0,0.05) 45%,transparent 70%);
+  pointer-events:none;
+}
+.hero-inner{position:relative;z-index:1;max-width:680px;margin:0 auto;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:10px;font-weight:800;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);
+  margin-bottom:24px;
+}
+.eyebrow::before,.eyebrow::after{content:'';display:block;width:26px;height:1.5px;background:var(--orange);opacity:0.5;}
+.hero h1{
+  font-size:clamp(36px,6.5vw,74px);
+  font-weight:900;letter-spacing:-2.5px;line-height:1.0;color:var(--white);margin-bottom:8px;
+}
+.hero h1 .grad-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-tagline{font-size:clamp(11px,1.8vw,14px);font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);margin-bottom:18px;opacity:0.85;}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:var(--g2);line-height:1.7;max-width:480px;margin:0 auto 40px;}
+.trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:0;}
+.trust-pill{
+  display:flex;align-items:center;gap:7px;padding:7px 15px;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:100px;font-size:12px;font-weight:600;color:var(--g1);
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex-shrink:0;
+  box-shadow:0 0 8px rgba(48,209,88,0.8);animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ── REVIEWS ── */
+.reviews-section{padding:52px 20px 0;max-width:980px;margin:0 auto;}
+.reviews-header{text-align:center;margin-bottom:28px;}
+.g-rating-bar{
+  display:inline-flex;align-items:center;gap:12px;
+  background:var(--dark2);border:1px solid var(--border2);
+  border-radius:100px;padding:10px 22px;margin-bottom:20px;
+}
+.g-logo{font-size:18px;font-weight:900;font-family:sans-serif;}
+.g-logo span:nth-child(1){color:#4285F4;}
+.g-logo span:nth-child(2){color:#EA4335;}
+.g-logo span:nth-child(3){color:#FBBC04;}
+.g-logo span:nth-child(4){color:#4285F4;}
+.g-logo span:nth-child(5){color:#34A853;}
+.g-logo span:nth-child(6){color:#EA4335;}
+.g-stars{color:#FBBC04;font-size:16px;letter-spacing:1px;}
+.g-count{font-size:13px;font-weight:700;color:var(--white);}
+.g-count-sub{font-size:11px;color:var(--g2);font-weight:500;}
+.reviews-title{font-size:clamp(20px,3vw,26px);font-weight:800;color:var(--white);letter-spacing:-0.5px;}
+.reviews-title span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:740px){.reviews-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.reviews-grid{grid-template-columns:1fr;}}
+.review-card{
+  background:var(--dark2);
+  border:1px solid var(--border);
+  border-radius:18px;padding:20px;
+  display:flex;flex-direction:column;gap:12px;
+  transition:border-color 0.2s,transform 0.2s;
+}
+.review-card:hover{border-color:rgba(255,122,0,0.3);transform:translateY(-2px);}
+.rc-top{display:flex;align-items:center;gap:10px;}
+.rc-avatar{
+  width:38px;height:38px;border-radius:50%;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--white);flex-shrink:0;
+}
+.rc-info{flex:1;min-width:0;}
+.rc-name{font-size:13px;font-weight:700;color:var(--white);}
+.rc-date{font-size:11px;color:var(--g3);}
+.rc-stars{color:#FBBC04;font-size:13px;letter-spacing:0.5px;}
+.rc-body{font-size:13px;color:var(--g2);line-height:1.65;flex:1;}
+.rc-body strong{color:var(--white);font-weight:600;}
+.rc-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(48,209,88,0.08);border:1px solid rgba(48,209,88,0.2);
+  border-radius:6px;padding:4px 8px;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--success);
+}
+.rc-g-tag{display:flex;align-items:center;gap:5px;margin-top:2px;}
+.rc-g-icon{font-size:11px;}
+.rc-g-text{font-size:10px;color:var(--g3);}
+
+/* ── FORM SHELL ── */
+.form-shell{max-width:660px;margin:0 auto;padding:40px 18px 80px;width:100%;}
+
+/* ── PROGRESS ── */
+.prog-wrap{margin-bottom:28px;}
+.prog-track{display:flex;align-items:flex-start;width:100%;}
+.prog-step{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.prog-node{
+  width:34px;height:34px;border-radius:50%;z-index:2;
+  border:2px solid var(--border2);background:var(--dark2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--g3);
+  transition:all 0.4s;
+}
+.prog-node.active{border-color:var(--orange);background:var(--grad);color:var(--white);box-shadow:0 0 22px rgba(255,122,0,0.4);}
+.prog-node.done{border-color:var(--success);background:var(--success);color:var(--black);}
+.prog-conn{flex:1;height:2px;background:var(--border2);position:relative;overflow:hidden;margin-top:16px;}
+.prog-fill{position:absolute;inset:0;background:var(--success);width:0%;transition:width 0.5s;}
+.prog-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--g3);transition:color 0.3s;margin-top:8px;text-align:center;}
+.prog-lbl.active{color:var(--orange);}
+.prog-lbl.done{color:var(--success);}
+
+/* ── CARD ── */
+.card{
+  background:var(--dark);border:1px solid var(--border);border-radius:24px;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.02);
+}
+.card-head{
+  padding:26px 36px 22px;border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,var(--dark2),var(--dark));position:relative;overflow:hidden;
+}
+.card-head::after{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:220px;height:220px;
+  background:radial-gradient(circle,rgba(255,122,0,0.07),transparent 65%);pointer-events:none;
+}
+.card-eye{font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--orange);margin-bottom:7px;}
+.card-title{font-size:22px;font-weight:900;letter-spacing:-0.5px;color:var(--white);line-height:1.15;margin-bottom:5px;}
+.card-sub{font-size:13px;color:var(--g2);line-height:1.5;}
+.card-body{padding:28px 36px;}
+.card-foot{padding:18px 36px 26px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:center;}
+@media(max-width:560px){
+  .card-head,.card-body,.card-foot{padding-left:18px;padding-right:18px;}
+}
+
+/* ── FIELD GROUPS ── */
+.fg{display:none;flex-direction:column;gap:20px;animation:fIn 0.38s ease;}
+.fg.active{display:flex;}
+@keyframes fIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── FIELDS ── */
+.field{display:flex;flex-direction:column;gap:7px;width:100%;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:480px){.frow{grid-template-columns:1fr;}}
+.flabel{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--g2);}
+.req{color:var(--orange);}
+
+input[type=text],input[type=email],input[type=tel],input[type=date],select,textarea{
+  width:100%;padding:13px 16px;
+  background:var(--dark2);border:1.5px solid rgba(255,255,255,0.07);
+  border-radius:12px;font-family:var(--font);font-size:15px;font-weight:500;color:var(--white);
+  outline:none;-webkit-appearance:none;appearance:none;
+  transition:border-color 0.2s,background 0.2s,box-shadow 0.2s;
+}
+input::placeholder,textarea::placeholder{color:var(--g3);}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(255,122,0,0.5);background:rgba(255,122,0,0.03);box-shadow:0 0 0 3px rgba(255,122,0,0.08);
+}
+textarea{resize:vertical;min-height:110px;line-height:1.6;}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:42px;cursor:pointer;
+}
+select option{background:var(--dark2);color:var(--white);}
+
+/* ── PILLS ── */
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{cursor:pointer;user-select:none;}
+.pill input{display:none;}
+.pill-body{
+  display:flex;align-items:center;gap:8px;padding:10px 17px;
+  border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;
+  font-size:13px;font-weight:600;color:var(--g2);background:var(--dark2);
+  transition:all 0.2s;cursor:pointer;
+}
+.pill-body:hover{border-color:rgba(255,255,255,0.16);color:var(--white);}
+.pill input:checked~.pill-body{
+  border-color:var(--orange);background:rgba(255,122,0,0.08);color:var(--white);
+  box-shadow:0 0 0 1px rgba(255,122,0,0.16);
+}
+
+/* ── VIOLATION GRID ── */
+/* Default: 2 cols, expands to 4 on wider screens */
+.vgrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+  width:100%;
+}
+@media(min-width:480px){.vgrid{grid-template-columns:repeat(4,1fr);}}
+.vcard{cursor:pointer;user-select:none;}
+.vcard input{display:none;}
+.vcard-body{
+  display:flex;flex-direction:column;align-items:center;
+  padding:14px 8px;
+  border:1.5px solid rgba(255,255,255,0.07);border-radius:13px;
+  background:var(--dark2);text-align:center;transition:all 0.2s;cursor:pointer;
+}
+.vcard-body:hover{border-color:rgba(255,122,0,0.35);}
+.vcard input:checked~.vcard-body{
+  border-color:var(--orange);background:rgba(255,122,0,0.07);
+  box-shadow:0 0 0 1px rgba(255,122,0,0.16);
+}
+.vemoji{font-size:22px;margin-bottom:7px;display:block;}
+.vlabel{font-size:11px;font-weight:700;color:var(--g2);}
+.vcard input:checked~.vcard-body .vlabel{color:var(--white);}
+
+/* ── HEAR GRID ── */
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+@media(max-width:400px){.hgrid{grid-template-columns:1fr;}}
+.hopt{cursor:pointer;user-select:none;}
+.hopt input{display:none;}
+.hopt-body{
+  display:flex;align-items:center;gap:9px;padding:11px 14px;
+  border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;
+  font-size:13px;font-weight:600;color:var(--g2);background:var(--dark2);transition:all 0.2s;
+}
+.hopt-body:hover{border-color:rgba(255,255,255,0.15);color:var(--white);}
+.hopt input:checked~.hopt-body{
+  border-color:var(--orange);background:rgba(255,122,0,0.07);color:var(--white);
+  box-shadow:0 0 0 1px rgba(255,122,0,0.16);
+}
+
+/* ── UPLOAD ── */
+.upload-zone{
+  border:2px dashed rgba(255,255,255,0.1);border-radius:16px;
+  padding:28px 20px;text-align:center;cursor:pointer;background:var(--dark2);
+  transition:all 0.25s;width:100%;
+}
+.upload-zone:hover{border-color:rgba(255,122,0,0.4);background:rgba(255,122,0,0.025);}
+.upload-zone.done{border-color:var(--success);border-style:solid;background:rgba(48,209,88,0.03);}
+.upload-zone input{display:none;}
+.uz-icon{font-size:30px;margin-bottom:9px;display:block;transition:transform 0.3s;}
+.upload-zone:hover .uz-icon{transform:scale(1.1);}
+.uz-title{font-size:14px;font-weight:700;color:var(--white);margin-bottom:4px;}
+.uz-sub{font-size:12px;color:var(--g3);}
+.uz-sub span{color:var(--orange);font-weight:700;}
+.up-row{
+  display:none;align-items:center;justify-content:center;gap:8px;
+  margin-top:12px;background:var(--dark3);border-radius:8px;
+  padding:7px 13px;font-size:12px;color:var(--white);
+}
+.up-row.show{display:flex;}
+.rm{color:var(--orange);cursor:pointer;font-weight:800;font-size:14px;}
+
+/* ── INFO BOX ── */
+.ibox{
+  display:flex;align-items:flex-start;gap:11px;
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:14px 16px;
+  font-size:13px;color:var(--g2);line-height:1.55;width:100%;
+}
+.ibox-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+
+/* ── CONDITIONAL ── */
+.cond{display:none;}
+.cond.show{display:flex;flex-direction:column;gap:7px;animation:fIn 0.3s ease;}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);width:100%;}
+
+/* ── BUTTONS ── */
+.btn-back{
+  flex-shrink:0;padding:13px 18px;background:transparent;
+  border:1.5px solid rgba(255,255,255,0.09);border-radius:12px;
+  font-family:var(--font);font-size:14px;font-weight:700;color:var(--g2);
+  cursor:pointer;transition:all 0.2s;display:none;align-items:center;gap:6px;
+}
+.btn-back:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
+.btn-back.show{display:flex;}
+.btn-next{
+  flex:1;padding:15px 22px;background:var(--grad);border:none;border-radius:12px;
+  font-family:var(--font);font-size:15px;font-weight:800;color:var(--white);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.2px;
+  box-shadow:0 4px 28px rgba(255,122,0,0.28);transition:all 0.25s;position:relative;overflow:hidden;
+}
+.btn-next:hover{transform:translateY(-1.5px);box-shadow:0 8px 36px rgba(255,122,0,0.42);}
+.btn-next:active{transform:translateY(0);}
+.btn-next.green{background:linear-gradient(135deg,#30D158,#23A344);box-shadow:0 4px 28px rgba(48,209,88,0.28);}
+.btn-next.green:hover{box-shadow:0 8px 36px rgba(48,209,88,0.42);}
+
+/* ── SUCCESS ── */
+.success-view{display:none;padding:56px 36px 48px;text-align:center;animation:fIn 0.5s ease;}
+.success-view.show{display:block;}
+.success-ring{
+  width:88px;height:88px;border-radius:50%;
+  background:linear-gradient(135deg,var(--success),#23A344);
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  margin:0 auto 26px;
+  box-shadow:0 0 60px rgba(48,209,88,0.28),0 0 120px rgba(48,209,88,0.1);
+}
+.success-view h2{font-size:28px;font-weight:900;letter-spacing:-0.8px;color:var(--white);margin-bottom:10px;}
+.success-view p{font-size:15px;color:var(--g2);max-width:380px;margin:0 auto 28px;line-height:1.65;}
+.sbox{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:18px;max-width:380px;margin:0 auto 26px;text-align:left;}
+.srow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.srow:last-child{border:none;}
+.sk{color:var(--g3);font-weight:500;}
+.sv{color:var(--white);font-weight:700;}
+.case-tag{display:inline-block;padding:3px 10px;background:rgba(255,122,0,0.12);border:1px solid rgba(255,122,0,0.3);border-radius:6px;color:var(--orange);font-weight:800;font-size:13px;}
+.s-acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-ghost{
+  padding:12px 18px;background:transparent;border:1.5px solid var(--border2);border-radius:12px;
+  font-family:var(--font);font-size:14px;font-weight:700;color:var(--g2);cursor:pointer;transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
+
+/* ── AUTOCOMPLETE ── */
+.ac-wrap{position:relative;width:100%;}
+.ac-drop{
+  position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:500;
+  background:var(--dark2);border:1.5px solid rgba(255,122,0,0.28);
+  border-radius:14px;display:none;
+  box-shadow:0 24px 60px rgba(0,0,0,0.65);
+  max-height:268px;overflow-y:auto;overflow-x:hidden;
+}
+.ac-drop::-webkit-scrollbar{width:4px;}
+.ac-drop::-webkit-scrollbar-thumb{background:rgba(255,122,0,0.3);border-radius:4px;}
+.ac-drop.open{display:block;}
+.ac-item{
+  padding:11px 16px;cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:background 0.15s;
+}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover,.ac-item.hi{background:rgba(255,122,0,0.09);}
+.ac-court{font-size:13px;font-weight:600;color:var(--white);line-height:1.35;}
+.ac-meta{font-size:11px;color:var(--g3);margin-top:2px;}
+.ac-none{padding:14px 16px;font-size:13px;color:var(--g3);text-align:center;}
+.ac-hint{font-size:11px;color:var(--g3);margin-top:5px;padding-left:2px;}
+.ac-autofill{
+  display:none;background:rgba(48,209,88,0.04);
+  border:1px solid rgba(48,209,88,0.15);border-radius:10px;
+  padding:10px 14px;font-size:12px;color:var(--g2);margin-top:8px;
+  display:none;align-items:center;gap:8px;
+}
+.ac-autofill.show{display:flex;}
+.ac-autofill strong{color:var(--white);}
+
+/* ── EMAIL VALIDATION ── */
+.field-hint{font-size:11px;font-weight:600;margin-top:5px;display:none;padding-left:2px;}
+.field-hint.ok{display:block;color:var(--success);}
+.field-hint.err{display:block;color:#FF453A;}
+input.valid{border-color:rgba(48,209,88,0.45)!important;}
+input.invalid{border-color:rgba(255,69,58,0.45)!important;}
+
+/* ── TCPA CHECKBOX ── */
+.cb-wrap{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:14px 16px;background:rgba(255,255,255,0.025);border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;transition:border-color 0.2s,background 0.2s;}
+.cb-wrap:hover{border-color:rgba(255,122,0,0.25);}
+.cb-wrap.checked{border-color:rgba(255,122,0,0.45);background:rgba(255,122,0,0.04);}
+.cb-wrap.cb-error{border-color:rgba(255,69,58,0.5);background:rgba(255,69,58,0.03);}
+.cb-wrap input{display:none;}
+.cb-box{width:20px;height:20px;border:2px solid rgba(255,255,255,0.18);border-radius:6px;flex-shrink:0;background:var(--dark2);display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px;}
+.cb-wrap.checked .cb-box{background:var(--grad);border-color:var(--orange);}
+.cb-check{display:none;color:#fff;font-size:11px;font-weight:900;line-height:1;}
+.cb-wrap.checked .cb-check{display:block;}
+.cb-text{font-size:12px;color:var(--g2);line-height:1.65;}
+.cb-text a{color:var(--orange);text-decoration:none;}
+.cb-text strong{color:var(--white);}
+.cb-req-note{font-size:11px;color:#FF453A;font-weight:600;margin-top:6px;display:none;padding-left:2px;}
+.cb-req-note.show{display:block;}
+
+/* ── FOOTER ── */
+.legal-note{text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,0.18);line-height:1.7;max-width:500px;margin-left:auto;margin-right:auto;}
+.legal-note a{color:var(--orange);text-decoration:none;opacity:0.8;}
+.page-footer{text-align:center;padding:32px 20px 50px;font-size:11px;color:rgba(255,255,255,0.17);line-height:1.8;border-top:1px solid var(--border);margin-top:0;}
+.page-footer a{color:var(--orange);text-decoration:none;opacity:0.7;}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <a class="nav-brand" href="#">
+    <div class="nav-logo-mark">⚖️</div>
+    <div class="nav-wordmark">
+      <span class="nav-the">The</span>
+      <span class="nav-name">TICKET TERMINATOR</span>
+      <span class="nav-tag">No Court · No Points · No Stress</span>
+    </div>
+  </a>
+  <div class="nav-right">Questions? <a href="tel:+1">Call Us Now</a></div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="eyebrow">Free Case Review &mdash; Real Specialists, Not a Bot</div>
+    <h1>Got a Ticket?<br/><span class="grad-text">Don't Pay It Yet.</span></h1>
+    <div class="hero-tagline">No Court &nbsp;·&nbsp; No Points &nbsp;·&nbsp; No Stress</div>
+    <p class="hero-sub">One ticket can raise your insurance rates for 3–5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> — and most clients never set foot in a courthouse.</p>
+    <div class="trust-row">
+      <div class="trust-pill"><span class="live-dot"></span>All 50 States</div>
+      <div class="trust-pill"><span class="live-dot"></span>1,000+ Cases Won</div>
+      <div class="trust-pill"><span class="live-dot"></span>Response in Under 3 Hours</div>
+      <div class="trust-pill"><span class="live-dot"></span>No Upfront Fees</div>
+      <div class="trust-pill"><span class="live-dot"></span>100% Confidential</div>
+      <div class="trust-pill"><span class="live-dot"></span>CDL &amp; Commercial Drivers</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── GOOGLE REVIEWS (step 1 + post-submission) ── -->
+<div class="reviews-section" id="reviewsSection">
+  <div class="reviews-header">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;">
+      <div class="g-rating-bar">
+        <span class="g-logo">
+          <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+        </span>
+        <span class="g-stars">★★★★★</span>
+        <div>
+          <div class="g-count">4.9 out of 5</div>
+          <div class="g-count-sub">200+ verified reviews</div>
+        </div>
+      </div>
+    </div>
+    <div class="reviews-title">What Our Clients Are Saying <span>★</span></div>
+  </div>
+
+  <div class="reviews-grid">
+
+    <!-- Review 1 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar">SM</div>
+        <div class="rc-info">
+          <div class="rc-name">Sarah M.</div>
+          <div class="rc-date">2 weeks ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "I was going 82 in a 65 and completely panicked. Ticket Terminator handled <strong>everything</strong> — I never had to set foot in a court. No points, no fine increase. I'm telling every driver I know!"
+      </div>
+      <div class="rc-badge">✓ Speeding Ticket Dismissed</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+    <!-- Review 2 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">MR</div>
+        <div class="rc-info">
+          <div class="rc-name">Marcus R.</div>
+          <div class="rc-date">1 month ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "My CDL was on the line — a ticket could've cost me my job. These guys got it <strong>completely dismissed</strong>. Worth every penny and then some. Professional, fast, and they actually picked up the phone."
+      </div>
+      <div class="rc-badge">✓ CDL Ticket Dismissed</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+    <!-- Review 3 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:linear-gradient(135deg,#1b2838,#1a1a2e);">JL</div>
+        <div class="rc-info">
+          <div class="rc-name">Jennifer L.</div>
+          <div class="rc-date">3 weeks ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "Called at 9pm panicking about a red light camera ticket with a court date two weeks out. <strong>Someone actually answered.</strong> They walked me through everything and resolved it in under 3 weeks. 10/10."
+      </div>
+      <div class="rc-badge">✓ Red Light Case Resolved</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+    <!-- Review 4 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:linear-gradient(135deg,#2d1b00,#3d2400);">CV</div>
+        <div class="rc-info">
+          <div class="rc-name">Carlos V.</div>
+          <div class="rc-date">1 month ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "Paid $175 to save my insurance from going up $400+ a year. <strong>Best ROI of my life.</strong> The whole process was smooth, I filled out one form, and they handled everything else. Zero stress."
+      </div>
+      <div class="rc-badge">✓ Insurance Rates Protected</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+    <!-- Review 5 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:linear-gradient(135deg,#001a2e,#00162a);">PK</div>
+        <div class="rc-info">
+          <div class="rc-name">Priya K.</div>
+          <div class="rc-date">2 months ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "I had a DUI and was completely lost. They connected me with an amazing attorney who fought hard for me. The outcome was <strong>far better than I expected.</strong> Forever grateful for this team."
+      </div>
+      <div class="rc-badge">✓ DUI Defense — Best Outcome</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+    <!-- Review 6 -->
+    <div class="review-card">
+      <div class="rc-top">
+        <div class="rc-avatar" style="background:linear-gradient(135deg,#1a0030,#2a0050);">DT</div>
+        <div class="rc-info">
+          <div class="rc-name">David T.</div>
+          <div class="rc-date">3 months ago</div>
+        </div>
+        <div class="rc-stars">★★★★★</div>
+      </div>
+      <div class="rc-body">
+        "Second time using Ticket Terminator. First time was a speeding ticket, this time a stop sign violation. Both handled quickly, <strong>no court, no points.</strong> Won't use anyone else — loyal customer for life."
+      </div>
+      <div class="rc-badge">✓ Repeat Client — 2 for 2</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── FORM ── -->
+<div class="form-shell">
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-track">
+      <div class="prog-step">
+        <div class="prog-node active" id="pn1">1</div>
+        <span class="prog-lbl active" id="pl1">You</span>
+      </div>
+      <div class="prog-conn"><div class="prog-fill" id="pf1"></div></div>
+      <div class="prog-step">
+        <div class="prog-node" id="pn2">2</div>
+        <span class="prog-lbl" id="pl2">Violation</span>
+      </div>
+      <div class="prog-conn"><div class="prog-fill" id="pf2"></div></div>
+      <div class="prog-step">
+        <div class="prog-node" id="pn3">3</div>
+        <span class="prog-lbl" id="pl3">Docs</span>
+      </div>
+      <div class="prog-conn"><div class="prog-fill" id="pf3"></div></div>
+      <div class="prog-step">
+        <div class="prog-node" id="pn4">4</div>
+        <span class="prog-lbl" id="pl4">Details</span>
+      </div>
+      <div class="prog-conn"><div class="prog-fill" id="pf4"></div></div>
+      <div class="prog-step">
+        <div class="prog-node" id="pn5">5</div>
+        <span class="prog-lbl" id="pl5">Submit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <div class="card-head" id="cardHead">
+      <div class="card-eye" id="cardEye">Step 1 of 5</div>
+      <div class="card-title" id="cardTitle">Let's start with you.</div>
+      <div class="card-sub" id="cardSub">We'll use this to reach out with your free case review.</div>
+    </div>
+
+    <div class="card-body">
+
+      <!-- STEP 1: You -->
+      <div class="fg active" id="s1">
+        <div class="frow">
+          <div class="field"><label class="flabel">First Name <span class="req">*</span></label><input type="text" id="fn" placeholder="John"/></div>
+          <div class="field"><label class="flabel">Last Name <span class="req">*</span></label><input type="text" id="ln" placeholder="Smith"/></div>
+        </div>
+        <div class="field"><label class="flabel">Phone Number <span class="req">*</span></label><input type="tel" id="ph" placeholder="(555) 000-0000"/></div>
+        <div class="field"><label class="flabel">Email Address <span class="req">*</span></label><input type="email" id="em" placeholder="john@example.com"/><div class="field-hint" id="emHint"></div></div>
+        <div class="field">
+          <label class="flabel">State Where You Got the Ticket <span class="req">*</span></label>
+          <select id="st">
+            <option value="">— Select State —</option>
+            <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+            <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+            <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+            <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+            <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+            <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+            <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+            <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+            <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+            <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+            <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+            <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+            <option>Wisconsin</option><option>Wyoming</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="flabel">Do you have a CDL (Commercial Driver's License)? <span class="req">*</span></label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="cdl" value="yes"/><div class="pill-body">✅ Yes, I have a CDL</div></label>
+            <label class="pill"><input type="radio" name="cdl" value="no"/><div class="pill-body">No CDL</div></label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="flabel">Best way to reach you <span class="req">*</span></label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="contact" value="phone"/><div class="pill-body">📞 Phone Call</div></label>
+            <label class="pill"><input type="radio" name="contact" value="text"/><div class="pill-body">💬 Text / SMS</div></label>
+            <label class="pill"><input type="radio" name="contact" value="email"/><div class="pill-body">✉️ Email</div></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Violation -->
+      <div class="fg" id="s2">
+        <div class="field">
+          <label class="flabel">Type of Ticket or Violation <span class="req">*</span></label>
+          <div class="vgrid">
+            <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚗</span><span class="vlabel">Speeding</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="DUI/DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel">DUI / DWI</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚦</span><span class="vlabel">Red Light</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🛑</span><span class="vlabel">Stop Sign</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">⚠️</span><span class="vlabel">Reckless</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Cell Phone" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📱</span><span class="vlabel">Cell Phone</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Fix-It Ticket" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🔧</span><span class="vlabel">Fix-It</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Other" onchange="showEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📋</span><span class="vlabel">Other</span></div></label>
+          </div>
+        </div>
+        <div class="cond field" id="vdescField">
+          <label class="flabel">What is the violation? <span class="req">*</span></label>
+          <textarea id="vdesc" placeholder="Include the violation code if you know it — e.g. CVC 22349(b) – Speed over 100mph, VC 14601 – Driving on suspended license, or just describe what you were cited for and we'll identify it."></textarea>
+          <div class="ac-hint">Not sure of the code? No problem — a description is fine.</div>
+        </div>
+        <div class="field"><label class="flabel">Date of Violation <span class="req">*</span></label><input type="date" id="vdate"/></div>
+        <div class="field">
+          <label class="flabel">Is this ticket past due or in collections?</label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="pd" value="yes"/><div class="pill-body">Yes</div></label>
+            <label class="pill"><input type="radio" name="pd" value="no"/><div class="pill-body">No</div></label>
+            <label class="pill"><input type="radio" name="pd" value="unsure"/><div class="pill-body">Not Sure</div></label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="flabel">Have you already paid this ticket?</label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="paid" value="yes"/><div class="pill-body">Yes, I paid it</div></label>
+            <label class="pill"><input type="radio" name="paid" value="no"/><div class="pill-body">Not yet</div></label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="flabel">Do you have a scheduled court date?</label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="hcd" value="yes" onchange="showEl('cdField')"/><div class="pill-body">Yes</div></label>
+            <label class="pill"><input type="radio" name="hcd" value="no" onchange="hideEl('cdField')"/><div class="pill-body">No</div></label>
+          </div>
+        </div>
+        <div class="cond field" id="cdField"><label class="flabel">Court Date</label><input type="date" id="cdate"/></div>
+        <div class="field">
+          <label class="flabel">Which court is this case assigned to?</label>
+          <div class="ac-wrap">
+            <input type="text" id="cloc" placeholder="Type court name, city, or county…" autocomplete="off"/>
+            <div class="ac-drop" id="acDrop"></div>
+          </div>
+          <div class="ac-hint" id="acHint">Select your state in Step 1 to enable court search</div>
+          <div class="ac-autofill" id="acFill">
+            <span>✓</span>
+            <span id="acFillText"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Documents -->
+      <div class="fg" id="s3">
+        <div class="ibox"><span class="ibox-icon">🔒</span><span>Everything you upload is encrypted and seen only by your assigned specialist. 100% confidential.</span></div>
+        <div class="field">
+          <label class="flabel">Upload Your Ticket or Court Notice <span class="req">*</span></label>
+          <div class="upload-zone" id="tz" onclick="document.getElementById('tf').click()">
+            <input type="file" id="tf" accept="image/*,.pdf" onchange="handleUp(this,'tz','trow','tn','ti','📄')"/>
+            <span class="uz-icon" id="ti">📄</span>
+            <div class="uz-title">Drop your ticket here</div>
+            <div class="uz-sub">or <span>browse to upload</span> · JPG, PNG, PDF</div>
+          </div>
+          <div class="up-row" id="trow"><span>📎</span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz','trow','ti','📄')">✕</span></div>
+        </div>
+        <div class="field">
+          <label class="flabel">Upload Your Driver's License or ID <span class="req">*</span></label>
+          <div class="upload-zone" id="iz" onclick="document.getElementById('idf').click()">
+            <input type="file" id="idf" accept="image/*,.pdf" onchange="handleUp(this,'iz','irow','iname','ii','🪪')"/>
+            <span class="uz-icon" id="ii">🪪</span>
+            <div class="uz-title">Drop your ID here</div>
+            <div class="uz-sub">or <span>browse to upload</span> · JPG, PNG, PDF</div>
+          </div>
+          <div class="up-row" id="irow"><span>📎</span><span id="iname"></span><span class="rm" onclick="clearUp(event,'idf','iz','irow','ii','🪪')">✕</span></div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Details -->
+      <div class="fg" id="s4">
+        <div class="ibox"><span class="ibox-icon">⚖️</span><span>This is your chance to tell your story. Our specialists read every word — the more you share, the stronger the case we can build for you.</span></div>
+        <div class="field">
+          <label class="flabel">Help us build your defense — tell us everything</label>
+          <textarea id="story" placeholder="Walk us through exactly what happened: Where were you coming from and where were you going? What were the road and weather conditions? Did the officer give you a reason for the stop? Were there any witnesses? Were you given a chance to explain yourself? Did anything seem off about how the stop was handled?
+
+The details that feel small to you can be the ones that win your case. Don't leave anything out." style="min-height:160px;"></textarea>
+        </div>
+        <div class="ibox" style="background:rgba(255,122,0,0.04);border-color:rgba(255,122,0,0.15);"><span class="ibox-icon">💡</span><span>Our attorneys look for procedural errors, faulty equipment, improper signage, and officer conduct — your account helps us find them. <strong style="color:var(--white)">Be specific and honest.</strong></span></div>
+        <div class="divider"></div>
+        <div class="field">
+          <label class="flabel">Traffic School in the past 18 months from your violation date? <span class="req">*</span></label>
+          <div class="pill-row">
+            <label class="pill"><input type="radio" name="ts" value="yes"/><div class="pill-body">Yes, I attended</div></label>
+            <label class="pill"><input type="radio" name="ts" value="no"/><div class="pill-body">No</div></label>
+            <label class="pill"><input type="radio" name="ts" value="unsure"/><div class="pill-body">Not Sure</div></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: Submit -->
+      <div class="fg" id="s5">
+        <div class="field">
+          <label class="flabel">How did you hear about us?</label>
+          <div class="hgrid">
+            <label class="hopt"><input type="radio" name="hear" value="Google" onchange="hideEl('refField')"/><div class="hopt-body">🔍 Google Search</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Social Media" onchange="hideEl('refField')"/><div class="hopt-body">📱 Social Media</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Friend/Family" onchange="showEl('refField')"/><div class="hopt-body">👥 Friend / Family</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Repeat Client" onchange="hideEl('refField')"/><div class="hopt-body">🔁 Repeat Client</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Yelp/Reviews" onchange="hideEl('refField')"/><div class="hopt-body">⭐ Yelp / Reviews</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Other" onchange="hideEl('refField')"/><div class="hopt-body">💬 Other</div></label>
+          </div>
+        </div>
+        <div class="cond field" id="refField"><label class="flabel">Who referred you?</label><input type="text" id="ref" placeholder="Name or contact info of the person who sent you"/></div>
+        <div class="field">
+          <label class="cb-wrap" id="tcpaWrap" onclick="toggleTCPA()">
+            <input type="checkbox" id="tcpa"/>
+            <div class="cb-box"><span class="cb-check">✓</span></div>
+            <span class="cb-text">I agree to receive SMS text messages from Ticket Terminator HQ regarding my case at the phone number provided above. Message &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span></span>
+          </label>
+          <div class="cb-req-note" id="tcpaNote">⚠ Please check this box to continue.</div>
+        </div>
+        <div class="ibox"><span class="ibox-icon">📋</span><span>By submitting, a Ticket Terminator specialist may contact you to discuss your case. This does not create an attorney-client relationship.</span></div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-view" id="successView">
+        <div class="success-ring">✓</div>
+        <h2>You're in the system.</h2>
+        <p>Your case is received. A specialist will review your ticket and reach out — usually within <strong style="color:var(--white)">1–3 hours</strong>.</p>
+        <div class="sbox" id="sbox"></div>
+        <div class="s-acts">
+          <button class="btn-ghost" onclick="location.reload()">Submit Another Case</button>
+          <button class="btn-next" style="flex:0 0 auto;padding:13px 22px;" onclick="alert('Case portal coming soon!')">My Case Portal →</button>
+        </div>
+      </div>
+
+    </div><!-- /card-body -->
+
+    <div class="card-foot" id="cardFoot">
+      <button class="btn-back" id="btnBack" onclick="go(-1)">← Back</button>
+      <button class="btn-next" id="btnNext" onclick="go(1)">Continue →</button>
+    </div>
+  </div><!-- /card -->
+
+  <p class="legal-note">🔒 Encrypted & 100% confidential · Ticket Terminator HQ · <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></p>
+</div>
+
+<div class="page-footer">
+  © 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · All Rights Reserved · <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> · <a href="#">Terms</a>
+</div>
+
+<script>
+/* ── COURT DATA ── */
+const COURTS={
+'California':[
+  {n:'Los Angeles Superior Court – Central District',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Airport Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Chatsworth Courthouse',ci:'Chatsworth',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Compton Courthouse',ci:'Compton',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Downey Courthouse',ci:'Downey',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – East Los Angeles Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – El Monte Courthouse',ci:'El Monte',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Glendale Courthouse',ci:'Glendale',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Inglewood Courthouse',ci:'Inglewood',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Long Beach Courthouse',ci:'Long Beach',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Norwalk Courthouse',ci:'Norwalk',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Pasadena Courthouse',ci:'Pasadena',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Pomona Courthouse South',ci:'Pomona',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – San Fernando Courthouse',ci:'San Fernando',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Santa Monica Courthouse',ci:'Santa Monica',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Stanley Mosk Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Torrance Courthouse',ci:'Torrance',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Van Nuys Courthouse East',ci:'Van Nuys',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Van Nuys Courthouse West',ci:'Van Nuys',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – West Covina Courthouse',ci:'West Covina',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court – Whittier Courthouse',ci:'Whittier',co:'Los Angeles'},
+  {n:'San Diego Superior Court – Central Division',ci:'San Diego',co:'San Diego'},
+  {n:'San Diego Superior Court – East County (El Cajon)',ci:'El Cajon',co:'San Diego'},
+  {n:'San Diego Superior Court – North County (Vista)',ci:'Vista',co:'San Diego'},
+  {n:'San Diego Superior Court – South County (Chula Vista)',ci:'Chula Vista',co:'San Diego'},
+  {n:'San Diego Superior Court – Kearny Mesa Courthouse',ci:'San Diego',co:'San Diego'},
+  {n:'San Diego Superior Court – Hall of Justice',ci:'San Diego',co:'San Diego'},
+  {n:'Orange County Superior Court – Central Justice Center',ci:'Santa Ana',co:'Orange'},
+  {n:'Orange County Superior Court – Harbor Justice Center',ci:'Newport Beach',co:'Orange'},
+  {n:'Orange County Superior Court – North Justice Center',ci:'Fullerton',co:'Orange'},
+  {n:'Orange County Superior Court – West Justice Center',ci:'Westminster',co:'Orange'},
+  {n:'Orange County Superior Court – Lamoreaux Justice Center',ci:'Orange',co:'Orange'},
+  {n:'Riverside Superior Court – Banning Courthouse',ci:'Banning',co:'Riverside'},
+  {n:'Riverside Superior Court – Corona Courthouse',ci:'Corona',co:'Riverside'},
+  {n:'Riverside Superior Court – Hemet Courthouse',ci:'Hemet',co:'Riverside'},
+  {n:'Riverside Superior Court – Indio Courthouse',ci:'Indio',co:'Riverside'},
+  {n:'Riverside Superior Court – Main Street Courthouse',ci:'Riverside',co:'Riverside'},
+  {n:'Riverside Superior Court – Murrieta Courthouse',ci:'Murrieta',co:'Riverside'},
+  {n:'Riverside Superior Court – Palm Springs Courthouse',ci:'Palm Springs',co:'Riverside'},
+  {n:'Riverside Superior Court – Temecula Courthouse',ci:'Temecula',co:'Riverside'},
+  {n:'San Bernardino Superior Court – Barstow Courthouse',ci:'Barstow',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Big Bear Courthouse',ci:'Big Bear Lake',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Chino Courthouse',ci:'Chino',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Fontana Courthouse',ci:'Fontana',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Joshua Tree Courthouse',ci:'Joshua Tree',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Needles Courthouse',ci:'Needles',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Rancho Cucamonga Courthouse',ci:'Rancho Cucamonga',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Central Courthouse',ci:'San Bernardino',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court – Victorville Courthouse',ci:'Victorville',co:'San Bernardino'},
+  {n:'Sacramento Superior Court – Gordon D. Schaber Courthouse',ci:'Sacramento',co:'Sacramento'},
+  {n:'Sacramento Superior Court – William R. Ridgeway Courthouse',ci:'Sacramento',co:'Sacramento'},
+  {n:'Alameda County Superior Court – René C. Davidson Courthouse',ci:'Oakland',co:'Alameda'},
+  {n:'Alameda County Superior Court – Fremont Hall of Justice',ci:'Fremont',co:'Alameda'},
+  {n:'Alameda County Superior Court – Hayward Hall of Justice',ci:'Hayward',co:'Alameda'},
+  {n:'Alameda County Superior Court – Pleasanton Courthouse',ci:'Pleasanton',co:'Alameda'},
+  {n:'Santa Clara Superior Court – Downtown San Jose',ci:'San Jose',co:'Santa Clara'},
+  {n:'Santa Clara Superior Court – Palo Alto Courthouse',ci:'Palo Alto',co:'Santa Clara'},
+  {n:'Santa Clara Superior Court – Sunnyvale-McKinley Courthouse',ci:'Sunnyvale',co:'Santa Clara'},
+  {n:'Contra Costa Superior Court – A.F. Bray Courthouse',ci:'Martinez',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court – Pittsburg Courthouse',ci:'Pittsburg',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court – Richmond Courthouse',ci:'Richmond',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court – Walnut Creek Courthouse',ci:'Walnut Creek',co:'Contra Costa'},
+  {n:'San Francisco Superior Court',ci:'San Francisco',co:'San Francisco'},
+  {n:'Marin County Superior Court',ci:'San Rafael',co:'Marin'},
+  {n:'San Mateo Superior Court – Hall of Justice',ci:'Redwood City',co:'San Mateo'},
+  {n:'Sonoma County Superior Court',ci:'Santa Rosa',co:'Sonoma'},
+  {n:'Napa County Superior Court',ci:'Napa',co:'Napa'},
+  {n:'Solano County Superior Court – Fairfield Courthouse',ci:'Fairfield',co:'Solano'},
+  {n:'Solano County Superior Court – Vallejo Branch',ci:'Vallejo',co:'Solano'},
+  {n:'Fresno Superior Court – B.F. Sisk Courthouse',ci:'Fresno',co:'Fresno'},
+  {n:'Fresno Superior Court – Clovis Courthouse',ci:'Clovis',co:'Fresno'},
+  {n:'Kern County Superior Court – Bakersfield Courthouse',ci:'Bakersfield',co:'Kern'},
+  {n:'Kern County Superior Court – Delano Courthouse',ci:'Delano',co:'Kern'},
+  {n:'Kern County Superior Court – Mojave Courthouse',ci:'Mojave',co:'Kern'},
+  {n:'Kern County Superior Court – Ridgecrest Courthouse',ci:'Ridgecrest',co:'Kern'},
+  {n:'Kern County Superior Court – Taft Courthouse',ci:'Taft',co:'Kern'},
+  {n:'Ventura County Superior Court – Ventura Courthouse',ci:'Ventura',co:'Ventura'},
+  {n:'Ventura County Superior Court – Simi Valley Courthouse',ci:'Simi Valley',co:'Ventura'},
+  {n:'Ventura County Superior Court – Oxnard Courthouse',ci:'Oxnard',co:'Ventura'},
+  {n:'Stanislaus County Superior Court',ci:'Modesto',co:'Stanislaus'},
+  {n:'San Joaquin Superior Court',ci:'Stockton',co:'San Joaquin'},
+  {n:'Merced County Superior Court',ci:'Merced',co:'Merced'},
+  {n:'Tulare County Superior Court',ci:'Visalia',co:'Tulare'},
+  {n:'Kings County Superior Court',ci:'Hanford',co:'Kings'},
+  {n:'Madera County Superior Court',ci:'Madera',co:'Madera'},
+  {n:'El Dorado County Superior Court',ci:'Placerville',co:'El Dorado'},
+  {n:'Placer County Superior Court',ci:'Auburn',co:'Placer'},
+  {n:'Nevada County Superior Court',ci:'Nevada City',co:'Nevada'},
+  {n:'Shasta County Superior Court',ci:'Redding',co:'Shasta'},
+  {n:'Butte County Superior Court',ci:'Oroville',co:'Butte'},
+  {n:'Yolo County Superior Court',ci:'Woodland',co:'Yolo'},
+  {n:'Sutter County Superior Court',ci:'Yuba City',co:'Sutter'},
+  {n:'Yuba County Superior Court',ci:'Marysville',co:'Yuba'},
+  {n:'Colusa County Superior Court',ci:'Colusa',co:'Colusa'},
+  {n:'Glenn County Superior Court',ci:'Willows',co:'Glenn'},
+  {n:'Tehama County Superior Court',ci:'Red Bluff',co:'Tehama'},
+  {n:'Trinity County Superior Court',ci:'Weaverville',co:'Trinity'},
+  {n:'Siskiyou County Superior Court',ci:'Yreka',co:'Siskiyou'},
+  {n:'Humboldt County Superior Court',ci:'Eureka',co:'Humboldt'},
+  {n:'Del Norte County Superior Court',ci:'Crescent City',co:'Del Norte'},
+  {n:'Lake County Superior Court',ci:'Lakeport',co:'Lake'},
+  {n:'Mendocino County Superior Court',ci:'Ukiah',co:'Mendocino'},
+  {n:'Monterey County Superior Court',ci:'Salinas',co:'Monterey'},
+  {n:'San Luis Obispo Superior Court',ci:'San Luis Obispo',co:'San Luis Obispo'},
+  {n:'Santa Barbara Superior Court – Santa Barbara Courthouse',ci:'Santa Barbara',co:'Santa Barbara'},
+  {n:'Santa Barbara Superior Court – North County Courthouse',ci:'Santa Maria',co:'Santa Barbara'},
+  {n:'Santa Cruz County Superior Court',ci:'Santa Cruz',co:'Santa Cruz'},
+  {n:'Imperial County Superior Court',ci:'El Centro',co:'Imperial'},
+  {n:'Mono County Superior Court',ci:'Bridgeport',co:'Mono'},
+  {n:'Inyo County Superior Court',ci:'Independence',co:'Inyo'},
+  {n:'Alpine County Superior Court',ci:'Markleeville',co:'Alpine'},
+  {n:'Amador County Superior Court',ci:'Jackson',co:'Amador'},
+  {n:'Calaveras County Superior Court',ci:'San Andreas',co:'Calaveras'},
+  {n:'Tuolumne County Superior Court',ci:'Sonora',co:'Tuolumne'},
+  {n:'Mariposa County Superior Court',ci:'Mariposa',co:'Mariposa'},
+  {n:'Plumas County Superior Court',ci:'Quincy',co:'Plumas'},
+  {n:'Lassen County Superior Court',ci:'Susanville',co:'Lassen'},
+  {n:'Modoc County Superior Court',ci:'Alturas',co:'Modoc'},
+  {n:'Sierra County Superior Court',ci:'Downieville',co:'Sierra'},
+],
+'Florida':[
+  {n:'Miami-Dade County Court – Richard E. Gerstein Justice Building',ci:'Miami',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court – Lawson E. Thomas Courthouse Center',ci:'Miami',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court – North Dade Justice Center',ci:'Miami Gardens',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court – South Dade Justice Center',ci:'Homestead',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court – Hialeah Division',ci:'Hialeah',co:'Miami-Dade'},
+  {n:'Broward County Courthouse',ci:'Fort Lauderdale',co:'Broward'},
+  {n:'Broward County Court – Lauderhill Branch',ci:'Lauderhill',co:'Broward'},
+  {n:'Palm Beach County Courthouse',ci:'West Palm Beach',co:'Palm Beach'},
+  {n:'Palm Beach County Court – South County Courthouse',ci:'Delray Beach',co:'Palm Beach'},
+  {n:'Palm Beach County Court – North County Courthouse',ci:'Palm Beach Gardens',co:'Palm Beach'},
+  {n:'Hillsborough County Courthouse',ci:'Tampa',co:'Hillsborough'},
+  {n:'Hillsborough County Court – East Courthouse',ci:'Tampa',co:'Hillsborough'},
+  {n:'Hillsborough County Court – Plant City Division',ci:'Plant City',co:'Hillsborough'},
+  {n:'Orange County Courthouse',ci:'Orlando',co:'Orange'},
+  {n:'Orange County Court – South Orange Courthouse',ci:'Orlando',co:'Orange'},
+  {n:'Pinellas County Justice Center',ci:'Clearwater',co:'Pinellas'},
+  {n:'Pinellas County Court – St. Petersburg Courthouse',ci:'St. Petersburg',co:'Pinellas'},
+  {n:'Duval County Courthouse',ci:'Jacksonville',co:'Duval'},
+  {n:'Lee County Justice Center',ci:'Fort Myers',co:'Lee'},
+  {n:'Lee County Court – Cape Coral Annex',ci:'Cape Coral',co:'Lee'},
+  {n:'Polk County Courthouse',ci:'Bartow',co:'Polk'},
+  {n:'Polk County Court – Lakeland Branch',ci:'Lakeland',co:'Polk'},
+  {n:'Brevard County Courthouse',ci:'Titusville',co:'Brevard'},
+  {n:'Brevard County Court – Viera Courthouse',ci:'Viera',co:'Brevard'},
+  {n:'Brevard County Court – Melbourne Courthouse',ci:'Melbourne',co:'Brevard'},
+  {n:'Volusia County Courthouse',ci:'DeLand',co:'Volusia'},
+  {n:'Volusia County Court – Daytona Beach Division',ci:'Daytona Beach',co:'Volusia'},
+  {n:'Seminole County Civil Courthouse',ci:'Sanford',co:'Seminole'},
+  {n:'Sarasota County Courthouse',ci:'Sarasota',co:'Sarasota'},
+  {n:'Sarasota County Court – Venice Division',ci:'Venice',co:'Sarasota'},
+  {n:'Manatee County Judicial Center',ci:'Bradenton',co:'Manatee'},
+  {n:'Collier County Courthouse',ci:'Naples',co:'Collier'},
+  {n:'Escambia County Courthouse',ci:'Pensacola',co:'Escambia'},
+  {n:'Santa Rosa County Courthouse',ci:'Milton',co:'Santa Rosa'},
+  {n:'Okaloosa County Courthouse',ci:'Crestview',co:'Okaloosa'},
+  {n:'Okaloosa County Court – Fort Walton Beach Division',ci:'Fort Walton Beach',co:'Okaloosa'},
+  {n:'Alachua County Courthouse',ci:'Gainesville',co:'Alachua'},
+  {n:'Marion County Courthouse',ci:'Ocala',co:'Marion'},
+  {n:'St. Lucie County Courthouse',ci:'Fort Pierce',co:'St. Lucie'},
+  {n:'St. Lucie County Court – Port St. Lucie Branch',ci:'Port St. Lucie',co:'St. Lucie'},
+  {n:'Indian River County Courthouse',ci:'Vero Beach',co:'Indian River'},
+  {n:'Martin County Courthouse',ci:'Stuart',co:'Martin'},
+  {n:'St. Johns County Courthouse',ci:'St. Augustine',co:'St. Johns'},
+  {n:'Pasco County Courthouse',ci:'New Port Richey',co:'Pasco'},
+  {n:'Pasco County Court – Dade City Courthouse',ci:'Dade City',co:'Pasco'},
+  {n:'Hernando County Courthouse',ci:'Brooksville',co:'Hernando'},
+  {n:'Citrus County Courthouse',ci:'Inverness',co:'Citrus'},
+  {n:'Lake County Courthouse',ci:'Tavares',co:'Lake'},
+  {n:'Charlotte County Courthouse',ci:'Punta Gorda',co:'Charlotte'},
+  {n:'Monroe County Courthouse',ci:'Key West',co:'Monroe'},
+  {n:'Osceola County Courthouse',ci:'Kissimmee',co:'Osceola'},
+  {n:'Clay County Courthouse',ci:'Green Cove Springs',co:'Clay'},
+  {n:'Nassau County Courthouse',ci:'Fernandina Beach',co:'Nassau'},
+  {n:'Baker County Courthouse',ci:'Macclenny',co:'Baker'},
+  {n:'Columbia County Courthouse',ci:'Lake City',co:'Columbia'},
+  {n:'Flagler County Courthouse',ci:'Bunnell',co:'Flagler'},
+  {n:'Putnam County Courthouse',ci:'Palatka',co:'Putnam'},
+  {n:'Sumter County Courthouse',ci:'Bushnell',co:'Sumter'},
+  {n:'Levy County Courthouse',ci:'Bronson',co:'Levy'},
+  {n:'Leon County Courthouse',ci:'Tallahassee',co:'Leon'},
+  {n:'Bay County Courthouse',ci:'Panama City',co:'Bay'},
+  {n:'Walton County Courthouse',ci:'DeFuniak Springs',co:'Walton'},
+  {n:'Jackson County Courthouse',ci:'Marianna',co:'Jackson'},
+  {n:'Hardee County Courthouse',ci:'Wauchula',co:'Hardee'},
+  {n:'Highlands County Courthouse',ci:'Sebring',co:'Highlands'},
+  {n:'Okeechobee County Courthouse',ci:'Okeechobee',co:'Okeechobee'},
+  {n:'DeSoto County Courthouse',ci:'Arcadia',co:'DeSoto'},
+  {n:'Hendry County Courthouse',ci:'LaBelle',co:'Hendry'},
+  {n:'Glades County Courthouse',ci:'Moore Haven',co:'Glades'},
+  {n:'Jefferson County Courthouse',ci:'Monticello',co:'Jefferson'},
+  {n:'Wakulla County Courthouse',ci:'Crawfordville',co:'Wakulla'},
+  {n:'Gadsden County Courthouse',ci:'Quincy',co:'Gadsden'},
+  {n:'Washington County Courthouse',ci:'Chipley',co:'Washington'},
+  {n:'Holmes County Courthouse',ci:'Bonifay',co:'Holmes'},
+  {n:'Calhoun County Courthouse',ci:'Blountstown',co:'Calhoun'},
+  {n:'Gulf County Courthouse',ci:'Port St. Joe',co:'Gulf'},
+  {n:'Suwannee County Courthouse',ci:'Live Oak',co:'Suwannee'},
+  {n:'Madison County Courthouse',ci:'Madison',co:'Madison'},
+  {n:'Taylor County Courthouse',ci:'Perry',co:'Taylor'},
+  {n:'Dixie County Courthouse',ci:'Cross City',co:'Dixie'},
+  {n:'Gilchrist County Courthouse',ci:'Trenton',co:'Gilchrist'},
+  {n:'Franklin County Courthouse',ci:'Apalachicola',co:'Franklin'},
+  {n:'Liberty County Courthouse',ci:'Bristol',co:'Liberty'},
+],
+'New York':[
+  {n:'New York Supreme Court – New York County (Manhattan)',ci:'New York',co:'New York (Manhattan)'},
+  {n:'New York Criminal Court – Manhattan',ci:'New York',co:'New York (Manhattan)'},
+  {n:'Kings County Supreme Court (Brooklyn)',ci:'Brooklyn',co:'Kings (Brooklyn)'},
+  {n:'Kings County Criminal Court (Brooklyn)',ci:'Brooklyn',co:'Kings (Brooklyn)'},
+  {n:'Queens County Supreme Court',ci:'Jamaica',co:'Queens'},
+  {n:'Queens County Criminal Court',ci:'Queens',co:'Queens'},
+  {n:'Bronx County Supreme Court',ci:'Bronx',co:'Bronx'},
+  {n:'Bronx County Criminal Court',ci:'Bronx',co:'Bronx'},
+  {n:'Richmond County Supreme Court (Staten Island)',ci:'St. George',co:'Richmond (Staten Island)'},
+  {n:'Nassau County Supreme Court',ci:'Mineola',co:'Nassau'},
+  {n:'Nassau County District Court',ci:'Mineola',co:'Nassau'},
+  {n:'Suffolk County Supreme Court',ci:'Riverhead',co:'Suffolk'},
+  {n:'Suffolk County District Court – Central Islip',ci:'Central Islip',co:'Suffolk'},
+  {n:'Westchester County Supreme Court',ci:'White Plains',co:'Westchester'},
+  {n:'Erie County Supreme Court',ci:'Buffalo',co:'Erie'},
+  {n:'Monroe County Supreme Court',ci:'Rochester',co:'Monroe'},
+  {n:'Onondaga County Supreme Court',ci:'Syracuse',co:'Onondaga'},
+  {n:'Albany County Supreme Court',ci:'Albany',co:'Albany'},
+  {n:'Dutchess County Supreme Court',ci:'Poughkeepsie',co:'Dutchess'},
+  {n:'Orange County Supreme Court',ci:'Goshen',co:'Orange'},
+  {n:'Rockland County Supreme Court',ci:'New City',co:'Rockland'},
+  {n:'Putnam County Supreme Court',ci:'Carmel',co:'Putnam'},
+  {n:'Ulster County Supreme Court',ci:'Kingston',co:'Ulster'},
+  {n:'Sullivan County Supreme Court',ci:'Monticello',co:'Sullivan'},
+  {n:'Rensselaer County Supreme Court',ci:'Troy',co:'Rensselaer'},
+  {n:'Schenectady County Supreme Court',ci:'Schenectady',co:'Schenectady'},
+  {n:'Saratoga County Supreme Court',ci:'Ballston Spa',co:'Saratoga'},
+  {n:'Warren County Supreme Court',ci:'Lake George',co:'Warren'},
+  {n:'Washington County Supreme Court',ci:'Fort Edward',co:'Washington'},
+  {n:'Columbia County Supreme Court',ci:'Hudson',co:'Columbia'},
+  {n:'Greene County Supreme Court',ci:'Catskill',co:'Greene'},
+  {n:'Broome County Supreme Court',ci:'Binghamton',co:'Broome'},
+  {n:'Tioga County Supreme Court',ci:'Owego',co:'Tioga'},
+  {n:'Tompkins County Supreme Court',ci:'Ithaca',co:'Tompkins'},
+  {n:'Chemung County Supreme Court',ci:'Elmira',co:'Chemung'},
+  {n:'Steuben County Supreme Court',ci:'Bath',co:'Steuben'},
+  {n:'Schuyler County Supreme Court',ci:'Watkins Glen',co:'Schuyler'},
+  {n:'Ontario County Supreme Court',ci:'Canandaigua',co:'Ontario'},
+  {n:'Yates County Supreme Court',ci:'Penn Yan',co:'Yates'},
+  {n:'Seneca County Supreme Court',ci:'Waterloo',co:'Seneca'},
+  {n:'Wayne County Supreme Court',ci:'Lyons',co:'Wayne'},
+  {n:'Cayuga County Supreme Court',ci:'Auburn',co:'Cayuga'},
+  {n:'Livingston County Supreme Court',ci:'Geneseo',co:'Livingston'},
+  {n:'Niagara County Supreme Court',ci:'Lockport',co:'Niagara'},
+  {n:'Genesee County Supreme Court',ci:'Batavia',co:'Genesee'},
+  {n:'Orleans County Supreme Court',ci:'Albion',co:'Orleans'},
+  {n:'Wyoming County Supreme Court',ci:'Warsaw',co:'Wyoming'},
+  {n:'Allegany County Supreme Court',ci:'Belmont',co:'Allegany'},
+  {n:'Cattaraugus County Supreme Court',ci:'Little Valley',co:'Cattaraugus'},
+  {n:'Chautauqua County Supreme Court',ci:'Mayville',co:'Chautauqua'},
+  {n:'Oneida County Supreme Court',ci:'Utica',co:'Oneida'},
+  {n:'Madison County Supreme Court',ci:'Wampsville',co:'Madison'},
+  {n:'Oswego County Supreme Court',ci:'Oswego',co:'Oswego'},
+  {n:'Cortland County Supreme Court',ci:'Cortland',co:'Cortland'},
+  {n:'Chenango County Supreme Court',ci:'Norwich',co:'Chenango'},
+  {n:'Delaware County Supreme Court',ci:'Delhi',co:'Delaware'},
+  {n:'Otsego County Supreme Court',ci:'Cooperstown',co:'Otsego'},
+  {n:'Schoharie County Supreme Court',ci:'Schoharie',co:'Schoharie'},
+  {n:'Montgomery County Supreme Court',ci:'Fonda',co:'Montgomery'},
+  {n:'Fulton County Supreme Court',ci:'Johnstown',co:'Fulton'},
+  {n:'Hamilton County Supreme Court',ci:'Lake Pleasant',co:'Hamilton'},
+  {n:'Herkimer County Supreme Court',ci:'Herkimer',co:'Herkimer'},
+  {n:'Lewis County Supreme Court',ci:'Lowville',co:'Lewis'},
+  {n:'Jefferson County Supreme Court',ci:'Watertown',co:'Jefferson'},
+  {n:'St. Lawrence County Supreme Court',ci:'Canton',co:'St. Lawrence'},
+  {n:'Franklin County Supreme Court',ci:'Malone',co:'Franklin'},
+  {n:'Clinton County Supreme Court',ci:'Plattsburgh',co:'Clinton'},
+  {n:'Essex County Supreme Court',ci:'Elizabethtown',co:'Essex'},
+],
+'New Jersey':[
+  {n:'Atlantic County Superior Court',ci:'Mays Landing',co:'Atlantic'},
+  {n:'Bergen County Superior Court',ci:'Hackensack',co:'Bergen'},
+  {n:'Burlington County Superior Court',ci:'Mount Holly',co:'Burlington'},
+  {n:'Camden County Superior Court',ci:'Camden',co:'Camden'},
+  {n:'Cape May County Superior Court',ci:'Cape May Court House',co:'Cape May'},
+  {n:'Cumberland County Superior Court',ci:'Bridgeton',co:'Cumberland'},
+  {n:'Essex County Superior Court',ci:'Newark',co:'Essex'},
+  {n:'Gloucester County Superior Court',ci:'Woodbury',co:'Gloucester'},
+  {n:'Hudson County Superior Court',ci:'Jersey City',co:'Hudson'},
+  {n:'Hunterdon County Superior Court',ci:'Flemington',co:'Hunterdon'},
+  {n:'Mercer County Superior Court',ci:'Trenton',co:'Mercer'},
+  {n:'Middlesex County Superior Court',ci:'New Brunswick',co:'Middlesex'},
+  {n:'Monmouth County Superior Court',ci:'Freehold',co:'Monmouth'},
+  {n:'Morris County Superior Court',ci:'Morristown',co:'Morris'},
+  {n:'Ocean County Superior Court',ci:'Toms River',co:'Ocean'},
+  {n:'Passaic County Superior Court',ci:'Paterson',co:'Passaic'},
+  {n:'Salem County Superior Court',ci:'Salem',co:'Salem'},
+  {n:'Somerset County Superior Court',ci:'Somerville',co:'Somerset'},
+  {n:'Sussex County Superior Court',ci:'Newton',co:'Sussex'},
+  {n:'Union County Superior Court',ci:'Elizabeth',co:'Union'},
+  {n:'Warren County Superior Court',ci:'Belvidere',co:'Warren'},
+],
+'Virginia':[
+  {n:'Fairfax County Circuit Court',ci:'Fairfax',co:'Fairfax County'},
+  {n:'Fairfax County General District Court',ci:'Fairfax',co:'Fairfax County'},
+  {n:'Prince William County Circuit Court',ci:'Manassas',co:'Prince William'},
+  {n:'Prince William County General District Court',ci:'Manassas',co:'Prince William'},
+  {n:'Loudoun County Circuit Court',ci:'Leesburg',co:'Loudoun'},
+  {n:'Loudoun County General District Court',ci:'Leesburg',co:'Loudoun'},
+  {n:'Arlington County Circuit Court',ci:'Arlington',co:'Arlington'},
+  {n:'Arlington County General District Court',ci:'Arlington',co:'Arlington'},
+  {n:'Alexandria Circuit Court',ci:'Alexandria',co:'City of Alexandria'},
+  {n:'Alexandria General District Court',ci:'Alexandria',co:'City of Alexandria'},
+  {n:'Manassas City Circuit Court',ci:'Manassas',co:'City of Manassas'},
+  {n:'Manassas General District Court',ci:'Manassas',co:'City of Manassas'},
+  {n:'Fauquier County Circuit Court',ci:'Warrenton',co:'Fauquier'},
+  {n:'Stafford County Circuit Court',ci:'Stafford',co:'Stafford'},
+  {n:'Spotsylvania County Circuit Court',ci:'Spotsylvania',co:'Spotsylvania'},
+  {n:'King George County Circuit Court',ci:'King George',co:'King George'},
+  {n:'Culpeper County Circuit Court',ci:'Culpeper',co:'Culpeper'},
+  {n:'Virginia Beach Circuit Court',ci:'Virginia Beach',co:'City of Virginia Beach'},
+  {n:'Virginia Beach General District Court',ci:'Virginia Beach',co:'City of Virginia Beach'},
+  {n:'Chesapeake Circuit Court',ci:'Chesapeake',co:'City of Chesapeake'},
+  {n:'Chesapeake General District Court',ci:'Chesapeake',co:'City of Chesapeake'},
+  {n:'Norfolk Circuit Court',ci:'Norfolk',co:'City of Norfolk'},
+  {n:'Norfolk General District Court',ci:'Norfolk',co:'City of Norfolk'},
+  {n:'Hampton Circuit Court',ci:'Hampton',co:'City of Hampton'},
+  {n:'Newport News Circuit Court',ci:'Newport News',co:'City of Newport News'},
+  {n:'Portsmouth Circuit Court',ci:'Portsmouth',co:'City of Portsmouth'},
+  {n:'Suffolk Circuit Court',ci:'Suffolk',co:'City of Suffolk'},
+  {n:'Isle of Wight County Circuit Court',ci:'Isle of Wight',co:'Isle of Wight'},
+  {n:'York County Circuit Court',ci:'Yorktown',co:'York'},
+  {n:'James City County Circuit Court',ci:'Williamsburg',co:'James City'},
+  {n:'Richmond City Circuit Court',ci:'Richmond',co:'City of Richmond'},
+  {n:'Richmond City General District Court',ci:'Richmond',co:'City of Richmond'},
+  {n:'Henrico County Circuit Court',ci:'Henrico',co:'Henrico'},
+  {n:'Henrico County General District Court',ci:'Henrico',co:'Henrico'},
+  {n:'Chesterfield County Circuit Court',ci:'Chesterfield',co:'Chesterfield'},
+  {n:'Chesterfield County General District Court',ci:'Chesterfield',co:'Chesterfield'},
+  {n:'Hanover County Circuit Court',ci:'Hanover',co:'Hanover'},
+  {n:'Colonial Heights Circuit Court',ci:'Colonial Heights',co:'City of Colonial Heights'},
+  {n:'Hopewell Circuit Court',ci:'Hopewell',co:'City of Hopewell'},
+  {n:'Petersburg Circuit Court',ci:'Petersburg',co:'City of Petersburg'},
+  {n:'Frederick County Circuit Court',ci:'Winchester',co:'Frederick'},
+  {n:'Winchester Circuit Court',ci:'Winchester',co:'City of Winchester'},
+  {n:'Shenandoah County Circuit Court',ci:'Woodstock',co:'Shenandoah'},
+  {n:'Warren County Circuit Court',ci:'Front Royal',co:'Warren'},
+  {n:'Rockingham County Circuit Court',ci:'Harrisonburg',co:'Rockingham'},
+  {n:'Harrisonburg Circuit Court',ci:'Harrisonburg',co:'City of Harrisonburg'},
+  {n:'Augusta County Circuit Court',ci:'Staunton',co:'Augusta'},
+  {n:'Staunton Circuit Court',ci:'Staunton',co:'City of Staunton'},
+  {n:'Waynesboro Circuit Court',ci:'Waynesboro',co:'City of Waynesboro'},
+  {n:'Rockbridge County Circuit Court',ci:'Lexington',co:'Rockbridge'},
+  {n:'Lexington Circuit Court',ci:'Lexington',co:'City of Lexington'},
+  {n:'Roanoke City Circuit Court',ci:'Roanoke',co:'City of Roanoke'},
+  {n:'Roanoke County Circuit Court',ci:'Roanoke',co:'Roanoke County'},
+  {n:'Salem Circuit Court',ci:'Salem',co:'City of Salem'},
+  {n:'Bedford County Circuit Court',ci:'Bedford',co:'Bedford County'},
+  {n:'Montgomery County Circuit Court',ci:'Christiansburg',co:'Montgomery'},
+  {n:'Floyd County Circuit Court',ci:'Floyd',co:'Floyd'},
+  {n:'Grayson County Circuit Court',ci:'Independence',co:'Grayson'},
+  {n:'Carroll County Circuit Court',ci:'Hillsville',co:'Carroll'},
+  {n:'Galax Circuit Court',ci:'Galax',co:'City of Galax'},
+  {n:'Wythe County Circuit Court',ci:'Wytheville',co:'Wythe'},
+  {n:'Smyth County Circuit Court',ci:'Marion',co:'Smyth'},
+  {n:'Washington County Circuit Court',ci:'Abingdon',co:'Washington'},
+  {n:'Bristol Circuit Court',ci:'Bristol',co:'City of Bristol'},
+  {n:'Scott County Circuit Court',ci:'Gate City',co:'Scott'},
+  {n:'Lee County Circuit Court',ci:'Jonesville',co:'Lee'},
+  {n:'Wise County Circuit Court',ci:'Wise',co:'Wise'},
+  {n:'Norton Circuit Court',ci:'Norton',co:'City of Norton'},
+  {n:'Dickenson County Circuit Court',ci:'Clintwood',co:'Dickenson'},
+  {n:'Buchanan County Circuit Court',ci:'Grundy',co:'Buchanan'},
+  {n:'Russell County Circuit Court',ci:'Lebanon',co:'Russell'},
+  {n:'Tazewell County Circuit Court',ci:'Tazewell',co:'Tazewell'},
+  {n:'Bland County Circuit Court',ci:'Bland',co:'Bland'},
+  {n:'Giles County Circuit Court',ci:'Pearisburg',co:'Giles'},
+  {n:'Charlottesville Circuit Court',ci:'Charlottesville',co:'City of Charlottesville'},
+  {n:'Albemarle County Circuit Court',ci:'Charlottesville',co:'Albemarle'},
+  {n:'Greene County Circuit Court',ci:'Stanardsville',co:'Greene'},
+  {n:'Orange County Circuit Court',ci:'Orange',co:'Orange'},
+  {n:'Madison County Circuit Court',ci:'Madison',co:'Madison'},
+  {n:'Fluvanna County Circuit Court',ci:'Palmyra',co:'Fluvanna'},
+  {n:'Louisa County Circuit Court',ci:'Louisa',co:'Louisa'},
+  {n:'Goochland County Circuit Court',ci:'Goochland',co:'Goochland'},
+  {n:'Powhatan County Circuit Court',ci:'Powhatan',co:'Powhatan'},
+  {n:'Amelia County Circuit Court',ci:'Amelia',co:'Amelia'},
+  {n:'Buckingham County Circuit Court',ci:'Buckingham',co:'Buckingham'},
+  {n:'Cumberland County Circuit Court',ci:'Cumberland',co:'Cumberland'},
+  {n:'Prince Edward County Circuit Court',ci:'Farmville',co:'Prince Edward'},
+  {n:'Appomattox County Circuit Court',ci:'Appomattox',co:'Appomattox'},
+  {n:'Amherst County Circuit Court',ci:'Amherst',co:'Amherst'},
+  {n:'Lynchburg Circuit Court',ci:'Lynchburg',co:'City of Lynchburg'},
+  {n:'Campbell County Circuit Court',ci:'Rustburg',co:'Campbell'},
+  {n:'Danville Circuit Court',ci:'Danville',co:'City of Danville'},
+  {n:'Pittsylvania County Circuit Court',ci:'Chatham',co:'Pittsylvania'},
+  {n:'Henry County Circuit Court',ci:'Martinsville',co:'Henry'},
+  {n:'Martinsville Circuit Court',ci:'Martinsville',co:'City of Martinsville'},
+  {n:'Patrick County Circuit Court',ci:'Stuart',co:'Patrick'},
+  {n:'Halifax County Circuit Court',ci:'Halifax',co:'Halifax'},
+  {n:'Mecklenburg County Circuit Court',ci:'Boydton',co:'Mecklenburg'},
+  {n:'Brunswick County Circuit Court',ci:'Lawrenceville',co:'Brunswick'},
+  {n:'Lunenburg County Circuit Court',ci:'Lunenburg',co:'Lunenburg'},
+  {n:'Charlotte County Circuit Court',ci:'Charlotte Court House',co:'Charlotte'},
+  {n:'Nottoway County Circuit Court',ci:'Nottoway',co:'Nottoway'},
+  {n:'Dinwiddie County Circuit Court',ci:'Dinwiddie',co:'Dinwiddie'},
+  {n:'Sussex County Circuit Court',ci:'Sussex',co:'Sussex'},
+  {n:'Surry County Circuit Court',ci:'Surry',co:'Surry'},
+  {n:'Prince George County Circuit Court',ci:'Prince George',co:'Prince George'},
+  {n:'Greensville County Circuit Court',ci:'Emporia',co:'Greensville'},
+  {n:'Emporia Circuit Court',ci:'Emporia',co:'City of Emporia'},
+  {n:'Southampton County Circuit Court',ci:'Courtland',co:'Southampton'},
+  {n:'Franklin City Circuit Court',ci:'Franklin',co:'City of Franklin'},
+  {n:'Accomack County Circuit Court',ci:'Accomac',co:'Accomack'},
+  {n:'Northampton County Circuit Court',ci:'Eastville',co:'Northampton'},
+  {n:'Lancaster County Circuit Court',ci:'Lancaster',co:'Lancaster'},
+  {n:'Northumberland County Circuit Court',ci:'Heathsville',co:'Northumberland'},
+  {n:'Richmond County Circuit Court',ci:'Warsaw',co:'Richmond County'},
+  {n:'Westmoreland County Circuit Court',ci:'Montross',co:'Westmoreland'},
+  {n:'Essex County Circuit Court',ci:'Tappahannock',co:'Essex'},
+  {n:'King and Queen County Circuit Court',ci:'King and Queen Court House',co:'King and Queen'},
+  {n:'King William County Circuit Court',ci:'King William',co:'King William'},
+  {n:'Caroline County Circuit Court',ci:'Bowling Green',co:'Caroline'},
+  {n:'Gloucester County Circuit Court',ci:'Gloucester',co:'Gloucester'},
+  {n:'Mathews County Circuit Court',ci:'Mathews',co:'Mathews'},
+  {n:'Middlesex County Circuit Court',ci:'Saluda',co:'Middlesex'},
+  {n:'New Kent County Circuit Court',ci:'New Kent',co:'New Kent'},
+  {n:'Poquoson Circuit Court',ci:'Poquoson',co:'City of Poquoson'},
+  {n:'Rappahannock County Circuit Court',ci:'Washington',co:'Rappahannock'},
+],
+'Montana':[
+  {n:'Cascade County District Court',ci:'Great Falls',co:'Cascade'},
+  {n:'Yellowstone County District Court',ci:'Billings',co:'Yellowstone'},
+  {n:'Missoula County District Court',ci:'Missoula',co:'Missoula'},
+  {n:'Flathead County District Court',ci:'Kalispell',co:'Flathead'},
+  {n:'Lewis and Clark County District Court',ci:'Helena',co:'Lewis and Clark'},
+  {n:'Gallatin County District Court',ci:'Bozeman',co:'Gallatin'},
+  {n:'Silver Bow County District Court',ci:'Butte',co:'Silver Bow'},
+  {n:'Ravalli County District Court',ci:'Hamilton',co:'Ravalli'},
+  {n:'Lake County District Court',ci:'Polson',co:'Lake'},
+  {n:'Hill County District Court',ci:'Havre',co:'Hill'},
+  {n:'Fergus County District Court',ci:'Lewistown',co:'Fergus'},
+  {n:'Lincoln County District Court',ci:'Libby',co:'Lincoln'},
+  {n:'Dawson County District Court',ci:'Glendive',co:'Dawson'},
+  {n:'Richland County District Court',ci:'Sidney',co:'Richland'},
+  {n:'Custer County District Court',ci:'Miles City',co:'Custer'},
+  {n:'Rosebud County District Court',ci:'Forsyth',co:'Rosebud'},
+  {n:'Carbon County District Court',ci:'Red Lodge',co:'Carbon'},
+  {n:'Stillwater County District Court',ci:'Columbus',co:'Stillwater'},
+  {n:'Park County District Court',ci:'Livingston',co:'Park'},
+  {n:'Sweet Grass County District Court',ci:'Big Timber',co:'Sweet Grass'},
+  {n:'Big Horn County District Court',ci:'Hardin',co:'Big Horn'},
+  {n:'Powder River County District Court',ci:'Broadus',co:'Powder River'},
+  {n:'Fallon County District Court',ci:'Baker',co:'Fallon'},
+  {n:'Carter County District Court',ci:'Ekalaka',co:'Carter'},
+  {n:'Roosevelt County District Court',ci:'Wolf Point',co:'Roosevelt'},
+  {n:'Valley County District Court',ci:'Glasgow',co:'Valley'},
+  {n:'Phillips County District Court',ci:'Malta',co:'Phillips'},
+  {n:'Blaine County District Court',ci:'Chinook',co:'Blaine'},
+  {n:'Chouteau County District Court',ci:'Fort Benton',co:'Chouteau'},
+  {n:'Teton County District Court',ci:'Choteau',co:'Teton'},
+  {n:'Pondera County District Court',ci:'Conrad',co:'Pondera'},
+  {n:'Glacier County District Court',ci:'Cut Bank',co:'Glacier'},
+  {n:'Toole County District Court',ci:'Shelby',co:'Toole'},
+  {n:'Liberty County District Court',ci:'Chester',co:'Liberty'},
+  {n:'Sanders County District Court',ci:'Thompson Falls',co:'Sanders'},
+  {n:'Mineral County District Court',ci:'Superior',co:'Mineral'},
+  {n:'Powell County District Court',ci:'Deer Lodge',co:'Powell'},
+  {n:'Deer Lodge County District Court',ci:'Anaconda',co:'Deer Lodge'},
+  {n:'Jefferson County District Court',ci:'Boulder',co:'Jefferson'},
+  {n:'Broadwater County District Court',ci:'Townsend',co:'Broadwater'},
+  {n:'Meagher County District Court',ci:'White Sulphur Springs',co:'Meagher'},
+  {n:'Wheatland County District Court',ci:'Harlowton',co:'Wheatland'},
+  {n:'Musselshell County District Court',ci:'Roundup',co:'Musselshell'},
+  {n:'Golden Valley District Court',ci:'Ryegate',co:'Golden Valley'},
+  {n:'Petroleum County District Court',ci:'Winnett',co:'Petroleum'},
+  {n:'Garfield County District Court',ci:'Jordan',co:'Garfield'},
+  {n:'McCone County District Court',ci:'Circle',co:'McCone'},
+  {n:'Wibaux County District Court',ci:'Wibaux',co:'Wibaux'},
+  {n:'Daniels County District Court',ci:'Scobey',co:'Daniels'},
+  {n:'Sheridan County District Court',ci:'Plentywood',co:'Sheridan'},
+  {n:'Madison County District Court',ci:'Virginia City',co:'Madison'},
+  {n:'Beaverhead County District Court',ci:'Dillon',co:'Beaverhead'},
+  {n:'Granite County District Court',ci:'Philipsburg',co:'Granite'},
+  {n:'Judith Basin District Court',ci:'Stanford',co:'Judith Basin'},
+  {n:'Treasure County District Court',ci:'Hysham',co:'Treasure'},
+  {n:'Prairie County District Court',ci:'Terry',co:'Prairie'},
+  {n:'Billings City Court',ci:'Billings',co:'Yellowstone'},
+  {n:'Missoula City Court',ci:'Missoula',co:'Missoula'},
+  {n:'Great Falls City Court',ci:'Great Falls',co:'Cascade'},
+  {n:'Bozeman City Court',ci:'Bozeman',co:'Gallatin'},
+  {n:'Butte-Silver Bow City-County Court',ci:'Butte',co:'Silver Bow'},
+  {n:'Kalispell City Court',ci:'Kalispell',co:'Flathead'},
+  {n:'Helena City Court',ci:'Helena',co:'Lewis and Clark'},
+],
+'Colorado':[
+  {n:'Denver District Court',ci:'Denver',co:'Denver'},
+  {n:'Denver County Court',ci:'Denver',co:'Denver'},
+  {n:'El Paso County District Court',ci:'Colorado Springs',co:'El Paso'},
+  {n:'El Paso County Court',ci:'Colorado Springs',co:'El Paso'},
+  {n:'Arapahoe County District Court',ci:'Centennial',co:'Arapahoe'},
+  {n:'Jefferson County District Court',ci:'Golden',co:'Jefferson'},
+  {n:'Adams County District Court',ci:'Brighton',co:'Adams'},
+  {n:'Boulder County District Court',ci:'Boulder',co:'Boulder'},
+  {n:'Douglas County District Court',ci:'Castle Rock',co:'Douglas'},
+  {n:'Larimer County District Court',ci:'Fort Collins',co:'Larimer'},
+  {n:'Weld County District Court',ci:'Greeley',co:'Weld'},
+  {n:'Pueblo County District Court',ci:'Pueblo',co:'Pueblo'},
+  {n:'Mesa County District Court',ci:'Grand Junction',co:'Mesa'},
+  {n:'Garfield County District Court',ci:'Glenwood Springs',co:'Garfield'},
+  {n:'Eagle County District Court',ci:'Eagle',co:'Eagle'},
+  {n:'Summit County District Court',ci:'Breckenridge',co:'Summit'},
+  {n:'Pitkin County District Court',ci:'Aspen',co:'Pitkin'},
+  {n:'Teller County District Court',ci:'Cripple Creek',co:'Teller'},
+  {n:'Clear Creek County District Court',ci:'Georgetown',co:'Clear Creek'},
+  {n:'Park County District Court',ci:'Fairplay',co:'Park'},
+  {n:'Lake County District Court',ci:'Leadville',co:'Lake'},
+  {n:'Gilpin County District Court',ci:'Central City',co:'Gilpin'},
+  {n:'Grand County District Court',ci:'Hot Sulphur Springs',co:'Grand'},
+  {n:'Jackson County District Court',ci:'Walden',co:'Jackson'},
+  {n:'Routt County District Court',ci:'Steamboat Springs',co:'Routt'},
+  {n:'Moffat County District Court',ci:'Craig',co:'Moffat'},
+  {n:'Rio Blanco County District Court',ci:'Meeker',co:'Rio Blanco'},
+  {n:'Delta County District Court',ci:'Delta',co:'Delta'},
+  {n:'Montrose County District Court',ci:'Montrose',co:'Montrose'},
+  {n:'Ouray County District Court',ci:'Ouray',co:'Ouray'},
+  {n:'San Miguel County District Court',ci:'Telluride',co:'San Miguel'},
+  {n:'Hinsdale County District Court',ci:'Lake City',co:'Hinsdale'},
+  {n:'Gunnison County District Court',ci:'Gunnison',co:'Gunnison'},
+  {n:'Montezuma County District Court',ci:'Cortez',co:'Montezuma'},
+  {n:'Dolores County District Court',ci:'Dove Creek',co:'Dolores'},
+  {n:'La Plata County District Court',ci:'Durango',co:'La Plata'},
+  {n:'Archuleta County District Court',ci:'Pagosa Springs',co:'Archuleta'},
+  {n:'San Juan County District Court',ci:'Silverton',co:'San Juan'},
+  {n:'Mineral County District Court',ci:'Creede',co:'Mineral'},
+  {n:'Rio Grande County District Court',ci:'Del Norte',co:'Rio Grande'},
+  {n:'Saguache County District Court',ci:'Saguache',co:'Saguache'},
+  {n:'Alamosa County District Court',ci:'Alamosa',co:'Alamosa'},
+  {n:'Conejos County District Court',ci:'Conejos',co:'Conejos'},
+  {n:'Costilla County District Court',ci:'San Luis',co:'Costilla'},
+  {n:'Huerfano County District Court',ci:'Walsenburg',co:'Huerfano'},
+  {n:'Las Animas County District Court',ci:'Trinidad',co:'Las Animas'},
+  {n:'Baca County District Court',ci:'Springfield',co:'Baca'},
+  {n:'Prowers County District Court',ci:'Lamar',co:'Prowers'},
+  {n:'Kiowa County District Court',ci:'Eads',co:'Kiowa'},
+  {n:'Bent County District Court',ci:'Las Animas',co:'Bent'},
+  {n:'Otero County District Court',ci:'La Junta',co:'Otero'},
+  {n:'Crowley County District Court',ci:'Ordway',co:'Crowley'},
+  {n:'Chaffee County District Court',ci:'Salida',co:'Chaffee'},
+  {n:'Fremont County District Court',ci:'Canon City',co:'Fremont'},
+  {n:'Custer County District Court',ci:'Westcliffe',co:'Custer'},
+  {n:'Logan County District Court',ci:'Sterling',co:'Logan'},
+  {n:'Sedgwick County District Court',ci:'Julesburg',co:'Sedgwick'},
+  {n:'Phillips County District Court',ci:'Holyoke',co:'Phillips'},
+  {n:'Yuma County District Court',ci:'Wray',co:'Yuma'},
+  {n:'Washington County District Court',ci:'Akron',co:'Washington'},
+  {n:'Morgan County District Court',ci:'Fort Morgan',co:'Morgan'},
+  {n:'Lincoln County District Court',ci:'Hugo',co:'Lincoln'},
+  {n:'Elbert County District Court',ci:'Kiowa',co:'Elbert'},
+  {n:'Cheyenne County District Court',ci:'Cheyenne Wells',co:'Cheyenne'},
+  {n:'Kit Carson County District Court',ci:'Burlington',co:'Kit Carson'},
+],
+'Nevada':[
+  {n:'Clark County District Court',ci:'Las Vegas',co:'Clark'},
+  {n:'Las Vegas Justice Court',ci:'Las Vegas',co:'Clark'},
+  {n:'Henderson Justice Court',ci:'Henderson',co:'Clark'},
+  {n:'North Las Vegas Justice Court',ci:'North Las Vegas',co:'Clark'},
+  {n:'Boulder City Justice Court',ci:'Boulder City',co:'Clark'},
+  {n:'Mesquite Justice Court',ci:'Mesquite',co:'Clark'},
+  {n:'Laughlin Justice Court',ci:'Laughlin',co:'Clark'},
+  {n:'Washoe County District Court',ci:'Reno',co:'Washoe'},
+  {n:'Reno Justice Court',ci:'Reno',co:'Washoe'},
+  {n:'Sparks Justice Court',ci:'Sparks',co:'Washoe'},
+  {n:'North Valleys Justice Court',ci:'Reno',co:'Washoe'},
+  {n:'South Meadows Justice Court',ci:'Reno',co:'Washoe'},
+  {n:'Carson City District Court',ci:'Carson City',co:'Carson City'},
+  {n:'Carson City Justice Court',ci:'Carson City',co:'Carson City'},
+  {n:'Douglas County District Court',ci:'Minden',co:'Douglas'},
+  {n:'Douglas County Justice Court',ci:'Minden',co:'Douglas'},
+  {n:'Lyon County District Court',ci:'Yerington',co:'Lyon'},
+  {n:'Lyon County Justice Court – Silver Springs',ci:'Silver Springs',co:'Lyon'},
+  {n:'Lyon County Justice Court – Fernley',ci:'Fernley',co:'Lyon'},
+  {n:'Churchill County District Court',ci:'Fallon',co:'Churchill'},
+  {n:'Humboldt County District Court',ci:'Winnemucca',co:'Humboldt'},
+  {n:'Pershing County District Court',ci:'Lovelock',co:'Pershing'},
+  {n:'Lander County District Court',ci:'Battle Mountain',co:'Lander'},
+  {n:'Eureka County District Court',ci:'Eureka',co:'Eureka'},
+  {n:'Elko County District Court',ci:'Elko',co:'Elko'},
+  {n:'Elko Township Justice Court',ci:'Elko',co:'Elko'},
+  {n:'Spring Creek Justice Court',ci:'Spring Creek',co:'Elko'},
+  {n:'White Pine County District Court',ci:'Ely',co:'White Pine'},
+  {n:'Nye County District Court',ci:'Tonopah',co:'Nye'},
+  {n:'Nye County Justice Court – Pahrump',ci:'Pahrump',co:'Nye'},
+  {n:'Mineral County District Court',ci:'Hawthorne',co:'Mineral'},
+  {n:'Esmeralda County District Court',ci:'Goldfield',co:'Esmeralda'},
+  {n:'Storey County District Court',ci:'Virginia City',co:'Storey'},
+  {n:'Lincoln County District Court',ci:'Pioche',co:'Lincoln'},
+],
+'Washington':[
+  {n:'King County Superior Court',ci:'Seattle',co:'King'},
+  {n:'Seattle Municipal Court',ci:'Seattle',co:'King'},
+  {n:'Pierce County Superior Court',ci:'Tacoma',co:'Pierce'},
+  {n:'Tacoma Municipal Court',ci:'Tacoma',co:'Pierce'},
+  {n:'Snohomish County Superior Court',ci:'Everett',co:'Snohomish'},
+  {n:'Spokane County Superior Court',ci:'Spokane',co:'Spokane'},
+  {n:'Spokane Municipal Court',ci:'Spokane',co:'Spokane'},
+  {n:'Clark County Superior Court',ci:'Vancouver',co:'Clark'},
+  {n:'Vancouver Municipal Court',ci:'Vancouver',co:'Clark'},
+  {n:'Thurston County Superior Court',ci:'Olympia',co:'Thurston'},
+  {n:'Kitsap County Superior Court',ci:'Port Orchard',co:'Kitsap'},
+  {n:'Yakima County Superior Court',ci:'Yakima',co:'Yakima'},
+  {n:'Whatcom County Superior Court',ci:'Bellingham',co:'Whatcom'},
+  {n:'Bellingham Municipal Court',ci:'Bellingham',co:'Whatcom'},
+  {n:'Benton County Superior Court',ci:'Kennewick',co:'Benton'},
+  {n:'Skagit County Superior Court',ci:'Mount Vernon',co:'Skagit'},
+  {n:'Cowlitz County Superior Court',ci:'Kelso',co:'Cowlitz'},
+  {n:'Franklin County Superior Court',ci:'Pasco',co:'Franklin'},
+  {n:'Grant County Superior Court',ci:'Ephrata',co:'Grant'},
+  {n:'Island County Superior Court',ci:'Coupeville',co:'Island'},
+  {n:'Lewis County Superior Court',ci:'Chehalis',co:'Lewis'},
+  {n:'Mason County Superior Court',ci:'Shelton',co:'Mason'},
+  {n:'Grays Harbor County Superior Court',ci:'Montesano',co:'Grays Harbor'},
+  {n:'Jefferson County Superior Court',ci:'Port Townsend',co:'Jefferson'},
+  {n:'Clallam County Superior Court',ci:'Port Angeles',co:'Clallam'},
+  {n:'Chelan County Superior Court',ci:'Wenatchee',co:'Chelan'},
+  {n:'Douglas County Superior Court',ci:'Waterville',co:'Douglas'},
+  {n:'Okanogan County Superior Court',ci:'Okanogan',co:'Okanogan'},
+  {n:'Ferry County Superior Court',ci:'Republic',co:'Ferry'},
+  {n:'Stevens County Superior Court',ci:'Colville',co:'Stevens'},
+  {n:'Pend Oreille County Superior Court',ci:'Newport',co:'Pend Oreille'},
+  {n:'Lincoln County Superior Court',ci:'Davenport',co:'Lincoln'},
+  {n:'Adams County Superior Court',ci:'Ritzville',co:'Adams'},
+  {n:'Whitman County Superior Court',ci:'Colfax',co:'Whitman'},
+  {n:'Asotin County Superior Court',ci:'Asotin',co:'Asotin'},
+  {n:'Columbia County Superior Court',ci:'Dayton',co:'Columbia'},
+  {n:'Garfield County Superior Court',ci:'Pomeroy',co:'Garfield'},
+  {n:'Walla Walla County Superior Court',ci:'Walla Walla',co:'Walla Walla'},
+  {n:'Klickitat County Superior Court',ci:'Goldendale',co:'Klickitat'},
+  {n:'Skamania County Superior Court',ci:'Stevenson',co:'Skamania'},
+  {n:'Pacific County Superior Court',ci:'South Bend',co:'Pacific'},
+  {n:'Wahkiakum County Superior Court',ci:'Cathlamet',co:'Wahkiakum'},
+  {n:'San Juan County Superior Court',ci:'Friday Harbor',co:'San Juan'},
+  {n:'Kittitas County Superior Court',ci:'Ellensburg',co:'Kittitas'},
+],
+'Oregon':[
+  {n:'Multnomah County Circuit Court',ci:'Portland',co:'Multnomah'},
+  {n:'Washington County Circuit Court',ci:'Hillsboro',co:'Washington'},
+  {n:'Clackamas County Circuit Court',ci:'Oregon City',co:'Clackamas'},
+  {n:'Lane County Circuit Court',ci:'Eugene',co:'Lane'},
+  {n:'Marion County Circuit Court',ci:'Salem',co:'Marion'},
+  {n:'Jackson County Circuit Court',ci:'Medford',co:'Jackson'},
+  {n:'Deschutes County Circuit Court',ci:'Bend',co:'Deschutes'},
+  {n:'Linn County Circuit Court',ci:'Albany',co:'Linn'},
+  {n:'Douglas County Circuit Court',ci:'Roseburg',co:'Douglas'},
+  {n:'Polk County Circuit Court',ci:'Dallas',co:'Polk'},
+  {n:'Yamhill County Circuit Court',ci:'McMinnville',co:'Yamhill'},
+  {n:'Benton County Circuit Court',ci:'Corvallis',co:'Benton'},
+  {n:'Klamath County Circuit Court',ci:'Klamath Falls',co:'Klamath'},
+  {n:'Coos County Circuit Court',ci:'Coquille',co:'Coos'},
+  {n:'Josephine County Circuit Court',ci:'Grants Pass',co:'Josephine'},
+  {n:'Umatilla County Circuit Court',ci:'Pendleton',co:'Umatilla'},
+  {n:'Columbia County Circuit Court',ci:'St. Helens',co:'Columbia'},
+  {n:'Lincoln County Circuit Court',ci:'Newport',co:'Lincoln'},
+  {n:'Tillamook County Circuit Court',ci:'Tillamook',co:'Tillamook'},
+  {n:'Clatsop County Circuit Court',ci:'Astoria',co:'Clatsop'},
+  {n:'Hood River County Circuit Court',ci:'Hood River',co:'Hood River'},
+  {n:'Wasco County Circuit Court',ci:'The Dalles',co:'Wasco'},
+  {n:'Jefferson County Circuit Court',ci:'Madras',co:'Jefferson'},
+  {n:'Crook County Circuit Court',ci:'Prineville',co:'Crook'},
+  {n:'Grant County Circuit Court',ci:'Canyon City',co:'Grant'},
+  {n:'Union County Circuit Court',ci:'La Grande',co:'Union'},
+  {n:'Baker County Circuit Court',ci:'Baker City',co:'Baker'},
+  {n:'Malheur County Circuit Court',ci:'Vale',co:'Malheur'},
+  {n:'Harney County Circuit Court',ci:'Burns',co:'Harney'},
+  {n:'Lake County Circuit Court',ci:'Lakeview',co:'Lake'},
+  {n:'Curry County Circuit Court',ci:'Gold Beach',co:'Curry'},
+  {n:'Wallowa County Circuit Court',ci:'Enterprise',co:'Wallowa'},
+  {n:'Gilliam County Circuit Court',ci:'Condon',co:'Gilliam'},
+  {n:'Wheeler County Circuit Court',ci:'Fossil',co:'Wheeler'},
+  {n:'Sherman County Circuit Court',ci:'Moro',co:'Sherman'},
+  {n:'Morrow County Circuit Court',ci:'Heppner',co:'Morrow'},
+],
+};
+
+/* ── COURT AUTOCOMPLETE ── */
+let activeCourts=[];
+let acIdx=-1;
+
+function initCourtAC(){
+  const inp=document.getElementById('cloc');
+  const drop=document.getElementById('acDrop');
+  const hint=document.getElementById('acHint');
+  const fill=document.getElementById('acFill');
+  const fillTxt=document.getElementById('acFillText');
+
+  // Update courts when state changes
+  document.getElementById('st').addEventListener('change',function(){
+    const state=this.value;
+    activeCourts=COURTS[state]||[];
+    inp.value='';
+    fill.classList.remove('show');
+    drop.classList.remove('open');
+    drop.innerHTML='';
+    if(activeCourts.length){
+      hint.textContent='Type to search '+activeCourts.length+' courts in '+state;
+      inp.placeholder='Search by court name, city, or county…';
+      inp.disabled=false;
+    } else {
+      hint.textContent='Type the court name manually for this state.';
+      inp.placeholder='e.g. Travis County District Court';
+      inp.disabled=false;
+    }
+  });
+
+  inp.addEventListener('input',function(){
+    const q=this.value.trim().toLowerCase();
+    fill.classList.remove('show');
+    if(!q||activeCourts.length===0){drop.classList.remove('open');drop.innerHTML='';return;}
+    const matches=activeCourts.filter(c=>
+      c.n.toLowerCase().includes(q)||
+      c.ci.toLowerCase().includes(q)||
+      c.co.toLowerCase().includes(q)
+    ).slice(0,12);
+    if(!matches.length){
+      drop.innerHTML='<div class="ac-none">No courts found — try a different spelling</div>';
+      drop.classList.add('open');
+      return;
+    }
+    acIdx=-1;
+    drop.innerHTML=matches.map((c,i)=>
+      `<div class="ac-item" data-i="${i}" data-n="${c.n}" data-ci="${c.ci}" data-co="${c.co}">
+        <div class="ac-court">${c.n}</div>
+        <div class="ac-meta">${c.ci} · ${c.co} County</div>
+      </div>`
+    ).join('');
+    drop.classList.add('open');
+    drop.querySelectorAll('.ac-item').forEach(el=>{
+      el.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        selectCourt(this.dataset.n,this.dataset.ci,this.dataset.co);
+      });
+    });
+  });
+
+  inp.addEventListener('keydown',function(e){
+    const items=drop.querySelectorAll('.ac-item');
+    if(!items.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();acIdx=Math.min(acIdx+1,items.length-1);hilite(items);}
+    else if(e.key==='ArrowUp'){e.preventDefault();acIdx=Math.max(acIdx-1,0);hilite(items);}
+    else if(e.key==='Enter'&&acIdx>=0){e.preventDefault();const el=items[acIdx];selectCourt(el.dataset.n,el.dataset.ci,el.dataset.co);}
+    else if(e.key==='Escape'){drop.classList.remove('open');}
+  });
+
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.ac-wrap'))drop.classList.remove('open');
+  });
+
+  function hilite(items){
+    items.forEach((el,i)=>el.classList.toggle('hi',i===acIdx));
+    if(acIdx>=0)items[acIdx].scrollIntoView({block:'nearest'});
+  }
+
+  function selectCourt(name,city,county){
+    inp.value=name;
+    drop.classList.remove('open');
+    drop.innerHTML='';
+    fillTxt.innerHTML='<strong>'+city+'</strong> · '+county+' County';
+    fill.classList.add('show');
+    hint.textContent='';
+    acIdx=-1;
+    // Store for submit
+    inp.dataset.city=city;
+    inp.dataset.county=county;
+  }
+}
+initCourtAC();
+
+/* ── PHONE FORMATTER ── */
+document.getElementById('ph').addEventListener('input',function(e){
+  let raw=e.target.value.replace(/\D/g,'').substring(0,10);
+  let fmt='';
+  if(raw.length===0){fmt='';}
+  else if(raw.length<=3){fmt='('+raw;}
+  else if(raw.length<=6){fmt='('+raw.substring(0,3)+') '+raw.substring(3);}
+  else{fmt='('+raw.substring(0,3)+') '+raw.substring(3,6)+'-'+raw.substring(6);}
+  e.target.value=fmt;
+});
+
+/* ── EMAIL VALIDATOR ── */
+const emEl=document.getElementById('em');
+const emHint=document.getElementById('emHint');
+function validateEmail(v){return/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());}
+emEl.addEventListener('input',function(){
+  const v=this.value.trim();
+  if(v.length===0){emHint.className='field-hint';emHint.textContent='';this.classList.remove('valid','invalid');return;}
+  if(validateEmail(v)){
+    emHint.className='field-hint ok';emHint.textContent='✓ Looks good';
+    this.classList.add('valid');this.classList.remove('invalid');
+  } else {
+    emHint.className='field-hint err';emHint.textContent='Please enter a valid email address';
+    this.classList.add('invalid');this.classList.remove('valid');
+  }
+});
+emEl.addEventListener('blur',function(){
+  const v=this.value.trim();
+  if(v.length>0&&!validateEmail(v)){
+    emHint.className='field-hint err';emHint.textContent='Please enter a valid email address';
+    this.classList.add('invalid');this.classList.remove('valid');
+  }
+});
+
+/* ── TCPA TOGGLE ── */
+function toggleTCPA(){
+  const cb=document.getElementById('tcpa');
+  const wrap=document.getElementById('tcpaWrap');
+  const note=document.getElementById('tcpaNote');
+  cb.checked=!cb.checked;
+  wrap.classList.toggle('checked',cb.checked);
+  wrap.classList.remove('cb-error');
+  if(cb.checked)note.classList.remove('show');
+}
+
+let step=1,TOTAL=5;
+const cfg=[null,
+  {eye:'Step 1 of 5',title:'Let\'s start with you.',sub:'We\'ll use this to reach out with your free case review.'},
+  {eye:'Step 2 of 5',title:'Tell us about your case.',sub:'Every detail helps us build a stronger defense for you.'},
+  {eye:'Step 3 of 5',title:'Upload your documents.',sub:'A copy of your ticket and ID lets us review your case accurately.'},
+  {eye:'Step 4 of 5',title:'A little more context.',sub:'Help your specialist understand exactly what happened.'},
+  {eye:'Step 5 of 5',title:'Almost done.',sub:'One last question before we submit your free case review.'},
+];
+function refresh(){
+  const c=cfg[step];
+  document.getElementById('cardEye').textContent=c.eye;
+  document.getElementById('cardTitle').textContent=c.title;
+  document.getElementById('cardSub').textContent=c.sub;
+  for(let i=1;i<=TOTAL;i++){
+    const n=document.getElementById('pn'+i);
+    const l=document.getElementById('pl'+i);
+    if(i<step){n.className='prog-node done';n.textContent='✓';}
+    else if(i===step){n.className='prog-node active';n.textContent=i;}
+    else{n.className='prog-node';n.textContent=i;}
+    l.className='prog-lbl'+(i<step?' done':i===step?' active':'');
+    if(i<TOTAL)document.getElementById('pf'+i).style.width=i<step?'100%':'0%';
+  }
+  document.getElementById('reviewsSection').style.display=step===1?'':'none';
+  const bb=document.getElementById('btnBack');
+  bb.classList.toggle('show',step>1);
+  const nb=document.getElementById('btnNext');
+  nb.textContent=step===TOTAL?'Submit My Case ✓':'Continue →';
+  nb.className='btn-next'+(step===TOTAL?' green':'');
+}
+function go(dir){
+  if(dir===1&&step===TOTAL){submit();return;}
+  document.getElementById('s'+step).classList.remove('active');
+  step=Math.min(Math.max(step+dir,1),TOTAL);
+  document.getElementById('s'+step).classList.add('active');
+  refresh();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showEl(id){const e=document.getElementById(id);if(e)e.classList.add('show');}
+function hideEl(id){const e=document.getElementById(id);if(e)e.classList.remove('show');}
+function handleUp(inp,zid,rid,nid,iid,def){
+  if(!inp.files||!inp.files[0])return;
+  const f=inp.files[0];
+  document.getElementById(nid).textContent=f.name;
+  document.getElementById(rid).classList.add('show');
+  const z=document.getElementById(zid);z.classList.add('done');
+  document.getElementById(iid).textContent='✅';
+  z.querySelector('.uz-title').textContent='File attached!';
+  z.querySelector('.uz-sub').innerHTML=f.name;
+}
+function clearUp(e,fid,zid,rid,iid,def){
+  e.stopPropagation();
+  document.getElementById(fid).value='';
+  document.getElementById(rid).classList.remove('show');
+  const z=document.getElementById(zid);z.classList.remove('done');
+  document.getElementById(iid).textContent=def;
+  z.querySelector('.uz-title').textContent=def==='📄'?'Drop your ticket here':'Drop your ID here';
+  z.querySelector('.uz-sub').innerHTML='or <span>browse to upload</span> · JPG, PNG, PDF';
+}
+['tz','iz'].forEach(zid=>{
+  const z=document.getElementById(zid);
+  z.addEventListener('dragover',e=>{e.preventDefault();z.style.borderColor='rgba(255,122,0,0.5)';});
+  z.addEventListener('dragleave',()=>{if(!z.classList.contains('done'))z.style.borderColor='';});
+  z.addEventListener('drop',e=>{
+    e.preventDefault();
+    const isT=zid==='tz';
+    const fi=document.getElementById(isT?'tf':'idf');
+    const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);fi.files=dt.files;
+    handleUp(fi,zid,isT?'trow':'irow',isT?'tn':'iname',isT?'ti':'ii',isT?'📄':'🪪');
+  });
+});
+async function submit(){
+  /* TCPA gate */
+  const tcpa=document.getElementById('tcpa');
+  if(!tcpa.checked){
+    const wrap=document.getElementById('tcpaWrap');
+    const note=document.getElementById('tcpaNote');
+    wrap.classList.add('cb-error');
+    note.classList.add('show');
+    wrap.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  /* Collect all form data */
+  const fn   = document.getElementById('fn').value.trim();
+  const ln   = document.getElementById('ln').value.trim();
+  const ph   = document.getElementById('ph').value.trim();
+  const em   = document.getElementById('em').value.trim();
+  const st   = document.getElementById('st').value;
+  const vt   = (document.querySelector('input[name="vt"]:checked')||{}).value||'';
+  const vdesc= document.getElementById('vdesc').value.trim();
+  const vdate= document.getElementById('vdate').value;
+  const cdateEl=document.getElementById('cdate');
+  const cdate= cdateEl ? cdateEl.value : '';
+  const clocEl=document.getElementById('cloc');
+  const cloc = clocEl ? clocEl.value.trim() : '';
+  const county= clocEl ? (clocEl.dataset.county||'') : '';
+  const cdl  = (document.querySelector('input[name="cdl"]:checked')||{}).value||'no';
+  const ts   = (document.querySelector('input[name="ts"]:checked')||{}).value||'';
+  const story= document.getElementById('story').value.trim();
+  const hear = (document.querySelector('input[name="hear"]:checked')||{}).value||'';
+  const ref  = document.getElementById('ref') ? document.getElementById('ref').value.trim() : '';
+
+  /* Show loading state */
+  const btn=document.getElementById('btnNext');
+  const origText=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='Submitting…';
+
+  try {
+    const res = await fetch('/.netlify/functions/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        firstName:     fn,
+        lastName:      ln,
+        phone:         ph,
+        email:         em,
+        state:         st,
+        cdl:           cdl,
+        violationType: vt,
+        violationDesc: vdesc,
+        violationDate: vdate || undefined,
+        courtDate:     cdate || undefined,
+        courtLocation: cloc,
+        county:        county,
+        trafficSchool: ts,
+        story:         story,
+        heardAbout:    hear,
+        referredBy:    ref,
+      })
+    });
+
+    const result = await res.json();
+    if(!res.ok || !result.success) throw new Error(result.error||'Submission failed');
+
+    const cn = result.caseNum;
+
+    /* Show success screen */
+    document.getElementById('sbox').innerHTML=`
+      <div class="srow"><span class="sk">Name</span><span class="sv">${fn} ${ln}</span></div>
+      <div class="srow"><span class="sk">Phone</span><span class="sv">${ph}</span></div>
+      <div class="srow"><span class="sk">Email</span><span class="sv">${em}</span></div>
+      <div class="srow"><span class="sk">State</span><span class="sv">${st}</span></div>
+      <div class="srow"><span class="sk">Violation</span><span class="sv">${vt}</span></div>
+      <div class="srow"><span class="sk">Case #</span><span class="sv"><span class="case-tag">${cn}</span></span></div>
+    `;
+    for(let i=1;i<=TOTAL;i++)document.getElementById('s'+i).classList.remove('active');
+    document.getElementById('cardHead').style.display='none';
+    document.getElementById('cardFoot').style.display='none';
+    document.getElementById('progWrap').style.display='none';
+    document.getElementById('successView').classList.add('show');
+    const rs=document.getElementById('reviewsSection');
+    const fs=document.querySelector('.form-shell');
+    fs.parentNode.insertBefore(rs,fs.nextSibling);
+    rs.style.display='';
+    window.scrollTo({top:0,behavior:'smooth'});
+
+  } catch(err){
+    btn.disabled=false;
+    btn.textContent=origText;
+    alert('Something went wrong submitting your case. Please try again or call us directly.');
+    console.error('Submit error:',err);
+  }
+}
+</script>
+</body>
+</html>

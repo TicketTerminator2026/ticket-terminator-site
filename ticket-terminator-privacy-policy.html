@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy — The Ticket Terminator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#080808;--dark:#0F0F0F;--dark2:#161616;--dark3:#1E1E1E;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --orange:#FF7A00;--red:#D63000;--grad:linear-gradient(135deg,#FF7A00 0%,#D63000 100%);
+  --white:#FFFFFF;--g1:#CCCCCC;--g2:#888888;--g3:#444444;--success:#30D158;
+  --font:'Inter',sans-serif;
+}
+html,body{background:var(--black);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 40px;
+  background:rgba(8,8,8,0.92);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.nav-logo-mark{
+  width:36px;height:36px;background:var(--grad);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+  box-shadow:0 0 18px rgba(255,122,0,0.28),0 2px 8px rgba(0,0,0,0.4);
+}
+.nav-wordmark{display:flex;flex-direction:column;line-height:1;}
+.nav-the{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:2px;}
+.nav-name{font-size:14px;font-weight:900;color:var(--white);letter-spacing:0.2px;}
+.nav-back{font-size:13px;font-weight:600;color:var(--orange);text-decoration:none;display:flex;align-items:center;gap:5px;}
+.nav-back:hover{opacity:0.8;}
+@media(max-width:560px){.nav{padding:14px 18px;}}
+
+/* HERO */
+.pp-hero{
+  padding:110px 20px 48px;text-align:center;
+  background:linear-gradient(180deg,rgba(255,122,0,0.04) 0%,transparent 60%);
+  border-bottom:1px solid var(--border);
+}
+.pp-eyebrow{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:14px;}
+.pp-hero h1{font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:-1.5px;color:var(--white);margin-bottom:10px;}
+.pp-hero p{font-size:14px;color:var(--g2);max-width:480px;margin:0 auto;}
+.pp-updated{display:inline-block;margin-top:14px;font-size:11px;font-weight:600;color:var(--g3);background:var(--dark2);border:1px solid var(--border);border-radius:100px;padding:5px 14px;}
+
+/* CONTENT */
+.pp-wrap{max-width:720px;margin:0 auto;padding:52px 24px 100px;}
+.pp-section{margin-bottom:48px;}
+.pp-section h2{
+  font-size:18px;font-weight:800;color:var(--white);letter-spacing:-0.3px;margin-bottom:14px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);
+}
+.pp-section h2 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pp-section p{font-size:14px;color:var(--g2);line-height:1.8;margin-bottom:12px;}
+.pp-section p:last-child{margin-bottom:0;}
+.pp-section ul{padding-left:18px;margin-bottom:12px;}
+.pp-section ul li{font-size:14px;color:var(--g2);line-height:1.8;margin-bottom:4px;}
+.pp-section ul li::marker{color:var(--orange);}
+.pp-section strong{color:var(--g1);}
+.pp-section a{color:var(--orange);text-decoration:none;}
+.pp-section a:hover{text-decoration:underline;}
+
+/* HIGHLIGHT BOX */
+.pp-highlight{
+  background:rgba(255,122,0,0.05);border:1px solid rgba(255,122,0,0.15);
+  border-radius:14px;padding:18px 20px;margin-bottom:14px;
+}
+.pp-highlight p{margin-bottom:0;}
+
+/* SMS BOX */
+.sms-box{
+  background:var(--dark2);border:1px solid var(--border2);
+  border-radius:14px;padding:20px 22px;margin:14px 0;
+}
+.sms-box .sms-title{font-size:13px;font-weight:800;color:var(--white);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.sms-box ul{padding-left:16px;}
+.sms-box ul li{font-size:13px;color:var(--g2);line-height:1.75;margin-bottom:3px;}
+
+/* FOOTER */
+.pp-footer{
+  text-align:center;padding:24px 20px 40px;
+  font-size:11px;color:rgba(255,255,255,0.17);line-height:1.8;
+  border-top:1px solid var(--border);
+}
+.pp-footer a{color:var(--orange);text-decoration:none;opacity:0.7;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="ticket-terminator-intake-form.html">
+    <div class="nav-logo-mark">⚖️</div>
+    <div class="nav-wordmark">
+      <span class="nav-the">The</span>
+      <span class="nav-name">TICKET TERMINATOR</span>
+    </div>
+  </a>
+  <a class="nav-back" href="ticket-terminator-intake-form.html">← Back to Form</a>
+</nav>
+
+<!-- HERO -->
+<div class="pp-hero">
+  <div class="pp-eyebrow">Legal · Privacy</div>
+  <h1>Privacy Policy</h1>
+  <p>How Ticket Terminator HQ collects, uses, and protects your personal information.</p>
+  <div class="pp-updated">Last Updated: June 21, 2026</div>
+</div>
+
+<!-- CONTENT -->
+<div class="pp-wrap">
+
+  <!-- 1. Who We Are -->
+  <div class="pp-section">
+    <h2><span>1.</span> Who We Are</h2>
+    <p><strong>The Ticket Terminator LLC</strong>, doing business as <strong>The Ticket Terminator</strong> ("Company," "we," "us," or "our"), is a legal referral agency that connects individuals with licensed attorneys for traffic citations, DUI defense, and related matters. We operate at <a href="https://ticketterminatorhq.com">ticketterminatorhq.com</a> and can be reached at <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>.</p>
+    <p>This Privacy Policy describes how we handle personal information submitted through our intake form, website, and any related communications — including SMS text messages.</p>
+  </div>
+
+  <!-- 2. Information We Collect -->
+  <div class="pp-section">
+    <h2><span>2.</span> Information We Collect</h2>
+    <p>When you submit a case review request or contact us, we may collect the following:</p>
+    <ul>
+      <li><strong>Identity information:</strong> First name, last name</li>
+      <li><strong>Contact information:</strong> Phone number, email address, state</li>
+      <li><strong>Case information:</strong> Violation type, violation date, court date, court location, case description, prior traffic school attendance, CDL status</li>
+      <li><strong>Documents:</strong> Photos or PDFs of your traffic ticket and driver's license or government-issued ID</li>
+      <li><strong>Referral information:</strong> How you heard about us and who referred you (if applicable)</li>
+      <li><strong>Communication preferences:</strong> Your preferred method of contact (phone, text, email)</li>
+    </ul>
+    <p>We do not collect payment card numbers, Social Security numbers, or financial account information through this form.</p>
+  </div>
+
+  <!-- 3. How We Use Your Information -->
+  <div class="pp-section">
+    <h2><span>3.</span> How We Use Your Information</h2>
+    <p>We use the information you provide to:</p>
+    <ul>
+      <li>Review your case and determine eligibility for legal representation</li>
+      <li>Connect you with a licensed attorney in your jurisdiction</li>
+      <li>Contact you via phone, email, or SMS regarding your case status and next steps</li>
+      <li>Send appointment reminders and court date notifications</li>
+      <li>Maintain internal records of your case for operational purposes</li>
+      <li>Comply with applicable legal and regulatory obligations</li>
+    </ul>
+    <p>We do not use your information for advertising, profiling, or any purpose unrelated to your case.</p>
+  </div>
+
+  <!-- 4. SMS / Text Messaging -->
+  <div class="pp-section">
+    <h2><span>4.</span> SMS &amp; Text Messaging</h2>
+    <div class="pp-highlight">
+      <p>By checking the SMS consent box on our intake form, you expressly consent to receive text messages (SMS) from Ticket Terminator HQ at the phone number you provide. This consent is not a condition of service.</p>
+    </div>
+
+    <div class="sms-box">
+      <div class="sms-title">SMS Program Details</div>
+      <ul>
+        <li><strong>Message types:</strong> Case status updates, specialist follow-ups, court date reminders, and general case communication</li>
+        <li><strong>Frequency:</strong> Message frequency varies based on your case activity. You may receive multiple messages per week during active case periods.</li>
+        <li><strong>Rates:</strong> Message and data rates may apply depending on your carrier and plan</li>
+        <li><strong>Opt-out:</strong> Reply <strong>STOP</strong> to any message to unsubscribe. You will receive one confirmation message and no further texts.</li>
+        <li><strong>Help:</strong> Reply <strong>HELP</strong> for assistance, or contact us at <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></li>
+        <li><strong>Carriers:</strong> Supported carriers include AT&amp;T, Verizon, T-Mobile, Sprint, and most major US carriers. Carrier is not liable for delayed or undelivered messages.</li>
+      </ul>
+    </div>
+
+    <p>Revoking SMS consent does not affect your legal representation or our ability to reach you by other means you have authorized.</p>
+  </div>
+
+  <!-- 5. How We Share Your Information -->
+  <div class="pp-section">
+    <h2><span>5.</span> How We Share Your Information</h2>
+    <p>We share your personal information only as described below:</p>
+    <ul>
+      <li><strong>Attorneys and legal partners:</strong> We share your case information with licensed attorneys who will represent you or evaluate your case. These attorneys are bound by professional confidentiality obligations.</li>
+      <li><strong>Service providers:</strong> We use third-party tools (such as case management software, cloud storage, and communication platforms) to operate our business. These providers access your data only as necessary to perform services on our behalf and are contractually prohibited from using it for any other purpose.</li>
+      <li><strong>Legal requirements:</strong> We may disclose your information when required by law, court order, or government authority.</li>
+      <li><strong>Business transfers:</strong> If Ticket Terminator HQ is acquired or merges with another entity, your information may be transferred as part of that transaction. We will notify you before your data is subject to a different privacy policy.</li>
+    </ul>
+    <p><strong>We do not sell, rent, or trade your personal information to any third party for marketing purposes. Ever.</strong></p>
+  </div>
+
+  <!-- 6. Data Security -->
+  <div class="pp-section">
+    <h2><span>6.</span> Data Security</h2>
+    <p>We take reasonable technical and organizational measures to protect your personal information from unauthorized access, disclosure, or misuse. This includes:</p>
+    <ul>
+      <li>Encrypted transmission of all form submissions (HTTPS/TLS)</li>
+      <li>Access controls limiting who within our organization can view case files</li>
+      <li>Secure cloud storage for uploaded documents</li>
+    </ul>
+    <p>No method of data transmission or storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security. In the event of a data breach that affects your rights, we will notify you as required by applicable law.</p>
+  </div>
+
+  <!-- 7. Data Retention -->
+  <div class="pp-section">
+    <h2><span>7.</span> Data Retention</h2>
+    <p>We retain your personal information for as long as necessary to fulfill the purposes described in this policy, including maintaining your case record and complying with legal obligations. Closed cases are typically retained for a period not to exceed one (1) year from case closure, after which records are securely deleted.</p>
+    <p>If you would like us to delete your information before the standard retention period, you may contact us at <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>.</p>
+  </div>
+
+  <!-- 8. Your Rights -->
+  <div class="pp-section">
+    <h2><span>8.</span> Your Rights</h2>
+    <p>Depending on your state of residence, you may have the right to:</p>
+    <ul>
+      <li>Access the personal information we hold about you</li>
+      <li>Request correction of inaccurate information</li>
+      <li>Request deletion of your personal information</li>
+      <li>Opt out of SMS communications at any time by replying STOP</li>
+      <li>Lodge a complaint with your state's data protection authority</li>
+    </ul>
+    <p>To exercise any of these rights, contact us at <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>. We will respond within 30 days.</p>
+  </div>
+
+  <!-- 9. California Residents -->
+  <div class="pp-section">
+    <h2><span>9.</span> California Residents (CCPA)</h2>
+    <p>If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information we collect and share, the right to delete your personal information, and the right to opt out of the sale of your personal information (we do not sell personal information).</p>
+    <p>To submit a CCPA request, contact us at <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a> with the subject line "CCPA Request."</p>
+  </div>
+
+  <!-- 10. Attorney-Client Relationship -->
+  <div class="pp-section">
+    <h2><span>10.</span> Attorney-Client Relationship Disclaimer</h2>
+    <p>Ticket Terminator HQ is a legal referral agency, not a law firm. Submitting our intake form and sharing information with us does not create an attorney-client relationship. An attorney-client relationship is only established when you formally retain an attorney and execute a fee agreement. All information shared prior to that point is handled with discretion but is not covered by attorney-client privilege solely by virtue of being shared with Ticket Terminator HQ.</p>
+  </div>
+
+  <!-- 11. Changes -->
+  <div class="pp-section">
+    <h2><span>11.</span> Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. When we do, we will update the "Last Updated" date at the top of this page. Continued use of our services after any changes constitutes your acceptance of the updated policy. For significant changes, we will make reasonable efforts to notify you directly.</p>
+  </div>
+
+  <!-- 12. Contact -->
+  <div class="pp-section">
+    <h2><span>12.</span> Contact Us</h2>
+    <p>If you have any questions, concerns, or requests related to this Privacy Policy, please contact us:</p>
+    <div class="sms-box" style="margin-top:14px;">
+      <div class="sms-title">The Ticket Terminator LLC</div>
+      <ul style="list-style:none;padding:0;">
+        <li>DBA: The Ticket Terminator</li>
+        <li style="margin-top:6px;">📧 <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></li>
+        <li>🌐 <a href="https://ticketterminatorhq.com">ticketterminatorhq.com</a></li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- /pp-wrap -->
+
+<div class="pp-footer">
+  © 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · All Rights Reserved ·
+  <a href="ticket-terminator-intake-form.html">Back to Form</a>
+</div>
+
+</body>
+</html>
