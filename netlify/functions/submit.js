@@ -30,7 +30,7 @@ exports.handler = async function (event) {
 
   const fields = {
     'Case #':                        caseNum,
-    'Status':                        'Lead',
+    'Status':                        '🔵 Lead',
     'Case Type':                     caseTypeMap[data.violationType] || '🚗 Traffic Citation',
     'Date of Intake':                new Date().toISOString().split('T')[0],
     'First Name':                    data.firstName  || '',
@@ -58,11 +58,7 @@ exports.handler = async function (event) {
   try {
     const res = await fetch(
       `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`,
-      {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields }),
-      }
+      { method: 'POST', headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) }
     );
     const result = await res.json();
     if (!res.ok) {
