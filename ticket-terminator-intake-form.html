@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Ticket Terminator — Free Case Review</title>
+<title>The Ticket Terminator â€” Free Case Review</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -26,7 +26,7 @@
 }
 html,body{background:var(--black);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased;min-height:100vh;}
 
-/* ── NAV ── */
+/* â”€â”€ NAV â”€â”€ */
 .nav{
   position:fixed;top:0;left:0;right:0;z-index:200;
   display:flex;align-items:center;justify-content:space-between;
@@ -36,7 +36,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
   border-bottom:1px solid var(--border);
 }
 .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
-/* CSS logo mark — no image background bleed */
+/* CSS logo mark â€” no image background bleed */
 .nav-logo-mark{
   width:40px;height:40px;
   background:var(--grad);
@@ -53,7 +53,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .nav-right a{color:var(--orange);text-decoration:none;font-weight:700;}
 @media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:13px;}.nav-the{font-size:8px;}}
 
-/* ── HERO ── */
+/* â”€â”€ HERO â”€â”€ */
 .hero{
   padding:120px 20px 52px;
   text-align:center;position:relative;overflow:hidden;
@@ -88,7 +88,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
   box-shadow:0 0 8px rgba(48,209,88,0.8);animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
-/* ── REVIEWS ── */
+/* â”€â”€ REVIEWS â”€â”€ */
 .reviews-section{padding:52px 20px 0;max-width:980px;margin:0 auto;}
 .reviews-header{text-align:center;margin-bottom:28px;}
 .g-rating-bar{
@@ -142,10 +142,10 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .rc-g-icon{font-size:11px;}
 .rc-g-text{font-size:10px;color:var(--g3);}
 
-/* ── FORM SHELL ── */
+/* â”€â”€ FORM SHELL â”€â”€ */
 .form-shell{max-width:660px;margin:0 auto;padding:40px 18px 80px;width:100%;}
 
-/* ── PROGRESS ── */
+/* â”€â”€ PROGRESS â”€â”€ */
 .prog-wrap{margin-bottom:28px;}
 .prog-track{display:flex;align-items:flex-start;width:100%;}
 .prog-step{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
@@ -164,7 +164,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .prog-lbl.active{color:var(--orange);}
 .prog-lbl.done{color:var(--success);}
 
-/* ── CARD ── */
+/* â”€â”€ CARD â”€â”€ */
 .card{
   background:var(--dark);border:1px solid var(--border);border-radius:24px;overflow:hidden;
   box-shadow:0 40px 100px rgba(0,0,0,0.55),0 0 0 1px rgba(255,255,255,0.02);
@@ -187,12 +187,12 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
   .card-head,.card-body,.card-foot{padding-left:18px;padding-right:18px;}
 }
 
-/* ── FIELD GROUPS ── */
+/* â”€â”€ FIELD GROUPS â”€â”€ */
 .fg{display:none;flex-direction:column;gap:20px;animation:fIn 0.38s ease;}
 .fg.active{display:flex;}
 @keyframes fIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 
-/* ── FIELDS ── */
+/* â”€â”€ FIELDS â”€â”€ */
 .field{display:flex;flex-direction:column;gap:7px;width:100%;}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:480px){.frow{grid-template-columns:1fr;}}
@@ -217,7 +217,7 @@ select{
 }
 select option{background:var(--dark2);color:var(--white);}
 
-/* ── PILLS ── */
+/* â”€â”€ PILLS â”€â”€ */
 .pill-row{display:flex;flex-wrap:wrap;gap:8px;}
 .pill{cursor:pointer;user-select:none;}
 .pill input{display:none;}
@@ -233,7 +233,7 @@ select option{background:var(--dark2);color:var(--white);}
   box-shadow:0 0 0 1px rgba(255,122,0,0.16);
 }
 
-/* ── VIOLATION GRID ── */
+/* â”€â”€ VIOLATION GRID â”€â”€ */
 /* Default: 2 cols, expands to 4 on wider screens */
 .vgrid{
   display:grid;
@@ -259,7 +259,7 @@ select option{background:var(--dark2);color:var(--white);}
 .vlabel{font-size:11px;font-weight:700;color:var(--g2);}
 .vcard input:checked~.vcard-body .vlabel{color:var(--white);}
 
-/* ── HEAR GRID ── */
+/* â”€â”€ HEAR GRID â”€â”€ */
 .hgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
 @media(max-width:400px){.hgrid{grid-template-columns:1fr;}}
 .hopt{cursor:pointer;user-select:none;}
@@ -275,7 +275,7 @@ select option{background:var(--dark2);color:var(--white);}
   box-shadow:0 0 0 1px rgba(255,122,0,0.16);
 }
 
-/* ── UPLOAD ── */
+/* â”€â”€ UPLOAD â”€â”€ */
 .upload-zone{
   border:2px dashed rgba(255,255,255,0.1);border-radius:16px;
   padding:28px 20px;text-align:center;cursor:pointer;background:var(--dark2);
@@ -297,7 +297,7 @@ select option{background:var(--dark2);color:var(--white);}
 .up-row.show{display:flex;}
 .rm{color:var(--orange);cursor:pointer;font-weight:800;font-size:14px;}
 
-/* ── INFO BOX ── */
+/* â”€â”€ INFO BOX â”€â”€ */
 .ibox{
   display:flex;align-items:flex-start;gap:11px;
   background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);
@@ -306,14 +306,14 @@ select option{background:var(--dark2);color:var(--white);}
 }
 .ibox-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
 
-/* ── CONDITIONAL ── */
+/* â”€â”€ CONDITIONAL â”€â”€ */
 .cond{display:none;}
 .cond.show{display:flex;flex-direction:column;gap:7px;animation:fIn 0.3s ease;}
 
-/* ── DIVIDER ── */
+/* â”€â”€ DIVIDER â”€â”€ */
 .divider{height:1px;background:var(--border);width:100%;}
 
-/* ── BUTTONS ── */
+/* â”€â”€ BUTTONS â”€â”€ */
 .btn-back{
   flex-shrink:0;padding:13px 18px;background:transparent;
   border:1.5px solid rgba(255,255,255,0.09);border-radius:12px;
@@ -333,7 +333,7 @@ select option{background:var(--dark2);color:var(--white);}
 .btn-next.green{background:linear-gradient(135deg,#30D158,#23A344);box-shadow:0 4px 28px rgba(48,209,88,0.28);}
 .btn-next.green:hover{box-shadow:0 8px 36px rgba(48,209,88,0.42);}
 
-/* ── SUCCESS ── */
+/* â”€â”€ SUCCESS â”€â”€ */
 .success-view{display:none;padding:56px 36px 48px;text-align:center;animation:fIn 0.5s ease;}
 .success-view.show{display:block;}
 .success-ring{
@@ -358,7 +358,7 @@ select option{background:var(--dark2);color:var(--white);}
 }
 .btn-ghost:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
 
-/* ── AUTOCOMPLETE ── */
+/* â”€â”€ AUTOCOMPLETE â”€â”€ */
 .ac-wrap{position:relative;width:100%;}
 .ac-drop{
   position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:500;
@@ -390,14 +390,14 @@ select option{background:var(--dark2);color:var(--white);}
 .ac-autofill.show{display:flex;}
 .ac-autofill strong{color:var(--white);}
 
-/* ── EMAIL VALIDATION ── */
+/* â”€â”€ EMAIL VALIDATION â”€â”€ */
 .field-hint{font-size:11px;font-weight:600;margin-top:5px;display:none;padding-left:2px;}
 .field-hint.ok{display:block;color:var(--success);}
 .field-hint.err{display:block;color:#FF453A;}
 input.valid{border-color:rgba(48,209,88,0.45)!important;}
 input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 
-/* ── TCPA CHECKBOX ── */
+/* â”€â”€ TCPA CHECKBOX â”€â”€ */
 .cb-wrap{display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:14px 16px;background:rgba(255,255,255,0.025);border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;transition:border-color 0.2s,background 0.2s;}
 .cb-wrap:hover{border-color:rgba(255,122,0,0.25);}
 .cb-wrap.checked{border-color:rgba(255,122,0,0.45);background:rgba(255,122,0,0.04);}
@@ -413,13 +413,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 .cb-req-note{font-size:11px;color:#FF453A;font-weight:600;margin-top:6px;display:none;padding-left:2px;}
 .cb-req-note.show{display:block;}
 
-/* ── FOOTER ── */
+/* â”€â”€ FOOTER â”€â”€ */
 .legal-note{text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,0.18);line-height:1.7;max-width:500px;margin-left:auto;margin-right:auto;}
 .legal-note a{color:var(--orange);text-decoration:none;opacity:0.8;}
 .page-footer{text-align:center;padding:32px 20px 50px;font-size:11px;color:rgba(255,255,255,0.17);line-height:1.8;border-top:1px solid var(--border);margin-top:0;}
 .page-footer a{color:var(--orange);text-decoration:none;opacity:0.7;}
 
-/* ── LANGUAGE TOGGLE ── */
+/* â”€â”€ LANGUAGE TOGGLE â”€â”€ */
 .lang-toggle{display:flex;align-items:center;border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;overflow:hidden;flex-shrink:0;}
 .lang-btn{padding:5px 11px;cursor:pointer;background:transparent;border:none;font-family:var(--font);font-size:11px;font-weight:800;color:var(--g2);transition:all 0.18s;letter-spacing:0.8px;line-height:1;}
 .lang-btn.active{background:var(--grad);color:var(--white);}
@@ -428,14 +428,14 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 </head>
 <body>
 
-<!-- ── NAV ── -->
+<!-- â”€â”€ NAV â”€â”€ -->
 <nav class="nav">
   <a class="nav-brand" href="#">
-    <div class="nav-logo-mark">⚖️</div>
+    <div class="nav-logo-mark">âš–ï¸</div>
     <div class="nav-wordmark">
       <span class="nav-the">The</span>
       <span class="nav-name">TICKET TERMINATOR</span>
-      <span class="nav-tag" data-i18n="navTag">No Court · No Points · No Stress</span>
+      <span class="nav-tag" data-i18n="navTag">No Court Â· No Points Â· No Stress</span>
     </div>
   </a>
   <div style="display:flex;align-items:center;gap:14px;">
@@ -447,14 +447,14 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
   </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- â”€â”€ HERO â”€â”€ -->
 <div class="hero">
   <div class="hero-glow"></div>
   <div class="hero-inner">
     <div class="eyebrow" data-i18n="eyebrow">Free Case Review &mdash; Real Specialists, Not a Bot</div>
     <h1><span data-i18n="h1Line1">Got a Ticket?</span><br/><span class="grad-text" data-i18n="h1Line2">Don't Pay It Yet.</span></h1>
-    <div class="hero-tagline" data-i18n="heroTagline">No Court &nbsp;·&nbsp; No Points &nbsp;·&nbsp; No Stress</div>
-    <p class="hero-sub" data-i18n-html="heroSub">One ticket can raise your insurance rates for 3–5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> — and most clients never set foot in a courthouse.</p>
+    <div class="hero-tagline" data-i18n="heroTagline">No Court &nbsp;Â·&nbsp; No Points &nbsp;Â·&nbsp; No Stress</div>
+    <p class="hero-sub" data-i18n-html="heroSub">One ticket can raise your insurance rates for 3â€“5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> â€” and most clients never set foot in a courthouse.</p>
     <div class="trust-row">
       <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill1">All 50 States</span></div>
       <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill2">1,000+ Cases Won</span></div>
@@ -466,7 +466,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
   </div>
 </div>
 
-<!-- ── GOOGLE REVIEWS (step 1 + post-submission) ── -->
+<!-- â”€â”€ GOOGLE REVIEWS (step 1 + post-submission) â”€â”€ -->
 <div class="reviews-section" id="reviewsSection">
   <div class="reviews-header">
     <div style="display:flex;justify-content:center;margin-bottom:16px;">
@@ -474,14 +474,14 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <span class="g-logo">
           <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
         </span>
-        <span class="g-stars">★★★★★</span>
+        <span class="g-stars">â˜…â˜…â˜…â˜…â˜…</span>
         <div>
           <div class="g-count">4.9 out of 5</div>
           <div class="g-count-sub" data-i18n="gCountSub">200+ verified reviews</div>
         </div>
       </div>
     </div>
-    <div class="reviews-title"><span data-i18n="reviewsTitle">What Our Clients Are Saying</span> <span>★</span></div>
+    <div class="reviews-title"><span data-i18n="reviewsTitle">What Our Clients Are Saying</span> <span>â˜…</span></div>
   </div>
 
   <div class="reviews-grid">
@@ -494,13 +494,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">Sarah M.</div>
           <div class="rc-date">2 weeks ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
-        "I was going 82 in a 65 and completely panicked. Ticket Terminator handled <strong>everything</strong> — I never had to set foot in a court. No points, no fine increase. I'm telling every driver I know!"
+        "I was going 82 in a 65 and completely panicked. Ticket Terminator handled <strong>everything</strong> â€” I never had to set foot in a court. No points, no fine increase. I'm telling every driver I know!"
       </div>
-      <div class="rc-badge">✓ Speeding Ticket Dismissed</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ Speeding Ticket Dismissed</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
     <!-- Review 2 -->
@@ -511,13 +511,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">Marcus R.</div>
           <div class="rc-date">1 month ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
-        "My CDL was on the line — a ticket could've cost me my job. These guys got it <strong>completely dismissed</strong>. Worth every penny and then some. Professional, fast, and they actually picked up the phone."
+        "My CDL was on the line â€” a ticket could've cost me my job. These guys got it <strong>completely dismissed</strong>. Worth every penny and then some. Professional, fast, and they actually picked up the phone."
       </div>
-      <div class="rc-badge">✓ CDL Ticket Dismissed</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ CDL Ticket Dismissed</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
     <!-- Review 3 -->
@@ -528,13 +528,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">Jennifer L.</div>
           <div class="rc-date">3 weeks ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
         "Called at 9pm panicking about a red light camera ticket with a court date two weeks out. <strong>Someone actually answered.</strong> They walked me through everything and resolved it in under 3 weeks. 10/10."
       </div>
-      <div class="rc-badge">✓ Red Light Case Resolved</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ Red Light Case Resolved</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
     <!-- Review 4 -->
@@ -545,13 +545,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">Carlos V.</div>
           <div class="rc-date">1 month ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
         "Paid $175 to save my insurance from going up $400+ a year. <strong>Best ROI of my life.</strong> The whole process was smooth, I filled out one form, and they handled everything else. Zero stress."
       </div>
-      <div class="rc-badge">✓ Insurance Rates Protected</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ Insurance Rates Protected</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
     <!-- Review 5 -->
@@ -562,13 +562,13 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">Priya K.</div>
           <div class="rc-date">2 months ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
         "I had a DUI and was completely lost. They connected me with an amazing attorney who fought hard for me. The outcome was <strong>far better than I expected.</strong> Forever grateful for this team."
       </div>
-      <div class="rc-badge">✓ DUI Defense — Best Outcome</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ DUI Defense â€” Best Outcome</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
     <!-- Review 6 -->
@@ -579,19 +579,19 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="rc-name">David T.</div>
           <div class="rc-date">3 months ago</div>
         </div>
-        <div class="rc-stars">★★★★★</div>
+        <div class="rc-stars">â˜…â˜…â˜…â˜…â˜…</div>
       </div>
       <div class="rc-body">
-        "Second time using Ticket Terminator. First time was a speeding ticket, this time a stop sign violation. Both handled quickly, <strong>no court, no points.</strong> Won't use anyone else — loyal customer for life."
+        "Second time using Ticket Terminator. First time was a speeding ticket, this time a stop sign violation. Both handled quickly, <strong>no court, no points.</strong> Won't use anyone else â€” loyal customer for life."
       </div>
-      <div class="rc-badge">✓ Repeat Client — 2 for 2</div>
-      <div class="rc-g-tag"><span class="rc-g-icon">🔍</span><span class="rc-g-text">Posted on Google</span></div>
+      <div class="rc-badge">âœ“ Repeat Client â€” 2 for 2</div>
+      <div class="rc-g-tag"><span class="rc-g-icon">ðŸ”</span><span class="rc-g-text">Posted on Google</span></div>
     </div>
 
   </div>
 </div>
 
-<!-- ── FORM ── -->
+<!-- â”€â”€ FORM â”€â”€ -->
 <div class="form-shell">
 
   <!-- PROGRESS -->
@@ -645,7 +645,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <div class="field">
           <label class="flabel"><span data-i18n="lblSt">State Where You Got the Ticket</span> <span class="req">*</span></label>
           <select id="st">
-            <option value="" data-i18n="optStateDef">— Select State —</option>
+            <option value="" data-i18n="optStateDef">â€” Select State â€”</option>
             <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
             <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
             <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
@@ -664,16 +664,16 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <div class="field">
           <label class="flabel"><span data-i18n="lblCdl">Do you have a CDL (Commercial Driver's License)?</span> <span class="req">*</span></label>
           <div class="pill-row">
-            <label class="pill"><input type="radio" name="cdl" value="yes"/><div class="pill-body" data-i18n="cdlYes">✅ Yes, I have a CDL</div></label>
+            <label class="pill"><input type="radio" name="cdl" value="yes"/><div class="pill-body" data-i18n="cdlYes">âœ… Yes, I have a CDL</div></label>
             <label class="pill"><input type="radio" name="cdl" value="no"/><div class="pill-body" data-i18n="cdlNo">No CDL</div></label>
           </div>
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblContact">Best way to reach you</span> <span class="req">*</span></label>
           <div class="pill-row">
-            <label class="pill"><input type="radio" name="contact" value="phone"/><div class="pill-body" data-i18n="cPhone">📞 Phone Call</div></label>
-            <label class="pill"><input type="radio" name="contact" value="text"/><div class="pill-body" data-i18n="cText">💬 Text / SMS</div></label>
-            <label class="pill"><input type="radio" name="contact" value="email"/><div class="pill-body" data-i18n="cEmail">✉️ Email</div></label>
+            <label class="pill"><input type="radio" name="contact" value="phone"/><div class="pill-body" data-i18n="cPhone">ðŸ“ž Phone Call</div></label>
+            <label class="pill"><input type="radio" name="contact" value="text"/><div class="pill-body" data-i18n="cText">ðŸ’¬ Text / SMS</div></label>
+            <label class="pill"><input type="radio" name="contact" value="email"/><div class="pill-body" data-i18n="cEmail">âœ‰ï¸ Email</div></label>
           </div>
         </div>
       </div>
@@ -683,20 +683,20 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <div class="field">
           <label class="flabel"><span data-i18n="lblVtype">Type of Ticket or Violation</span> <span class="req">*</span></label>
           <div class="vgrid">
-            <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚗</span><span class="vlabel" data-i18n="vtSpeeding">Speeding</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="DUI/DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚦</span><span class="vlabel" data-i18n="vtRed">Red Light</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🛑</span><span class="vlabel" data-i18n="vtStop">Stop Sign</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">⚠️</span><span class="vlabel" data-i18n="vtReckless">Reckless</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Cell Phone" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📱</span><span class="vlabel" data-i18n="vtCell">Cell Phone</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Fix-It Ticket" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🔧</span><span class="vlabel" data-i18n="vtFix">Fix-It</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Other" onchange="showEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📋</span><span class="vlabel" data-i18n="vtOther">Other</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸš—</span><span class="vlabel" data-i18n="vtSpeeding">Speeding</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="DUI/DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸº</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸš¦</span><span class="vlabel" data-i18n="vtRed">Red Light</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸ›‘</span><span class="vlabel" data-i18n="vtStop">Stop Sign</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">âš ï¸</span><span class="vlabel" data-i18n="vtReckless">Reckless</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Cell Phone" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸ“±</span><span class="vlabel" data-i18n="vtCell">Cell Phone</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Fix-It Ticket" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸ”§</span><span class="vlabel" data-i18n="vtFix">Fix-It</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Other" onchange="showEl('vdescField')"/><div class="vcard-body"><span class="vemoji">ðŸ“‹</span><span class="vlabel" data-i18n="vtOther">Other</span></div></label>
           </div>
         </div>
         <div class="cond field" id="vdescField">
           <label class="flabel"><span data-i18n="lblVdesc">What is the violation?</span> <span class="req">*</span></label>
-          <textarea id="vdesc" data-i18n-placeholder="phVdesc" placeholder="Include the violation code if you know it — e.g. CVC 22349(b) – Speed over 100mph, VC 14601 – Driving on suspended license, or just describe what you were cited for and we'll identify it."></textarea>
-          <div class="ac-hint" data-i18n="vdescHint">Not sure of the code? No problem — a description is fine.</div>
+          <textarea id="vdesc" data-i18n-placeholder="phVdesc" placeholder="Include the violation code if you know it â€” e.g. CVC 22349(b) â€“ Speed over 100mph, VC 14601 â€“ Driving on suspended license, or just describe what you were cited for and we'll identify it."></textarea>
+          <div class="ac-hint" data-i18n="vdescHint">Not sure of the code? No problem â€” a description is fine.</div>
         </div>
         <div class="field"><label class="flabel"><span data-i18n="lblVdate">Date of Violation</span> <span class="req">*</span></label><input type="date" id="vdate"/></div>
         <div class="field">
@@ -725,12 +725,12 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <div class="field">
           <label class="flabel" data-i18n="lblCourtLoc">Which court is this case assigned to?</label>
           <div class="ac-wrap">
-            <input type="text" id="cloc" data-i18n-placeholder="phCourtLoc" placeholder="Type court name, city, or county…" autocomplete="off"/>
+            <input type="text" id="cloc" data-i18n-placeholder="phCourtLoc" placeholder="Type court name, city, or countyâ€¦" autocomplete="off"/>
             <div class="ac-drop" id="acDrop"></div>
           </div>
           <div class="ac-hint" id="acHint" data-i18n="acHint">Select your state in Step 1 to enable court search</div>
           <div class="ac-autofill" id="acFill">
-            <span>✓</span>
+            <span>âœ“</span>
             <span id="acFillText"></span>
           </div>
         </div>
@@ -738,39 +738,39 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 
       <!-- STEP 3: Documents -->
       <div class="fg" id="s3">
-        <div class="ibox"><span class="ibox-icon">🔒</span><span data-i18n="s3ibox">Everything you upload is encrypted and seen only by your assigned specialist. 100% confidential.</span></div>
+        <div class="ibox"><span class="ibox-icon">ðŸ”’</span><span data-i18n="s3ibox">Everything you upload is encrypted and seen only by your assigned specialist. 100% confidential.</span></div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblTicketUp">Upload Your Ticket or Court Notice</span> <span class="req">*</span></label>
           <div class="upload-zone" id="tz" onclick="document.getElementById('tf').click()">
-            <input type="file" id="tf" accept="image/*,.pdf" onchange="handleUp(this,'tz','trow','tn','ti','📄')"/>
-            <span class="uz-icon" id="ti">📄</span>
+            <input type="file" id="tf" accept="image/*,.pdf" onchange="handleUp(this,'tz','trow','tn','ti','ðŸ“„')"/>
+            <span class="uz-icon" id="ti">ðŸ“„</span>
             <div class="uz-title" id="uzTicketTitle" data-i18n="uzTicketTitle">Drop your ticket here</div>
-            <div class="uz-sub" data-i18n-html="uzSub">or <span>browse to upload</span> · JPG, PNG, PDF</div>
+            <div class="uz-sub" data-i18n-html="uzSub">or <span>browse to upload</span> Â· JPG, PNG, PDF</div>
           </div>
-          <div class="up-row" id="trow"><span>📎<span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz",'trow','ti','🐄')">✕</span></div>
+          <div class="up-row" id="trow"><span>ðŸ“Ž<span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz",'trow','ti','ðŸ„')">âœ•</span></div>
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblIdUp">Upload Your Driver's License or ID</span> <span class="req">*</span></label>
           <div class="upload-zone" id="iz" onclick="document.getElementById('idf').click()">
-            <input type="file" id="idf" accept="image/*,.pdf" onchange="handleUp(this,'iz','irow','iname','ii','🪪')"/>
-            <span class="uz-icon" id="ii">🪪</span>
+            <input type="file" id="idf" accept="image/*,.pdf" onchange="handleUp(this,'iz','irow','iname','ii','ðŸªª')"/>
+            <span class="uz-icon" id="ii">ðŸªª</span>
             <div class="uz-title" id="uzIdTitle" data-i18n="uzIdTitle">Drop your ID here</div>
-            <div class="uz-sub" id="uzIdSebt"><span data-i18n="uzBrowse">or browse to upload</span> · JPG, PNG, PDF</div>
+            <div class="uz-sub" id="uzIdSebt"><span data-i18n="uzBrowse">or browse to upload</span> Â· JPG, PNG, PDF</div>
           </div>
-          <div class="up-row" id="irow"><span>📎</span><span id="iname"></span><span class="rm" onclick="clearUp(event,'idf','iz','irow','ii','🪪')">✕</span></div>
+          <div class="up-row" id="irow"><span>ðŸ“Ž</span><span id="iname"></span><span class="rm" onclick="clearUp(event,'idf','iz','irow','ii','ðŸªª')">âœ•</span></div>
         </div>
       </div>
 
       <!-- STEP 4: Details -->
       <div class="fg" id="s4">
-        <div class="ibox"><span class="ibox-icon">⚖️</span><span data-i18n="s4ibox1">This is your chance to tell your story. Our specialists read every word — the more you share, the stronger the case we can build for you.</span></div>
+        <div class="ibox"><span class="ibox-icon">âš–ï¸</span><span data-i18n="s4ibox1">This is your chance to tell your story. Our specialists read every word â€” the more you share, the stronger the case we can build for you.</span></div>
         <div class="field">
-          <label class="flabel" data-i18n="lblStory">Help us build your defense — tell us everything</label>
+          <label class="flabel" data-i18n="lblStory">Help us build your defense â€” tell us everything</label>
           <textarea id="story" data-i18n-placeholder="phStory" placeholder="Walk us through exactly what happened: Where were you coming from and where were you going? What were the road and weather conditions? Did the officer give you a reason for the stop? Were there any witnesses? Were you given a chance to explain yourself? Did anything seem off about how the stop was handled?
 
 The details that feel small to you can be the ones that win your case. Don't leave anything out." style="min-height:160px;"></textarea>
         </div>
-        <div class="ibox" style="background:rgba(255,122,0,0.04);border-color:rgba(255,122,0,0.15);"><span class="ibox-icon">💡</span><span data-i18n-html="s4ibox2">Our attorneys look for procedural errors, faulty equipment, improper signage, and officer conduct — your account helps us find them. <strong style="color:var(--white)">Be specific and honest.</strong></span></div>
+        <div class="ibox" style="background:rgba(255,122,0,0.04);border-color:rgba(255,122,0,0.15);"><span class="ibox-icon">ðŸ’¡</span><span data-i18n-html="s4ibox2">Our attorneys look for procedural errors, faulty equipment, improper signage, and officer conduct â€” your account helps us find them. <strong style="color:var(--white)">Be specific and honest.</strong></span></div>
         <div class="divider"></div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblTs">Traffic School in the past 18 months from your violation date?</span> <span class="req">*</span></label>
@@ -787,136 +787,136 @@ The details that feel small to you can be the ones that win your case. Don't lea
         <div class="field">
           <label class="flabel" data-i18n="lblHear">How did you hear about us?</label>
           <div class="hgrid">
-            <label class="hopt"><input type="radio" name="hear" value="Google" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearGoogle">🔍 Google Search</div></label>
-            <label class="hopt"><input type="radio" name="hear" value="Social Media" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearSocial">📱 Social Media</div></label>
-            <label class="hopt"><input type="radio" name="hear" value="Friend/Family" onchange="showEl('refField')"/><div class="hopt-body" data-i18n="hearFriend">👥 Friend / Family</div></label>
-            <label class="hopt"><input type="radio" name="hear" value="Repeat Client" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearRepeat">🔁 Repeat Client</div></label>
-            <label class="hopt"><input type="radio" name="hear" value="Yelp/Reviews" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearYelp">⭐ Yelp / Reviews</div></label>
-            <label class="hopt"><input type="radio" name="hear" value="Other" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearOther">💬 Other</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Google" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearGoogle">ðŸ” Google Search</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Social Media" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearSocial">ðŸ“± Social Media</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Friend/Family" onchange="showEl('refField')"/><div class="hopt-body" data-i18n="hearFriend">ðŸ‘¥ Friend / Family</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Repeat Client" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearRepeat">ðŸ” Repeat Client</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Yelp/Reviews" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearYelp">â­ Yelp / Reviews</div></label>
+            <label class="hopt"><input type="radio" name="hear" value="Other" onchange="hideEl('refField')"/><div class="hopt-body" data-i18n="hearOther">ðŸ’¬ Other</div></label>
           </div>
         </div>
         <div class="cond field" id="refField"><label class="flabel" data-i18n="lblRef">Who referred you?</label><input type="text" id="ref" data-i18n-placeholder="phRef" placeholder="Name or contact info of the person who sent you"/></div>
         <div class="field">
           <label class="cb-wrap" id="tcpaWrap" onclick="toggleTCPA()">
             <input type="checkbox" id="tcpa"/>
-            <div class="cb-box"><span class="cb-check">✓</span></div>
+            <div class="cb-box"><span class="cb-check">âœ“</span></div>
             <span class="cb-text" id="tcpaText" data-i18n-html="tcpaText">I agree to receive SMS text messages from Ticket Terminator HQ regarding my case at the phone number provided above. Message &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span></span>
           </label>
-          <div class="cb-req-note" id="tcpaNote" data-i18n="tcpaNote">⚠ Please check this box to continue.</div>
+          <div class="cb-req-note" id="tcpaNote" data-i18n="tcpaNote">âš  Please check this box to continue.</div>
         </div>
-        <div class="ibox"><span class="ibox-icon">📋</span><span data-i18n="s5ibox">By submitting, a Ticket Terminator specialist may contact you to discuss your case. This does not create an attorney-client relationship.</span></div>
+        <div class="ibox"><span class="ibox-icon">ðŸ“‹</span><span data-i18n="s5ibox">By submitting, a Ticket Terminator specialist may contact you to discuss your case. This does not create an attorney-client relationship.</span></div>
       </div>
 
       <!-- SUCCESS -->
       <div class="success-view" id="successView">
-        <div class="success-ring">✓</div>
+        <div class="success-ring">âœ“</div>
         <h2 data-i18n="successTitle">You're in the system.</h2>
-        <p data-i18n-html="successP">Your case is received. A specialist will review your ticket and reach out — usually within <strong style="color:var(--white)">1–3 hours</strong>.</p>
+        <p data-i18n-html="successP">Your case is received. A specialist will review your ticket and reach out â€” usually within <strong style="color:var(--white)">1â€“3 hours</strong>.</p>
         <div class="sbox" id="sbox"></div>
         <div class="s-acts">
           <button class="btn-ghost" onclick="location.reload()" data-i18n="btnAnother">Submit Another Case</button>
-          <button class="btn-next" style="flex:0 0 auto;padding:13px 22px;" onclick="alert('Case portal coming soon!')" data-i18n="btnPortal">My Case Portal →</button>
+          <button class="btn-next" style="flex:0 0 auto;padding:13px 22px;" onclick="alert('Case portal coming soon!')" data-i18n="btnPortal">My Case Portal â†’</button>
         </div>
       </div>
 
     </div><!-- /card-body -->
 
     <div class="card-foot" id="cardFoot">
-      <button class="btn-back" id="btnBack" onclick="go(-1)" data-i18n="btnBack">← Back</button>
-      <button class="btn-next" id="btnNext" onclick="go(1)" data-i18n="btnNextDefault">Continue →</button>
+      <button class="btn-back" id="btnBack" onclick="go(-1)" data-i18n="btnBack">â† Back</button>
+      <button class="btn-next" id="btnNext" onclick="go(1)" data-i18n="btnNextDefault">Continue â†’</button>
     </div>
   </div><!-- /card -->
 
-  <p class="legal-note" data-i18n-html="legalNote">🔒 Encrypted &amp; 100% confidential · Ticket Terminator HQ'· <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></p>
+  <p class="legal-note" data-i18n-html="legalNote">ðŸ”’ Encrypted &amp; 100% confidential Â· Ticket Terminator HQ'Â· <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></p>
 </div>
 
 <div class="page-footer" data-i18n-html="pageFooter">
-  © 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · All Rights Reserved · <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> · <a href="#">Terms</a>
+  Â© 2026 The Ticket Terminator LLC Â· DBA The Ticket Terminator Â· All Rights Reserved Â· <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> Â· <a href="#">Terms</a>
 </div>
 
 <script>
-/* ── COURT DATA ── */
+/* â”€â”€ COURT DATA â”€â”€ */
 const COURTS={
 'California':[
-  {n:'Los Angeles Superior Court – Central District',ci:'Los Angeles',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Airport Courthouse',ci:'Los Angeles',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Chatsworth Courthouse',ci:'Chatsworth',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Compton Courthouse',ci:'Compton',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Downey Courthouse',ci:'Downey',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – East Los Angeles Courthouse',ci:'Los Angeles',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – El Monte Courthouse',ci:'El Monte',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Glendale Courthouse',ci:'Glendale',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Inglewood Courthouse',ci:'Inglewood',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Long Beach Courthouse',ci:'Long Beach',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Norwalk Courthouse',ci:'Norwalk',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Pasadena Courthouse',ci:'Pasadena',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Pomona Courthouse South',ci:'Pomona',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – San Fernando Courthouse',ci:'San Fernando',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Santa Monica Courthouse',ci:'Santa Monica',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Stanley Mosk Courthouse',ci:'Los Angeles',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Torrance Courthouse',ci:'Torrance',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Van Nuys Courthouse East',ci:'Van Nuys',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Van Nuys Courthouse West',ci:'Van Nuys',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – West Covina Courthouse',ci:'West Covina',co:'Los Angeles'},
-  {n:'Los Angeles Superior Court – Whittier Courthouse',ci:'Whittier',co:'Los Angeles'},
-  {n:'San Diego Superior Court – Central Division',ci:'San Diego',co:'San Diego'},
-  {n:'San Diego Superior Court – East County (El Cajon)',ci:'El Cajon',co:'San Diego'},
-  {n:'San Diego Superior Court – North County (Vista)',ci:'Vista',co:'San Diego'},
-  {n:'San Diego Superior Court – South County (Chula Vista)',ci:'Chula Vista',co:'San Diego'},
-  {n:'San Diego Superior Court – Kearny Mesa Courthouse',ci:'San Diego',co:'San Diego'},
-  {n:'San Diego Superior Court – Hall of Justice',ci:'San Diego',co:'San Diego'},
-  {n:'Orange County Superior Court – Central Justice Center',ci:'Santa Ana',co:'Orange'},
-  {n:'Orange County Superior Court – Harbor Justice Center',ci:'Newport Beach',co:'Orange'},
-  {n:'Orange County Superior Court – North Justice Center',ci:'Fullerton',co:'Orange'},
-  {n:'Orange County Superior Court – West Justice Center',ci:'Westminster',co:'Orange'},
-  {n:'Orange County Superior Court – Lamoreaux Justice Center',ci:'Orange',co:'Orange'},
-  {n:'Riverside Superior Court – Banning Courthouse',ci:'Banning',co:'Riverside'},
-  {n:'Riverside Superior Court – Corona Courthouse',ci:'Corona',co:'Riverside'},
-  {n:'Riverside Superior Court – Hemet Courthouse',ci:'Hemet',co:'Riverside'},
-  {n:'Riverside Superior Court – Indio Courthouse',ci:'Indio',co:'Riverside'},
-  {n:'Riverside Superior Court – Main Street Courthouse',ci:'Riverside',co:'Riverside'},
-  {n:'Riverside Superior Court – Murrieta Courthouse',ci:'Murrieta',co:'Riverside'},
-  {n:'Riverside Superior Court – Palm Springs Courthouse',ci:'Palm Springs',co:'Riverside'},
-  {n:'Riverside Superior Court – Temecula Courthouse',ci:'Temecula',co:'Riverside'},
-  {n:'San Bernardino Superior Court – Barstow Courthouse',ci:'Barstow',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Big Bear Courthouse',ci:'Big Bear Lake',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Chino Courthouse',ci:'Chino',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Fontana Courthouse',ci:'Fontana',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Joshua Tree Courthouse',ci:'Joshua Tree',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Needles Courthouse',ci:'Needles',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Rancho Cucamonga Courthouse',ci:'Rancho Cucamonga',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Central Courthouse',ci:'San Bernardino',co:'San Bernardino'},
-  {n:'San Bernardino Superior Court – Victorville Courthouse',ci:'Victorville',co:'San Bernardino'},
-  {n:'Sacramento Superior Court – Gordon D. Schaber Courthouse',ci:'Sacramento',co:'Sacramento'},
-  {n:'Sacramento Superior Court – William R. Ridgeway Courthouse',ci:'Sacramento',co:'Sacramento'},
-  {n:'Alameda County Superior Court – René C. Davidson Courthouse',ci:'Oakland',co:'Alameda'},
-  {n:'Alameda County Superior Court – Fremont Hall of Justice',ci:'Fremont',co:'Alameda'},
-  {n:'Alameda County Superior Court – Hayward Hall of Justice',ci:'Hayward',co:'Alameda'},
-  {n:'Alameda County Superior Court – Pleasanton Courthouse',ci:'Pleasanton',co:'Alameda'},
-  {n:'Santa Clara Superior Court – Downtown San Jose',ci:'San Jose',co:'Santa Clara'},
-  {n:'Santa Clara Superior Court – Palo Alto Courthouse',ci:'Palo Alto',co:'Santa Clara'},
-  {n:'Santa Clara Superior Court – Sunnyvale-McKinley Courthouse',ci:'Sunnyvale',co:'Santa Clara'},
-  {n:'Contra Costa Superior Court – A.F. Bray Courthouse',ci:'Martinez',co:'Contra Costa'},
-  {n:'Contra Costa Superior Court – Pittsburg Courthouse',ci:'Pittsburg',co:'Contra Costa'},
-  {n:'Contra Costa Superior Court – Richmond Courthouse',ci:'Richmond',co:'Contra Costa'},
-  {n:'Contra Costa Superior Court – Walnut Creek Courthouse',ci:'Walnut Creek',co:'Contra Costa'},
+  {n:'Los Angeles Superior Court â€“ Central District',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Airport Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Chatsworth Courthouse',ci:'Chatsworth',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Compton Courthouse',ci:'Compton',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Downey Courthouse',ci:'Downey',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ East Los Angeles Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ El Monte Courthouse',ci:'El Monte',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Glendale Courthouse',ci:'Glendale',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Inglewood Courthouse',ci:'Inglewood',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Long Beach Courthouse',ci:'Long Beach',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Norwalk Courthouse',ci:'Norwalk',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Pasadena Courthouse',ci:'Pasadena',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Pomona Courthouse South',ci:'Pomona',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ San Fernando Courthouse',ci:'San Fernando',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Santa Monica Courthouse',ci:'Santa Monica',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Stanley Mosk Courthouse',ci:'Los Angeles',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Torrance Courthouse',ci:'Torrance',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Van Nuys Courthouse East',ci:'Van Nuys',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Van Nuys Courthouse West',ci:'Van Nuys',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ West Covina Courthouse',ci:'West Covina',co:'Los Angeles'},
+  {n:'Los Angeles Superior Court â€“ Whittier Courthouse',ci:'Whittier',co:'Los Angeles'},
+  {n:'San Diego Superior Court â€“ Central Division',ci:'San Diego',co:'San Diego'},
+  {n:'San Diego Superior Court â€“ East County (El Cajon)',ci:'El Cajon',co:'San Diego'},
+  {n:'San Diego Superior Court â€“ North County (Vista)',ci:'Vista',co:'San Diego'},
+  {n:'San Diego Superior Court â€“ South County (Chula Vista)',ci:'Chula Vista',co:'San Diego'},
+  {n:'San Diego Superior Court â€“ Kearny Mesa Courthouse',ci:'San Diego',co:'San Diego'},
+  {n:'San Diego Superior Court â€“ Hall of Justice',ci:'San Diego',co:'San Diego'},
+  {n:'Orange County Superior Court â€“ Central Justice Center',ci:'Santa Ana',co:'Orange'},
+  {n:'Orange County Superior Court â€“ Harbor Justice Center',ci:'Newport Beach',co:'Orange'},
+  {n:'Orange County Superior Court â€“ North Justice Center',ci:'Fullerton',co:'Orange'},
+  {n:'Orange County Superior Court â€“ West Justice Center',ci:'Westminster',co:'Orange'},
+  {n:'Orange County Superior Court â€“ Lamoreaux Justice Center',ci:'Orange',co:'Orange'},
+  {n:'Riverside Superior Court â€“ Banning Courthouse',ci:'Banning',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Corona Courthouse',ci:'Corona',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Hemet Courthouse',ci:'Hemet',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Indio Courthouse',ci:'Indio',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Main Street Courthouse',ci:'Riverside',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Murrieta Courthouse',ci:'Murrieta',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Palm Springs Courthouse',ci:'Palm Springs',co:'Riverside'},
+  {n:'Riverside Superior Court â€“ Temecula Courthouse',ci:'Temecula',co:'Riverside'},
+  {n:'San Bernardino Superior Court â€“ Barstow Courthouse',ci:'Barstow',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Big Bear Courthouse',ci:'Big Bear Lake',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Chino Courthouse',ci:'Chino',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Fontana Courthouse',ci:'Fontana',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Joshua Tree Courthouse',ci:'Joshua Tree',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Needles Courthouse',ci:'Needles',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Rancho Cucamonga Courthouse',ci:'Rancho Cucamonga',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Central Courthouse',ci:'San Bernardino',co:'San Bernardino'},
+  {n:'San Bernardino Superior Court â€“ Victorville Courthouse',ci:'Victorville',co:'San Bernardino'},
+  {n:'Sacramento Superior Court â€“ Gordon D. Schaber Courthouse',ci:'Sacramento',co:'Sacramento'},
+  {n:'Sacramento Superior Court â€“ William R. Ridgeway Courthouse',ci:'Sacramento',co:'Sacramento'},
+  {n:'Alameda County Superior Court â€“ RenÃ© C. Davidson Courthouse',ci:'Oakland',co:'Alameda'},
+  {n:'Alameda County Superior Court â€“ Fremont Hall of Justice',ci:'Fremont',co:'Alameda'},
+  {n:'Alameda County Superior Court â€“ Hayward Hall of Justice',ci:'Hayward',co:'Alameda'},
+  {n:'Alameda County Superior Court â€“ Pleasanton Courthouse',ci:'Pleasanton',co:'Alameda'},
+  {n:'Santa Clara Superior Court â€“ Downtown San Jose',ci:'San Jose',co:'Santa Clara'},
+  {n:'Santa Clara Superior Court â€“ Palo Alto Courthouse',ci:'Palo Alto',co:'Santa Clara'},
+  {n:'Santa Clara Superior Court â€“ Sunnyvale-McKinley Courthouse',ci:'Sunnyvale',co:'Santa Clara'},
+  {n:'Contra Costa Superior Court â€“ A.F. Bray Courthouse',ci:'Martinez',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court â€“ Pittsburg Courthouse',ci:'Pittsburg',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court â€“ Richmond Courthouse',ci:'Richmond',co:'Contra Costa'},
+  {n:'Contra Costa Superior Court â€“ Walnut Creek Courthouse',ci:'Walnut Creek',co:'Contra Costa'},
   {n:'San Francisco Superior Court',ci:'San Francisco',co:'San Francisco'},
   {n:'Marin County Superior Court',ci:'San Rafael',co:'Marin'},
-  {n:'San Mateo Superior Court – Hall of Justice',ci:'Redwood City',co:'San Mateo'},
+  {n:'San Mateo Superior Court â€“ Hall of Justice',ci:'Redwood City',co:'San Mateo'},
   {n:'Sonoma County Superior Court',ci:'Santa Rosa',co:'Sonoma'},
   {n:'Napa County Superior Court',ci:'Napa',co:'Napa'},
-  {n:'Solano County Superior Court – Fairfield Courthouse',ci:'Fairfield',co:'Solano'},
-  {n:'Solano County Superior Court – Vallejo Branch',ci:'Vallejo',co:'Solano'},
-  {n:'Fresno Superior Court – B.F. Sisk Courthouse',ci:'Fresno',co:'Fresno'},
-  {n:'Fresno Superior Court – Clovis Courthouse',ci:'Clovis',co:'Fresno'},
-  {n:'Kern County Superior Court – Bakersfield Courthouse',ci:'Bakersfield',co:'Kern'},
-  {n:'Kern County Superior Court – Delano Courthouse',ci:'Delano',co:'Kern'},
-  {n:'Kern County Superior Court – Mojave Courthouse',ci:'Mojave',co:'Kern'},
-  {n:'Kern County Superior Court – Ridgecrest Courthouse',ci:'Ridgecrest',co:'Kern'},
-  {n:'Kern County Superior Court – Taft Courthouse',ci:'Taft',co:'Kern'},
-  {n:'Ventura County Superior Court – Ventura Courthouse',ci:'Ventura',co:'Ventura'},
-  {n:'Ventura County Superior Court – Simi Valley Courthouse',ci:'Simi Valley',co:'Ventura'},
-  {n:'Ventura County Superior Court – Oxnard Courthouse',ci:'Oxnard',co:'Ventura'},
+  {n:'Solano County Superior Court â€“ Fairfield Courthouse',ci:'Fairfield',co:'Solano'},
+  {n:'Solano County Superior Court â€“ Vallejo Branch',ci:'Vallejo',co:'Solano'},
+  {n:'Fresno Superior Court â€“ B.F. Sisk Courthouse',ci:'Fresno',co:'Fresno'},
+  {n:'Fresno Superior Court â€“ Clovis Courthouse',ci:'Clovis',co:'Fresno'},
+  {n:'Kern County Superior Court â€“ Bakersfield Courthouse',ci:'Bakersfield',co:'Kern'},
+  {n:'Kern County Superior Court â€“ Delano Courthouse',ci:'Delano',co:'Kern'},
+  {n:'Kern County Superior Court â€“ Mojave Courthouse',ci:'Mojave',co:'Kern'},
+  {n:'Kern County Superior Court â€“ Ridgecrest Courthouse',ci:'Ridgecrest',co:'Kern'},
+  {n:'Kern County Superior Court â€“ Taft Courthouse',ci:'Taft',co:'Kern'},
+  {n:'Ventura County Superior Court â€“ Ventura Courthouse',ci:'Ventura',co:'Ventura'},
+  {n:'Ventura County Superior Court â€“ Simi Valley Courthouse',ci:'Simi Valley',co:'Ventura'},
+  {n:'Ventura County Superior Court â€“ Oxnard Courthouse',ci:'Oxnard',co:'Ventura'},
   {n:'Stanislaus County Superior Court',ci:'Modesto',co:'Stanislaus'},
   {n:'San Joaquin Superior Court',ci:'Stockton',co:'San Joaquin'},
   {n:'Merced County Superior Court',ci:'Merced',co:'Merced'},
@@ -942,8 +942,8 @@ const COURTS={
   {n:'Mendocino County Superior Court',ci:'Ukiah',co:'Mendocino'},
   {n:'Monterey County Superior Court',ci:'Salinas',co:'Monterey'},
   {n:'San Luis Obispo Superior Court',ci:'San Luis Obispo',co:'San Luis Obispo'},
-  {n:'Santa Barbara Superior Court – Santa Barbara Courthouse',ci:'Santa Barbara',co:'Santa Barbara'},
-  {n:'Santa Barbara Superior Court – North County Courthouse',ci:'Santa Maria',co:'Santa Barbara'},
+  {n:'Santa Barbara Superior Court â€“ Santa Barbara Courthouse',ci:'Santa Barbara',co:'Santa Barbara'},
+  {n:'Santa Barbara Superior Court â€“ North County Courthouse',ci:'Santa Maria',co:'Santa Barbara'},
   {n:'Santa Cruz County Superior Court',ci:'Santa Cruz',co:'Santa Cruz'},
   {n:'Imperial County Superior Court',ci:'El Centro',co:'Imperial'},
   {n:'Mono County Superior Court',ci:'Bridgeport',co:'Mono'},
@@ -959,51 +959,51 @@ const COURTS={
   {n:'Sierra County Superior Court',ci:'Downieville',co:'Sierra'},
 ],
 'Florida':[
-  {n:'Miami-Dade County Court – Richard E. Gerstein Justice Building',ci:'Miami',co:'Miami-Dade'},
-  {n:'Miami-Dade County Court – Lawson E. Thomas Courthouse Center',ci:'Miami',co:'Miami-Dade'},
-  {n:'Miami-Dade County Court – North Dade Justice Center',ci:'Miami Gardens',co:'Miami-Dade'},
-  {n:'Miami-Dade County Court – South Dade Justice Center',ci:'Homestead',co:'Miami-Dade'},
-  {n:'Miami-Dade County Court – Hialeah Division',ci:'Hialeah',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court â€“ Richard E. Gerstein Justice Building',ci:'Miami',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court â€“ Lawson E. Thomas Courthouse Center',ci:'Miami',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court â€“ North Dade Justice Center',ci:'Miami Gardens',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court â€“ South Dade Justice Center',ci:'Homestead',co:'Miami-Dade'},
+  {n:'Miami-Dade County Court â€“ Hialeah Division',ci:'Hialeah',co:'Miami-Dade'},
   {n:'Broward County Courthouse',ci:'Fort Lauderdale',co:'Broward'},
-  {n:'Broward County Court – Lauderhill Branch',ci:'Lauderhill',co:'Broward'},
+  {n:'Broward County Court â€“ Lauderhill Branch',ci:'Lauderhill',co:'Broward'},
   {n:'Palm Beach County Courthouse',ci:'West Palm Beach',co:'Palm Beach'},
-  {n:'Palm Beach County Court – South County Courthouse',ci:'Delray Beach',co:'Palm Beach'},
-  {n:'Palm Beach County Court – North County Courthouse',ci:'Palm Beach Gardens',co:'Palm Beach'},
+  {n:'Palm Beach County Court â€“ South County Courthouse',ci:'Delray Beach',co:'Palm Beach'},
+  {n:'Palm Beach County Court â€“ North County Courthouse',ci:'Palm Beach Gardens',co:'Palm Beach'},
   {n:'Hillsborough County Courthouse',ci:'Tampa',co:'Hillsborough'},
-  {n:'Hillsborough County Court – East Courthouse',ci:'Tampa',co:'Hillsborough'},
-  {n:'Hillsborough County Court – Plant City Division',ci:'Plant City',co:'Hillsborough'},
+  {n:'Hillsborough County Court â€“ East Courthouse',ci:'Tampa',co:'Hillsborough'},
+  {n:'Hillsborough County Court â€“ Plant City Division',ci:'Plant City',co:'Hillsborough'},
   {n:'Orange County Courthouse',ci:'Orlando',co:'Orange'},
-  {n:'Orange County Court – South Orange Courthouse',ci:'Orlando',co:'Orange'},
+  {n:'Orange County Court â€“ South Orange Courthouse',ci:'Orlando',co:'Orange'},
   {n:'Pinellas County Justice Center',ci:'Clearwater',co:'Pinellas'},
-  {n:'Pinellas County Court – St. Petersburg Courthouse',ci:'St. Petersburg',co:'Pinellas'},
+  {n:'Pinellas County Court â€“ St. Petersburg Courthouse',ci:'St. Petersburg',co:'Pinellas'},
   {n:'Duval County Courthouse',ci:'Jacksonville',co:'Duval'},
   {n:'Lee County Justice Center',ci:'Fort Myers',co:'Lee'},
-  {n:'Lee County Court – Cape Coral Annex',ci:'Cape Coral',co:'Lee'},
+  {n:'Lee County Court â€“ Cape Coral Annex',ci:'Cape Coral',co:'Lee'},
   {n:'Polk County Courthouse',ci:'Bartow',co:'Polk'},
-  {n:'Polk County Court – Lakeland Branch',ci:'Lakeland',co:'Polk'},
+  {n:'Polk County Court â€“ Lakeland Branch',ci:'Lakeland',co:'Polk'},
   {n:'Brevard County Courthouse',ci:'Titusville',co:'Brevard'},
-  {n:'Brevard County Court – Viera Courthouse',ci:'Viera',co:'Brevard'},
-  {n:'Brevard County Court – Melbourne Courthouse',ci:'Melbourne',co:'Brevard'},
+  {n:'Brevard County Court â€“ Viera Courthouse',ci:'Viera',co:'Brevard'},
+  {n:'Brevard County Court â€“ Melbourne Courthouse',ci:'Melbourne',co:'Brevard'},
   {n:'Volusia County Courthouse',ci:'DeLand',co:'Volusia'},
-  {n:'Volusia County Court – Daytona Beach Division',ci:'Daytona Beach',co:'Volusia'},
+  {n:'Volusia County Court â€“ Daytona Beach Division',ci:'Daytona Beach',co:'Volusia'},
   {n:'Seminole County Civil Courthouse',ci:'Sanford',co:'Seminole'},
   {n:'Sarasota County Courthouse',ci:'Sarasota',co:'Sarasota'},
-  {n:'Sarasota County Court – Venice Division',ci:'Venice',co:'Sarasota'},
+  {n:'Sarasota County Court â€“ Venice Division',ci:'Venice',co:'Sarasota'},
   {n:'Manatee County Judicial Center',ci:'Bradenton',co:'Manatee'},
   {n:'Collier County Courthouse',ci:'Naples',co:'Collier'},
   {n:'Escambia County Courthouse',ci:'Pensacola',co:'Escambia'},
   {n:'Santa Rosa County Courthouse',ci:'Milton',co:'Santa Rosa'},
   {n:'Okaloosa County Courthouse',ci:'Crestview',co:'Okaloosa'},
-  {n:'Okaloosa County Court – Fort Walton Beach Division',ci:'Fort Walton Beach',co:'Okaloosa'},
+  {n:'Okaloosa County Court â€“ Fort Walton Beach Division',ci:'Fort Walton Beach',co:'Okaloosa'},
   {n:'Alachua County Courthouse',ci:'Gainesville',co:'Alachua'},
   {n:'Marion County Courthouse',ci:'Ocala',co:'Marion'},
   {n:'St. Lucie County Courthouse',ci:'Fort Pierce',co:'St. Lucie'},
-  {n:'St. Lucie County Court – Port St. Lucie Branch',ci:'Port St. Lucie',co:'St. Lucie'},
+  {n:'St. Lucie County Court â€“ Port St. Lucie Branch',ci:'Port St. Lucie',co:'St. Lucie'},
   {n:'Indian River County Courthouse',ci:'Vero Beach',co:'Indian River'},
   {n:'Martin County Courthouse',ci:'Stuart',co:'Martin'},
   {n:'St. Johns County Courthouse',ci:'St. Augustine',co:'St. Johns'},
   {n:'Pasco County Courthouse',ci:'New Port Richey',co:'Pasco'},
-  {n:'Pasco County Court – Dade City Courthouse',ci:'Dade City',co:'Pasco'},
+  {n:'Pasco County Court â€“ Dade City Courthouse',ci:'Dade City',co:'Pasco'},
   {n:'Hernando County Courthouse',ci:'Brooksville',co:'Hernando'},
   {n:'Citrus County Courthouse',ci:'Inverness',co:'Citrus'},
   {n:'Lake County Courthouse',ci:'Tavares',co:'Lake'},
@@ -1044,8 +1044,8 @@ const COURTS={
   {n:'Liberty County Courthouse',ci:'Bristol',co:'Liberty'},
 ],
 'New York':[
-  {n:'New York Supreme Court – New York County (Manhattan)',ci:'New York',co:'New York (Manhattan)'},
-  {n:'New York Criminal Court – Manhattan',ci:'New York',co:'New York (Manhattan)'},
+  {n:'New York Supreme Court â€“ New York County (Manhattan)',ci:'New York',co:'New York (Manhattan)'},
+  {n:'New York Criminal Court â€“ Manhattan',ci:'New York',co:'New York (Manhattan)'},
   {n:'Kings County Supreme Court (Brooklyn)',ci:'Brooklyn',co:'Kings (Brooklyn)'},
   {n:'Kings County Criminal Court (Brooklyn)',ci:'Brooklyn',co:'Kings (Brooklyn)'},
   {n:'Queens County Supreme Court',ci:'Jamaica',co:'Queens'},
@@ -1056,7 +1056,7 @@ const COURTS={
   {n:'Nassau County Supreme Court',ci:'Mineola',co:'Nassau'},
   {n:'Nassau County District Court',ci:'Mineola',co:'Nassau'},
   {n:'Suffolk County Supreme Court',ci:'Riverhead',co:'Suffolk'},
-  {n:'Suffolk County District Court – Central Islip',ci:'Central Islip',co:'Suffolk'},
+  {n:'Suffolk County District Court â€“ Central Islip',ci:'Central Islip',co:'Suffolk'},
   {n:'Westchester County Supreme Court',ci:'White Plains',co:'Westchester'},
   {n:'Erie County Supreme Court',ci:'Buffalo',co:'Erie'},
   {n:'Monroe County Supreme Court',ci:'Rochester',co:'Monroe'},
@@ -1414,8 +1414,8 @@ const COURTS={
   {n:'Douglas County District Court',ci:'Minden',co:'Douglas'},
   {n:'Douglas County Justice Court',ci:'Minden',co:'Douglas'},
   {n:'Lyon County District Court',ci:'Yerington',co:'Lyon'},
-  {n:'Lyon County Justice Court – Silver Springs',ci:'Silver Springs',co:'Lyon'},
-  {n:'Lyon County Justice Court – Fernley',ci:'Fernley',co:'Lyon'},
+  {n:'Lyon County Justice Court â€“ Silver Springs',ci:'Silver Springs',co:'Lyon'},
+  {n:'Lyon County Justice Court â€“ Fernley',ci:'Fernley',co:'Lyon'},
   {n:'Churchill County District Court',ci:'Fallon',co:'Churchill'},
   {n:'Humboldt County District Court',ci:'Winnemucca',co:'Humboldt'},
   {n:'Pershing County District Court',ci:'Lovelock',co:'Pershing'},
@@ -1426,7 +1426,7 @@ const COURTS={
   {n:'Spring Creek Justice Court',ci:'Spring Creek',co:'Elko'},
   {n:'White Pine County District Court',ci:'Ely',co:'White Pine'},
   {n:'Nye County District Court',ci:'Tonopah',co:'Nye'},
-  {n:'Nye County Justice Court – Pahrump',ci:'Pahrump',co:'Nye'},
+  {n:'Nye County Justice Court â€“ Pahrump',ci:'Pahrump',co:'Nye'},
   {n:'Mineral County District Court',ci:'Hawthorne',co:'Mineral'},
   {n:'Esmeralda County District Court',ci:'Goldfield',co:'Esmeralda'},
   {n:'Storey County District Court',ci:'Virginia City',co:'Storey'},
@@ -1518,7 +1518,7 @@ const COURTS={
 ],
 };
 
-/* ── COURT AUTOCOMPLETE#�─ ─ */
+/* â”€â”€ COURT AUTOCOMPLETE#‘â”€ â”€ */
 let activeCourts=[];
 let acIdx=-1;
 
@@ -1559,7 +1559,7 @@ function initCourtAC(){
       c.co.toLowerCase().includes(q)
     ).slice(0,12);
     if(!matches.length){
-      drop.innerHTML='<div class="ac-none">No courts found — try a different spelling</div>';
+      drop.innerHTML='<div class="ac-none">No courts found â€” try a different spelling</div>';
       drop.classList.add('open');
       return;
     }
@@ -1567,7 +1567,7 @@ function initCourtAC(){
     drop.innerHTML=matches.map((c,i)=>
       `<div class="ac-item" data-i="${i}" data-n="${c.n}" data-ci="${c.ci}" data-co="${c.co}">
         <div class="ac-court">${c.n}</div>
-        <div class="ac-meta">${c.ci} · ${c.co} County</div>
+        <div class="ac-meta">${c.ci} Â· ${c.co} County</div>
       </div>`
     ).join('');
     drop.classList.add('open');
@@ -1601,7 +1601,7 @@ function initCourtAC(){
     inp.value=name;
     drop.classList.remove('open');
     drop.innerHTML='';
-    fillTxt.innerHTML='<strong>'+city+'</strong> · '+county+' County';
+    fillTxt.innerHTML='<strong>'+city+'</strong> Â· '+county+' County';
     fill.classList.add('show');
     hint.textContent='';
     acIdx=-1;
@@ -1612,7 +1612,7 @@ function initCourtAC(){
 }
 initCourtAC();
 
-/* ── PHONE FORMATTER ── */
+/* â”€â”€ PHONE FORMATTER â”€â”€ */
 document.getElementById('ph').addEventListener('input',function(e){
   let raw=e.target.value.replace(/\D/g,'').substring(0,10);
   let fmt='';
@@ -1623,7 +1623,7 @@ document.getElementById('ph').addEventListener('input',function(e){
   e.target.value=fmt;
 });
 
-/* ── EMAIL VALIDATOR ── */
+/* â”€â”€ EMAIL VALIDATOR â”€â”€ */
 const emEl=document.getElementById('em');
 const emHint=document.getElementById('emHint');
 function validateEmail(v){return/^[^s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());}
@@ -1632,7 +1632,7 @@ emEl.addEventListener('input',function(){
   if(v.length===0){emHint.className='field-hint';emHint.textContent='';this.classList.remove('valid','invalid');return;}
   const T=TRACSLATIONS[currentLang];
   if(validateEmail(v)){
-    emHint.className='field-hint ok';emHint.textContent=T.emOk||'✓ Looks good';
+    emHint.className='field-hint ok';emHint.textContent=T.emOk||'âœ“ Looks good';
     this.classList.add('valid');this.classList.remove('invalid');
   } else {
     emHint.className='field-hint err';emHint.textContent=T.emErr||'Please enter a valid email address';
@@ -1648,7 +1648,7 @@ emEl.addEventListener('blur',function(){
   }
 });
 
-/* ── TCPA TOGGLE ── */
+/* â”€â”€ TCPA TOGGLE â”€â”€ */
 function toggleTCPA(){
   const cb=document.getElementById('tcpa');
   const wrap=document.getElementById('tcpaWrap');
@@ -1670,7 +1670,7 @@ function refresh(){
   for(let i=1;i<=TOTAL;i++){
     const n=document.getElementById('pn'+i);
     const l=document.getElementById('pl'+i);
-    if(i<step){n.className='prog-node done';n.textContent='✓';}
+    if(i<step){n.className='prog-node done';n.textContent='âœ“';}
     else if(i===step){n.className='prog-node active';n.textContent=i;}
     else{n.className='prog-node';n.textContent=i;}
     l.className='prog-lbl'+(i<step?' done':i===step?' active':'');
@@ -1694,14 +1694,29 @@ function go(dir){
 function showEl(id){const e=document.getElementById(id);if(e)e.classList.add('show');}
 function hideEl(id){const e=document.getElementById(id);if(e)e.classList.remove('show');}
 function handleUp(inp,zid,rid,nid,iid,def){
-  if(!inp.fp.files||!inp.files[0])return;
+  if(!inp.files||!inp.files[0])return;
   const f=inp.files[0];
+  if(f.size > 8*1024*1024){
+    alert('File is too large (max 8MB). Please compress the image and try again.');
+    inp.value='';
+    return;
+  }
   document.getElementById(nid).textContent=f.name;
   document.getElementById(rid).classList.add('show');
   const z=document.getElementById(zid);z.classList.add('done');
   document.getElementById(iid).textContent='✅';
   z.querySelector('.uz-title').textContent=currentLang==='es'?'¡Archivo adjunto!':'File attached!';
   z.querySelector('.uz-sub').innerHTML=f.name;
+}
+function readFileAsBase64(inputId){
+  return new Promise((resolve)=>{
+    const inp=document.getElementById(inputId);
+    if(!inp||!inp.files||!inp.files[0]){resolve(null);return;}
+    const reader=new FileReader();
+    reader.onload=e=>resolve({data:e.target.result,name:inp.files[0].name});
+    reader.onerror=()=>resolve(null);
+    reader.readAsDataURL(inp.files[0]);
+  });
 }
 function clearUp(e,fid,zid,rid,iid,def){
   e.stopPropagation();
@@ -1710,7 +1725,7 @@ function clearUp(e,fid,zid,rid,iid,def){
   const z=document.getElementById(zid);z.classList.remove('done');
   document.getElementById(iid).textContent=def;
   const T=TRANSLATIONS[currentLang];
-  z.querySelector('.uz-title').textContent=def==='📄'?T.uzTicketTitle:T.uzIdTitle;
+  z.querySelector('.uz-title').textContent=def==='ðŸ“„'?T.uzTicketTitle:T.uzIdTitle;
   z.querySelector('.uz-sub').innerHTML=T.uzSub;
 }
 ['tz','iz'].forEach(zid=>{
@@ -1722,7 +1737,7 @@ function clearUp(e,fid,zid,rid,iid,def){
     const isT=zid==='tz';
     const fi=document.getElementById(isT?'tf':'idf');
     const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);fi.files=dt.files;
-    handleUp(fi,zid,isT?'trow':'irow',isT?'tn':'iname',isT?'ti':'ii',isT?'📄':'🪪');
+    handleUp(fi,zid,isT?'trow':'irow',isT?'tn':'iname',isT?'ti':'ii',isT?'ðŸ“„':'ðŸªª');
   });
 });
 async function submit(){
@@ -1763,6 +1778,12 @@ async function submit(){
   btn.disabled=true;
   btn.textContent=TRANSLATIONS[currentLang].btnSubmitting;
 
+
+  /* Read uploaded files as base64 */
+  const [ticketFile, idFile] = await Promise.all([
+    readFileAsBase64('tf'),
+    readFileAsBase64('idf'),
+  ]);
   try {
     const res = await fetch('/.netlify/functions/submit',{
       method:'POST',
@@ -1784,6 +1805,10 @@ async function submit(){
         story:         story,
         heardAbout:    hear,
         referredBy:    ref,
+        ticketPhotoBase64:  ticketFile ? ticketFile.data : undefined,
+        ticketPhotoName:    ticketFile ? ticketFile.name : undefined,
+        idPhotoBase64:      idFile     ? idFile.data     : undefined,
+        idPhotoName:        idFile     ? idFile.name     : undefined,
       })
     });
 
@@ -1821,16 +1846,16 @@ async function submit(){
   }
 }
 
-/* ── TRANSLATIONS ── */
+/* â”€â”€ TRANSLATIONS â”€â”€ */
 const TRANSLATIONS={
   en:{
-    navTag:'No Court · No Points · No Stress',
+    navTag:'No Court Â· No Points Â· No Stress',
     navCall:'Questions? <a href="tel:+1">Call Us Now</a>',
-    eyebrow:'Free Case Review — Real Specialists, Not a Bot',
+    eyebrow:'Free Case Review â€” Real Specialists, Not a Bot',
     h1Line1:'Got a Ticket?',
     h1Line2:"Don't Pay It Yet.",
-    heroTagline:'No Court · No Points · No Stress',
-    heroSub:'One ticket can raise your insurance rates for 3–5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> — and most clients never set foot in a courthouse.',
+    heroTagline:'No Court Â· No Points Â· No Stress',
+    heroSub:'One ticket can raise your insurance rates for 3â€“5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> â€” and most clients never set foot in a courthouse.',
     pill1:'All 50 States',pill2:'1,000+ Cases Won',pill3:'Response in Under 3 Hours',
     pill4:'No Upfront Fees',pill5:'100% Confidential',pill6:'CDL & Commercial Drivers',
     gCountSub:'200+ verified reviews',reviewsTitle:'What Our Clients Are Saying',
@@ -1844,17 +1869,17 @@ const TRANSLATIONS={
     ],
     lblFn:'First Name',lblLn:'Last Name',lblPh:'Phone Number',lblEm:'Email Address',
     phFn:'John',phLn:'Smith',phEm:'john@example.com',
-    lblSt:'State Where You Got the Ticket',optStateDef:'— Select State —',
+    lblSt:'State Where You Got the Ticket',optStateDef:'â€” Select State â€”',
     lblCdl:"Do you have a CDL (Commercial Driver's License)?",
-    cdlYes:'✅ Yes, I have a CDL',cdlNo:'No CDL',
+    cdlYes:'âœ… Yes, I have a CDL',cdlNo:'No CDL',
     lblContact:'Best way to reach you',
-    cPhone:'📞 Phone Call',cText:'💬 Text / SMS',cEmail:'✉️ Email',
+    cPhone:'ðŸ“ž Phone Call',cText:'ðŸ’¬ Text / SMS',cEmail:'âœ‰ï¸ Email',
     lblVtype:'Type of Ticket or Violation',
     vtSpeeding:'Speeding',vtDUI:'DUI / DWI',vtRed:'Red Light',vtStop:'Stop Sign',
     vtReckless:'Reckless',vtCell:'Cell Phone',vtFix:'Fix-It',vtOther:'Other',
     lblVdesc:'What is the violation?',
-    phVdesc:"Include the violation code if you know it — e.g. CVC 22349(b) – Speed over 100mph, or just describe what you were cited for and we'll identify it.",
-    vdescHint:"Not sure of the code? No problem — a description is fine.",
+    phVdesc:"Include the violation code if you know it â€” e.g. CVC 22349(b) â€“ Speed over 100mph, or just describe what you were cited for and we'll identify it.",
+    vdescHint:"Not sure of the code? No problem â€” a description is fine.",
     lblVdate:'Date of Violation',
     lblPastDue:'Is this ticket past due or in collections?',
     pdYes:'Yes',pdNo:'No',pdUnsure:'Not Sure',
@@ -1863,105 +1888,105 @@ const TRANSLATIONS={
     lblCourtQ:'Do you have a scheduled court date?',
     lblCourtDate:'Court Date',
     lblCourtLoc:'Which court is this case assigned to?',
-    phCourtLoc:'Type court name, city, or county…',
+    phCourtLoc:'Type court name, city, or countyâ€¦',
     acHint:'Select your state in Step 1 to enable court search',
     s3ibox:'Everything you upload is encrypted and seen only by your assigned specialist. 100% confidential.',
     lblTicketUp:'Upload Your Ticket or Court Notice',
     uzTicketTitle:'Drop your ticket here',
-    uzSub:'or <span>browse to upload</span> · JPG, PNG, PDF',
+    uzSub:'or <span>browse to upload</span> Â· JPG, PNG, PDF',
     lblIdUp:"Upload Your Driver's License or ID",
     uzIdTitle:'Drop your ID here',
-    s4ibox1:'This is your chance to tell your story. Our specialists read every word — the more you share, the stronger the case we can build for you.',
-    lblStory:'Help us build your defense — tell us everything',
-    phStory:'Walk us through exactly what happened…',
-    s4ibox2:'Our attorneys look for procedural errors, faulty equipment, improper signage, and officer conduct — your account helps us find them. <strong style="color:var(--white)">Be specific and honest.</strong>',
+    s4ibox1:'This is your chance to tell your story. Our specialists read every word â€” the more you share, the stronger the case we can build for you.',
+    lblStory:'Help us build your defense â€” tell us everything',
+    phStory:'Walk us through exactly what happenedâ€¦',
+    s4ibox2:'Our attorneys look for procedural errors, faulty equipment, improper signage, and officer conduct â€” your account helps us find them. <strong style="color:var(--white)">Be specific and honest.</strong>',
     lblTs:'Traffic School in the past 18 months from your violation date?',
     tsYes:'Yes, I attended',tsNo:'No',
     lblHear:'How did you hear about us?',
-    hearGoogle:'🔍 Google Search',hearSocial:'📱 Social Media',hearFriend:'👥 Friend / Family',
-    hearRepeat:'🔁 Repeat Client',hearYelp:'⭐ Yelp / Reviews',hearOther:'💬 Other',
+    hearGoogle:'ðŸ” Google Search',hearSocial:'ðŸ“± Social Media',hearFriend:'ðŸ‘¥ Friend / Family',
+    hearRepeat:'ðŸ” Repeat Client',hearYelp:'â­ Yelp / Reviews',hearOther:'ðŸ’¬ Other',
     lblRef:'Who referred you?',phRef:'Name or contact info of the person who sent you',
     tcpaText:'I agree to receive SMS text messages from Ticket Terminator HQ regarding my case at the phone number provided above. Message &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span>',
-    tcpaNote:'⚠ Please check this box to continue.',
+    tcpaNote:'âš  Please check this box to continue.',
     s5ibox:'By submitting, a Ticket Terminator specialist may contact you to discuss your case. This does not create an attorney-client relationship.',
-    btnBack:'← Back',btnNextDefault:'Continue →',btnNextFinal:'Submit My Case ✓',btnSubmitting:'Submitting…',
-    btnAnother:'Submit Another Case',btnPortal:'My Case Portal →',
+    btnBack:'â† Back',btnNextDefault:'Continue â†’',btnNextFinal:'Submit My Case âœ“',btnSubmitting:'Submittingâ€¦',
+    btnAnother:'Submit Another Case',btnPortal:'My Case Portal â†’',
     successTitle:"You're in the system.",
-    successP:'Your case is received. A specialist will review your ticket and reach out — usually within <strong style="color:var(--white)">1–3 hours</strong>.',
+    successP:'Your case is received. A specialist will review your ticket and reach out â€” usually within <strong style="color:var(--white)">1â€“3 hours</strong>.',
     srowName:'Name',srowPhone:'Phone',srowEmail:'Email',srowState:'State',srowViolation:'Violation',srowCase:'Case #',
-    emOk:'✓ Looks good',emErr:'Please enter a valid email address',
-    legalNote:'🔒 Encrypted &amp; 100% confidential · Ticket Terminator HQ · <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>',
-    pageFooter:'© 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · All Rights Reserved · <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> · <a href="#">Terms</a>',
+    emOk:'âœ“ Looks good',emErr:'Please enter a valid email address',
+    legalNote:'ðŸ”’ Encrypted &amp; 100% confidential Â· Ticket Terminator HQ Â· <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>',
+    pageFooter:'Â© 2026 The Ticket Terminator LLC Â· DBA The Ticket Terminator Â· All Rights Reserved Â· <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> Â· <a href="#">Terms</a>',
   },
   es:{
-    navTag:'Sin Corte · Sin Puntos · Sin Estrés',
-    navCall:'¿Preguntas? <a href="tel:+1">Llámenos Ahora</a>',
-    eyebrow:'Revisión Gratuita — Especialistas Reales, No un Bot',
-    h1Line1:'¿Tienes una Multa?',
-    h1Line2:'No La Pagues Aún.',
-    heroTagline:'Sin Corte · Sin Puntos · Sin Estrés',
-    heroSub:'Una multa puede aumentar tu seguro por 3 a 5 años. Nuestros especialistas luchan contra infracciones de tráfico y casos de DUI en <strong style="color:var(--white)">los 50 estados</strong> — y la mayoría de los clientes nunca pisan un tribunal.',
-    pill1:'Los 50 Estados',pill2:'Más de 1,000 Casos Ganados',pill3:'Respuesta en Menos de 3 Horas',
+    navTag:'Sin Corte Â· Sin Puntos Â· Sin EstrÃ©s',
+    navCall:'Â¿Preguntas? <a href="tel:+1">LlÃ¡menos Ahora</a>',
+    eyebrow:'RevisiÃ³n Gratuita â€” Especialistas Reales, No un Bot',
+    h1Line1:'Â¿Tienes una Multa?',
+    h1Line2:'No La Pagues AÃºn.',
+    heroTagline:'Sin Corte Â· Sin Puntos Â· Sin EstrÃ©s',
+    heroSub:'Una multa puede aumentar tu seguro por 3 a 5 aÃ±os. Nuestros especialistas luchan contra infracciones de trÃ¡fico y casos de DUI en <strong style="color:var(--white)">los 50 estados</strong> â€” y la mayorÃ­a de los clientes nunca pisan un tribunal.',
+    pill1:'Los 50 Estados',pill2:'MÃ¡s de 1,000 Casos Ganados',pill3:'Respuesta en Menos de 3 Horas',
     pill4:'Sin Honorarios Iniciales',pill5:'100% Confidencial',pill6:'CDL y Conductores Comerciales',
-    gCountSub:'Más de 200 reseñas verificadas',reviewsTitle:'Lo Que Dicen Nuestros Clientes',
-    pl1:'Tú',pl2:'Infracción',pl3:'Docs',pl4:'Detalles',pl5:'Enviar',
+    gCountSub:'MÃ¡s de 200 reseÃ±as verificadas',reviewsTitle:'Lo Que Dicen Nuestros Clientes',
+    pl1:'TÃº',pl2:'InfracciÃ³n',pl3:'Docs',pl4:'Detalles',pl5:'Enviar',
     cfg:[null,
-      {eye:'Paso 1 de 5',title:'Empecemos contigo.',sub:'Usaremos esto para contactarte con tu revisión gratuita de caso.'},
-      {eye:'Paso 2 de 5',title:'Cuéntanos sobre tu caso.',sub:'Cada detalle nos ayuda a construir una defensa más sólida para ti.'},
-      {eye:'Paso 3 de 5',title:'Sube tus documentos.',sub:'Una copia de tu multa e ID nos permite revisar tu caso con precisión.'},
-      {eye:'Paso 4 de 5',title:'Un poco más de contexto.',sub:'Ayuda a tu especialista a entender exactamente lo que pasó.'},
-      {eye:'Paso 5 de 5',title:'Casi listo.',sub:'Una última pregunta antes de enviar tu revisión gratuita de caso.'},
+      {eye:'Paso 1 de 5',title:'Empecemos contigo.',sub:'Usaremos esto para contactarte con tu revisiÃ³n gratuita de caso.'},
+      {eye:'Paso 2 de 5',title:'CuÃ©ntanos sobre tu caso.',sub:'Cada detalle nos ayuda a construir una defensa mÃ¡s sÃ³lida para ti.'},
+      {eye:'Paso 3 de 5',title:'Sube tus documentos.',sub:'Una copia de tu multa e ID nos permite revisar tu caso con precisiÃ³n.'},
+      {eye:'Paso 4 de 5',title:'Un poco mÃ¡s de contexto.',sub:'Ayuda a tu especialista a entender exactamente lo que pasÃ³.'},
+      {eye:'Paso 5 de 5',title:'Casi listo.',sub:'Una Ãºltima pregunta antes de enviar tu revisiÃ³n gratuita de caso.'},
     ],
-    lblFn:'Nombre',lblLn:'Apellido',lblPh:'Número de Teléfono',lblEm:'Correo Electrónico',
-    phFn:'Juan',phLn:'Pérez',phEm:'juan@ejemplo.com',
-    lblSt:'Estado Donde Recibiste la Multa',optStateDef:'— Seleccionar Estado —',
-    lblCdl:'¿Tienes una CDL (Licencia de Conductor Comercial)?',
-    cdlYes:'✅ Sí, tengo CDL',cdlNo:'Sin CDL',
+    lblFn:'Nombre',lblLn:'Apellido',lblPh:'NÃºmero de TelÃ©fono',lblEm:'Correo ElectrÃ³nico',
+    phFn:'Juan',phLn:'PÃ©rez',phEm:'juan@ejemplo.com',
+    lblSt:'Estado Donde Recibiste la Multa',optStateDef:'â€” Seleccionar Estado â€”',
+    lblCdl:'Â¿Tienes una CDL (Licencia de Conductor Comercial)?',
+    cdlYes:'âœ… SÃ­, tengo CDL',cdlNo:'Sin CDL',
     lblContact:'Mejor forma de contactarte',
-    cPhone:'📞 Llamada Telefónica',cText:'💬 Mensaje / SMS',cEmail:'✉️ Correo',
-    lblVtype:'Tipo de Multa o Infracción',
-    vtSpeeding:'Exceso de Velocidad',vtDUI:'DUI / DWI',vtRed:'Semáforo Rojo',vtStop:'Señal de Stop',
-    vtReckless:'Conducción Temeraria',vtCell:'Celular',vtFix:'Arreglar',vtOther:'Otro',
-    lblVdesc:'¿Cuál es la infracción?',
-    phVdesc:'Incluye el código de infracción si lo sabes — o simplemente describe lo que pasó y lo identificaremos.',
-    vdescHint:'¿No sabes el código? No hay problema — una descripción es suficiente.',
-    lblVdate:'Fecha de la Infracción',
-    lblPastDue:'¿Está esta multa vencida o en cobranza?',
-    pdYes:'Sí',pdNo:'No',pdUnsure:'No Estoy Seguro',
-    lblPaid:'¿Ya pagaste esta multa?',
-    paidYes:'Sí, la pagué',paidNo:'Todavía no',
-    lblCourtQ:'¿Tienes una fecha de audiencia programada?',
+    cPhone:'ðŸ“ž Llamada TelefÃ³nica',cText:'ðŸ’¬ Mensaje / SMS',cEmail:'âœ‰ï¸ Correo',
+    lblVtype:'Tipo de Multa o InfracciÃ³n',
+    vtSpeeding:'Exceso de Velocidad',vtDUI:'DUI / DWI',vtRed:'SemÃ¡foro Rojo',vtStop:'SeÃ±al de Stop',
+    vtReckless:'ConducciÃ³n Temeraria',vtCell:'Celular',vtFix:'Arreglar',vtOther:'Otro',
+    lblVdesc:'Â¿CuÃ¡l es la infracciÃ³n?',
+    phVdesc:'Incluye el cÃ³digo de infracciÃ³n si lo sabes â€” o simplemente describe lo que pasÃ³ y lo identificaremos.',
+    vdescHint:'Â¿No sabes el cÃ³digo? No hay problema â€” una descripciÃ³n es suficiente.',
+    lblVdate:'Fecha de la InfracciÃ³n',
+    lblPastDue:'Â¿EstÃ¡ esta multa vencida o en cobranza?',
+    pdYes:'SÃ­',pdNo:'No',pdUnsure:'No Estoy Seguro',
+    lblPaid:'Â¿Ya pagaste esta multa?',
+    paidYes:'SÃ­, la paguÃ©',paidNo:'TodavÃ­a no',
+    lblCourtQ:'Â¿Tienes una fecha de audiencia programada?',
     lblCourtDate:'Fecha del Tribunal',
-    lblCourtLoc:'¿A qué tribunal está asignado este caso?',
-    phCourtLoc:'Escribe el nombre del tribunal, ciudad o condado…',
+    lblCourtLoc:'Â¿A quÃ© tribunal estÃ¡ asignado este caso?',
+    phCourtLoc:'Escribe el nombre del tribunal, ciudad o condadoâ€¦',
     acHint:'Selecciona tu estado en el Paso 1 para buscar tribunales',
-    s3ibox:'Todo lo que subas está encriptado y solo lo verá tu especialista asignado. 100% confidencial.',
+    s3ibox:'Todo lo que subas estÃ¡ encriptado y solo lo verÃ¡ tu especialista asignado. 100% confidencial.',
     lblTicketUp:'Sube Tu Multa o Aviso del Tribunal',
-    uzTicketTitle:'Arrastra tu multa aquí',
-    uzSub:'o <span>navega para subir</span> · JPG, PNG, PDF',
+    uzTicketTitle:'Arrastra tu multa aquÃ­',
+    uzSub:'o <span>navega para subir</span> Â· JPG, PNG, PDF',
     lblIdUp:'Sube Tu Licencia de Conducir o ID',
-    uzIdTitle:'Arrastra tu ID aquí',
-    s4ibox1:'Esta es tu oportunidad de contar tu historia. Nuestros especialistas leen cada palabra — mientras más compartas, más sólido será el caso que podamos construir para ti.',
-    lblStory:'Ayúdanos a construir tu defensa — cuéntanos todo',
-    phStory:'Cuéntanos exactamente lo que pasó…',
-    s4ibox2:'Nuestros abogados buscan errores de procedimiento, equipo defectuoso, señalización incorrecta y conducta del oficial — tu relato nos ayuda a encontrarlos. <strong style="color:var(--white)">Sé específico y honesto.</strong>',
-    lblTs:'¿Asististe a la escuela de manejo en los últimos 18 meses desde la fecha de la infracción?',
-    tsYes:'Sí, asistí',tsNo:'No',
-    lblHear:'¿Cómo nos conociste?',
-    hearGoogle:'🔍 Búsqueda en Google',hearSocial:'📱 Redes Sociales',hearFriend:'👥 Amigo / Familia',
-    hearRepeat:'🔁 Cliente Habitual',hearYelp:'⭐ Yelp / Reseñas',hearOther:'💬 Otro',
-    lblRef:'¿Quién te refirió?',phRef:'Nombre o información de contacto de quien te envió',
-    tcpaText:'Acepto recibir mensajes de texto SMS de Ticket Terminator HQ sobre mi caso al número de teléfono indicado. Se pueden aplicar tarifas. Responde <strong>STOP</strong> para cancelar en cualquier momento. Ve nuestra <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Política de Privacidad</a>. <span style="color:var(--orange);font-weight:700;">*</span>',
-    tcpaNote:'⚠ Por favor marca esta casilla para continuar.',
-    s5ibox:'Al enviar, un especialista de Ticket Terminator puede contactarte para hablar sobre tu caso. Esto no crea una relación abogado-cliente.',
-    btnBack:'← Atrás',btnNextDefault:'Continuar →',btnNextFinal:'Enviar Mi Caso ✓',btnSubmitting:'Enviando…',
-    btnAnother:'Enviar Otro Caso',btnPortal:'Mi Portal de Casos →',
-    successTitle:'Estás en el sistema.',
-    successP:'Tu caso ha sido recibido. Un especialista revisará tu multa y se pondrá en contacto — generalmente en <strong style="color:var(--white)">1 a 3 horas</strong>.',
-    srowName:'Nombre',srowPhone:'Teléfono',srowEmail:'Correo',srowState:'Estado',srowViolation:'Infracción',srowCase:'Caso #',
-    emOk:'✓ Correcto',emErr:'Por favor ingresa un correo electrónico válido',
-    legalNote:'🔒 Encriptado y 100% confidencial · Ticket Terminator HQ · <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>',
-    pageFooter:'© 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · Todos los Derechos Reservados · <a href="ticket-terminator-privacy-policy.html">Política de Privacidad</a> · <a href="#">Términos</a>',
+    uzIdTitle:'Arrastra tu ID aquÃ­',
+    s4ibox1:'Esta es tu oportunidad de contar tu historia. Nuestros especialistas leen cada palabra â€” mientras mÃ¡s compartas, mÃ¡s sÃ³lido serÃ¡ el caso que podamos construir para ti.',
+    lblStory:'AyÃºdanos a construir tu defensa â€” cuÃ©ntanos todo',
+    phStory:'CuÃ©ntanos exactamente lo que pasÃ³â€¦',
+    s4ibox2:'Nuestros abogados buscan errores de procedimiento, equipo defectuoso, seÃ±alizaciÃ³n incorrecta y conducta del oficial â€” tu relato nos ayuda a encontrarlos. <strong style="color:var(--white)">SÃ© especÃ­fico y honesto.</strong>',
+    lblTs:'Â¿Asististe a la escuela de manejo en los Ãºltimos 18 meses desde la fecha de la infracciÃ³n?',
+    tsYes:'SÃ­, asistÃ­',tsNo:'No',
+    lblHear:'Â¿CÃ³mo nos conociste?',
+    hearGoogle:'ðŸ” BÃºsqueda en Google',hearSocial:'ðŸ“± Redes Sociales',hearFriend:'ðŸ‘¥ Amigo / Familia',
+    hearRepeat:'ðŸ” Cliente Habitual',hearYelp:'â­ Yelp / ReseÃ±as',hearOther:'ðŸ’¬ Otro',
+    lblRef:'Â¿QuiÃ©n te refiriÃ³?',phRef:'Nombre o informaciÃ³n de contacto de quien te enviÃ³',
+    tcpaText:'Acepto recibir mensajes de texto SMS de Ticket Terminator HQ sobre mi caso al nÃºmero de telÃ©fono indicado. Se pueden aplicar tarifas. Responde <strong>STOP</strong> para cancelar en cualquier momento. Ve nuestra <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">PolÃ­tica de Privacidad</a>. <span style="color:var(--orange);font-weight:700;">*</span>',
+    tcpaNote:'âš  Por favor marca esta casilla para continuar.',
+    s5ibox:'Al enviar, un especialista de Ticket Terminator puede contactarte para hablar sobre tu caso. Esto no crea una relaciÃ³n abogado-cliente.',
+    btnBack:'â† AtrÃ¡s',btnNextDefault:'Continuar â†’',btnNextFinal:'Enviar Mi Caso âœ“',btnSubmitting:'Enviandoâ€¦',
+    btnAnother:'Enviar Otro Caso',btnPortal:'Mi Portal de Casos â†’',
+    successTitle:'EstÃ¡s en el sistema.',
+    successP:'Tu caso ha sido recibido. Un especialista revisarÃ¡ tu multa y se pondrÃ¡ en contacto â€” generalmente en <strong style="color:var(--white)">1 a 3 horas</strong>.',
+    srowName:'Nombre',srowPhone:'TelÃ©fono',srowEmail:'Correo',srowState:'Estado',srowViolation:'InfracciÃ³n',srowCase:'Caso #',
+    emOk:'âœ“ Correcto',emErr:'Por favor ingresa un correo electrÃ³nico vÃ¡lido',
+    legalNote:'ðŸ”’ Encriptado y 100% confidencial Â· Ticket Terminator HQ Â· <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a>',
+    pageFooter:'Â© 2026 The Ticket Terminator LLC Â· DBA The Ticket Terminator Â· Todos los Derechos Reservados Â· <a href="ticket-terminator-privacy-policy.html">PolÃ­tica de Privacidad</a> Â· <a href="#">TÃ©rminos</a>',
   }
 };
 
