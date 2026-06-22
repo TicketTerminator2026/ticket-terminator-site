@@ -13,12 +13,10 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
-  // ── Case number: TT-YYYY-NNNN ──────────────────────────────────────────────
   const year = new Date().getFullYear();
   const rand = String(Math.floor(Math.random() * 9000) + 1000);
   const caseNum = `TT-${year}-${rand}`;
 
-  // ── Violation type → Airtable Case Type option ─────────────────────────────
   const caseTypeMap = {
     'Speeding':         '🚗 Traffic Citation',
     'Red Light':        '🚗 Traffic Citation',
@@ -30,43 +28,32 @@ exports.handler = async function (event) {
     'Other':            '🚗 Traffic Citation',
   };
 
-  // ── Build Airtable fields object ───────────────────────────────────────────
   const fields = {
     'Case #':                        caseNum,
     'Status':                        '🔵 Lead',
     'Case Type':                     caseTypeMap[data.violationType] || '🚗 Traffic Citation',
-    'Date of Intake':                new Date().toISOString().split('T')[0],
-
-    // Client contact info
+    'Date Submitted':                new Date().toISOString().split('T')[0],
     'First Name':                    data.firstName  || '',
     'Last Name':                     data.lastName   || '',
     'Phone':                         data.phone      || '',
     'Email':                         data.email      || '',
-    'Client State':                  data.state      || '',
     'CDL Holder':                    data.cdl === 'yes',
-
-    // Violation details
     'Court Location':                data.courtLocation || '',
     'Court State':                   data.state || '',
     'County':                        data.county || '',
     'Traffic School Past 18 Months?': data.trafficSchool === 'yes',
     'Client Statement':              data.story || '',
-
-    // How they found us
     'Heard About Us':                data.heardAbout  || '',
     'Referred By':                   data.referredBy  || '',
   };
 
-  // Add dates only when provided (Airtable rejects empty date strings)
   if (data.violationDate) fields['Date of Violation'] = data.violationDate;
   if (data.courtDate)     fields['Court Date']        = data.courtDate;
 
-  // Strip empty strings so Airtable doesn't complain about unfilled fields
   Object.keys(fields).forEach(k => {
     if (fields[k] === '' || fields[k] === null) delete fields[k];
   });
 
-  // ── POST to Airtable — create the record first ─────────────────────────────
   let recordId;
   try {
     const res = await fetch(
@@ -103,7 +90,6 @@ exports.handler = async function (event) {
     };
   }
 
-  // ── Upload attachments via Airtable Content API ────────────────────────────
   const attachmentFields = [
     { dataKey: 'ticketPhotoBase64', fileName: data.ticketPhotoName || 'ticket-photo.jpg', fieldName: 'Ticket Upload' },
     { dataKey: 'idPhotoBase64',     fileName: data.idPhotoName     || 'id-photo.jpg',     fieldName: 'ID Upload'     },
@@ -114,10 +100,8 @@ exports.handler = async function (event) {
   for (const { dataKey, fileName, fieldName } of attachmentFields) {
     const base64 = data[dataKey];
     if (!base64) continue;
-
     const fileData = base64.includes(',') ? base64.split(',')[1] : base64;
     const contentType = base64.includes('data:') ? base64.split(';')[0].replace('data:', '') : 'application/octet-stream';
-
     try {
       const uploadRes = await fetch(
         `https://content.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${recordId}/${encodeURIComponent(fieldName)}/uploadAttachment`,
@@ -127,14 +111,9 @@ exports.handler = async function (event) {
             'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
             'Content-Type':  'application/json',
           },
-          body: JSON.stringify({
-            contentType,
-            filename: fileName,
-            file: fileData,
-          }),
+          body: JSON.stringify({ contentType, filename: fileName, file: fileData }),
         }
       );
-
       if (!uploadRes.ok) {
         const errBody = await uploadRes.text();
         console.error(`Attachment upload failed for ${fieldName}:`, errBody);
@@ -146,7 +125,6 @@ exports.handler = async function (event) {
     }
   }
 
-  // ── Return success ──────────────────────────────────────────────────────────
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
