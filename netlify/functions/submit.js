@@ -13,12 +13,10 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
-  // ── Case number: TT-YYYY-NNNN ──────────────────────────────────────────────
   const year = new Date().getFullYear();
   const rand = String(Math.floor(Math.random() * 9000) + 1000);
   const caseNum = `TT-${year}-${rand}`;
 
-  // ── Violation type → Airtable Case Type option ─────────────────────────────
   const caseTypeMap = {
     'Speeding':         '🚗 Traffic Citation',
     'Red Light':        '🚗 Traffic Citation',
@@ -30,7 +28,6 @@ exports.handler = async function (event) {
     'Other':            '🚗 Traffic Citation',
   };
 
-  // ── Build Airtable fields object ───────────────────────────────────────────
   const fields = {
     'Case #':                        caseNum,
     'Status':                        'Lead',
@@ -55,89 +52,51 @@ exports.handler = async function (event) {
   if (data.violationDate) fields['Date of Violation'] = data.violationDate;
   if (data.courtDate)     fields['Court Date']        = data.courtDate;
 
-  Object.keys(fields).forEach(k => {
-    if (fields[k] === '' || fields[k] === null) delete fields[k];
-  });
+  Object.keys(fields).forEach(k => { if (fields[k] === '' || fields[k] === null) delete fields[k]; });
 
-  // ── POST to Airtable — create the record first ─────────────────────────────
   let recordId;
   try {
     const res = await fetch(
       `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}`,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
-          'Content-Type':  'application/json',
-        },
+        headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields }),
       }
     );
     const result = await res.json();
     if (!res.ok) {
       console.error('Airtable error:', JSON.stringify(result));
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Airtable rejected the record', detail: result.error?.message }),
-      };
+      return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Airtable rejected the record', detail: result.error?.message }) };
     }
     recordId = result.id;
   } catch (err) {
     console.error('Network error:', err.message);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Server error — please try again' }),
-    };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Server error — please try again' }) };
   }
 
-  // ── Upload attachments via Airtable Content API ────────────────────────────
   const attachmentFields = [
     { dataKey: 'ticketPhotoBase64', fileName: data.ticketPhotoName || 'ticket-photo.jpg', fieldName: 'Ticket Upload' },
     { dataKey: 'idPhotoBase64',     fileName: data.idPhotoName     || 'id-photo.jpg',     fieldName: 'ID Upload'     },
   ];
-
   const uploadErrors = [];
-
   for (const { dataKey, fileName, fieldName } of attachmentFields) {
     const base64 = data[dataKey];
     if (!base64) continue;
-
     const fileData = base64.includes(',') ? base64.split(',')[1] : base64;
     const contentType = base64.includes('data:') ? base64.split(';')[0].replace('data:', '') : 'application/octet-stream';
-
     try {
       const uploadRes = await fetch(
         `https://content.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${recordId}/${encodeURIComponent(fieldName)}/uploadAttachment`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
-            'Content-Type':  'application/json',
-          },
-          body: JSON.stringify({ contentType, filename: fileName, file: fileData }),
-        }
+        { method: 'POST', headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ contentType, filename: fileName, file: fileData }) }
       );
-      if (!uploadRes.ok) {
-        const errBody = await uploadRes.text();
-        console.error(`Attachment upload failed for ${fieldName}:`, errBody);
-        uploadErrors.push(fieldName);
-      }
-    } catch (err) {
-      console.error(`Attachment upload error for ${fieldName}:`, err.message);
-      uploadErrors.push(fieldName);
-    }
+      if (!uploadRes.ok) { const e = await uploadRes.text(); console.error(`Upload failed for ${fieldName}:`, e); uploadErrors.push(fieldName); }
+    } catch (err) { console.error(`Upload error for ${fieldName}:`, err.message); uploadErrors.push(fieldName); }
   }
 
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      success: true,
-      caseNum,
-      recordId,
-      ...(uploadErrors.length ? { attachmentWarning: `Could not upload: ${uploadErrors.join(', ')}` } : {}),
-    }),
+    body: JSON.stringify({ success: true, caseNum, recordId, ...(uploadErrors.length ? { attachmentWarning: `Could not upload: ${uploadErrors.join(', ')}` } : {}) }),
   };
 };
