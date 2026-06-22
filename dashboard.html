@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticket Terminator HQ — Case Management</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy-deep:  #0f2637;
+  --navy:       #1a3a4f;
+  --navy-mid:   #1b4f72;
+  --navy-light: #2471a3;
+  --blue:       #2980b9;
+  --blue-light: #aed6f1;
+  --accent:     #f39c12;
+  --green:      #27ae60;
+  --green-light:#d5f5e3;
+  --yellow:     #f39c12;
+  --yellow-light:#fef9e7;
+  --red:        #e74c3c;
+  --red-light:  #fde8e8;
+  --gray-bg:    #f0f2f5;
+  --gray-card:  #ffffff;
+  --gray-border:#e2e8f0;
+  --gray-text:  #64748b;
+  --gray-muted: #94a3b8;
+  --text:       #1e293b;
+  --sidebar-w:  230px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  background: var(--gray-bg);
+  color: var(--text);
+  font-size: 13px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────────────────────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 52px;
+  background: var(--navy-deep);
+  display: flex; align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 800; font-size: 15px; color: white;
+  letter-spacing: -0.3px;
+}
+.topbar-logo .badge {
+  background: var(--accent);
+  color: white; border-radius: 6px;
+  padding: 3px 8px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.topbar-sub {
+  color: var(--blue-light); font-size: 12px; opacity: 0.8;
+}
+.topbar-right {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+}
+.topbar-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white; border-radius: 7px;
+  padding: 6px 12px; font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s;
+}
+.topbar-btn:hover { background: rgba(255,255,255,0.14); }
+.topbar-btn.primary {
+  background: var(--accent); border-color: var(--accent);
+}
+.topbar-btn.primary:hover { background: #e67e22; border-color: #e67e22; }
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); display: inline-block;
+  box-shadow: 0 0 0 2px rgba(39,174,96,0.3);
+}
+#refreshTime { color: var(--blue-light); font-size: 11px; opacity: 0.7; }
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  height: calc(100vh - 52px);
+  margin-top: 52px;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--navy);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 0 24px;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.sb-section {
+  padding: 8px 18px 4px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: rgba(174, 214, 241, 0.5);
+  margin-top: 10px;
+}
+.sb-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px;
+  color: rgba(174, 214, 241, 0.8);
+  cursor: pointer; border-radius: 0;
+  font-size: 13px; font-weight: 500;
+  transition: all 0.12s;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.sb-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: white;
+}
+.sb-item.active {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border-left-color: var(--accent);
+}
+.sb-icon { font-size: 15px; width: 20px; text-align: center; }
+.sb-badge {
+  margin-left: auto;
+  background: rgba(255,255,255,0.15);
+  color: white; border-radius: 10px;
+  padding: 1px 7px; font-size: 10px; font-weight: 700;
+}
+.sb-badge.urgent { background: var(--red); }
+.sb-divider {
+  border: none; border-top: 1px solid rgba(255,255,255,0.06);
+  margin: 10px 0;
+}
+.sb-new-case {
+  margin: 8px 14px 0;
+  background: var(--accent);
+  color: white; border-radius: 8px;
+  padding: 10px 14px; font-size: 13px; font-weight: 700;
+  cursor: pointer; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: background 0.15s;
+  border: none;
+}
+.sb-new-case:hover { background: #e67e22; }
+
+/* ── MAIN ─────────────────────────────────────────────────────────── */
+.main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── PANELS ─────────────────────────────────────────────────────────── */
+.panel { display: none; flex: 1; overflow-y: auto; padding: 24px; }
+.panel.active { display: block; }
+.panel::-webkit-scrollbar { width: 6px; }
+.panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────────── */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.page-title { font-size: 22px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; }
+.page-sub { color: var(--gray-text); font-size: 13px; margin-top: 3px; }
+.page-actions { display: flex; gap: 8px; }
+.btn {
+  padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s; border: 1px solid var(--gray-border);
+  background: white; color: var(--text);
+}
+.btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn.primary { background: var(--navy-mid); color: white; border-color: var(--navy-mid); }
+.btn.primary:hover { background: var(--navy); }
+
+/* ── KPI CARDS ─────────────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.kpi-card {
+  background: white; border-radius: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--gray-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--stripe, var(--blue));
+  border-radius: 12px 12px 0 0;
+}
+.kpi-card.green { --stripe: var(--green); }
+.kpi-card.yellow { --stripe: var(--yellow); }
+.kpi-card.red { --stripe: var(--red); }
+.kpi-card.purple { --stripe: #8b5cf6; }
+.kpi-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--gray-text); margin-bottom: 10px;
+}
+.kpi-value {
+  font-size: 34px; font-weight: 800; color: var(--navy);
+  letter-spacing: -1px; line-height: 1;
+}
+.kpi-card.green .kpi-value  { color: var(--green); }
+.kpi-card.yellow .kpi-value { color: #d97706; }
+.kpi-card.red .kpi-value    { color: var(--red); }
+.kpi-card.purple .kpi-value { color: #7c3aed; }
+.kpi-sub {
+  font-size: 11px; color: var(--gray-muted); margin-top: 6px;
+}
+.kpi-icon {
+  position: absolute; top: 18px; right: 18px;
+  font-size: 22px; opacity: 0.18;
+}
+.kpi-trend {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 6px; border-radius: 4px; margin-top: 6px;
+}
+.kpi-trend.up { color: var(--green); background: var(--green-light); }
+.kpi-trend.warn { color: #d97706; background: var(--yellow-light); }
+
+/* ── GRID ROW ─────────────────────────────────────────────────────── */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.dash-grid.tri { grid-template-columns: 1fr 1fr 1fr; }
+.dash-grid.wide { grid-template-columns: 2fr 1fr; }
+
+/* ── CARD ─────────────────────────────────────────────────────────── */
+.card {
+  background: white; border-radius: 12px;
+  border: 1px solid var(--gray-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+.card-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--gray-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title {
+  font-size: 14px; font-weight: 700; color: var(--navy);
+  display: flex; align-items: center; gap: 7px;
+}
+.card-body { padding: 0; }
+.card-action {
+  font-size: 11px; color: var(--navy-light); cursor: pointer; font-weight: 600;
+}
+.card-action:hover { text-decoration: underline; }
+
+/* ── TABLE ─────────────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  background: #f8fafc;
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gray-text);
+  border-bottom: 1px solid var(--gray-border);
+  white-space: nowrap;
+  position: sticky; top: 0;
+}
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #f8fafc; }
+.data-table .empty {
+  text-align: center; color: var(--gray-muted);
+  font-style: italic; padding: 32px;
+}
+
+/* ── BADGES ─────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.badge-lead    { background: #dbeafe; color: #1d4ed8; }
+.badge-open    { background: var(--green-light); color: #166534; }
+.badge-pending { background: var(--yellow-light); color: #92400e; }
+.badge-closed  { background: #f1f5f9; color: #475569; }
+.badge-warrant { background: var(--red-light); color: #991b1b; }
+.badge-urgent  { background: var(--red-light); color: #991b1b; }
+.badge-high    { background: #ffedd5; color: #9a3412; }
+.badge-routine { background: #f1f5f9; color: #475569; }
+.badge-dui     { background: #fde8e8; color: #991b1b; }
+.badge-traffic { background: #dbeafe; color: #1e40af; }
+.badge-quote-sent    { background: #dbeafe; color: #1d4ed8; }
+.badge-quote-recv    { background: #ede9fe; color: #6d28d9; }
+.badge-quote-accept  { background: var(--green-light); color: #166534; }
+.badge-payment-pend  { background: var(--yellow-light); color: #92400e; }
+.badge-payment-conf  { background: var(--green-light); color: #166534; }
+
+/* ── COURT DATE ITEMS ─────────────────────────────────────────────── */
+.court-list { }
+.court-item {
+  display: flex; align-items: center;
+  padding: 11px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 12px;
+}
+.court-item:last-child { border-bottom: none; }
+.court-date-box {
+  min-width: 46px;
+  background: var(--navy-mid); color: white;
+  border-radius: 8px; text-align: center;
+  padding: 4px 6px;
+}
+.court-date-box .mon { font-size: 9px; font-weight: 700; text-transform: uppercase; opacity: 0.8; }
+.court-date-box .day { font-size: 18px; font-weight: 800; line-height: 1; }
+.court-date-box.urgent { background: var(--red); }
+.court-date-box.soon   { background: #d97706; }
+.court-info { flex: 1; }
+.court-name { font-weight: 600; font-size: 13px; color: var(--text); }
+.court-meta { font-size: 11px; color: var(--gray-text); margin-top: 2px; }
+.court-days-left {
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 10px; white-space: nowrap;
+}
+.days-urgent { background: var(--red-light); color: #991b1b; }
+.days-soon   { background: var(--yellow-light); color: #92400e; }
+.days-ok     { background: var(--green-light); color: #166534; }
+
+/* ── KANBAN ─────────────────────────────────────────────────────────── */
+.kanban-wrap {
+  display: flex; gap: 14px; overflow-x: auto;
+  padding-bottom: 16px;
+  height: calc(100vh - 160px);
+}
+.kanban-wrap::-webkit-scrollbar { height: 6px; }
+.kanban-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.kanban-col {
+  min-width: 270px; max-width: 270px;
+  display: flex; flex-direction: column;
+  background: #f1f5f9; border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--gray-border);
+}
+.kanban-col-head {
+  padding: 13px 14px 11px;
+  border-bottom: 1px solid var(--gray-border);
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 13px;
+  background: white;
+}
+.kanban-col-head .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-lead    { background: #3b82f6; }
+.dot-open    { background: var(--green); }
+.dot-pending { background: #f59e0b; }
+.dot-closed  { background: #94a3b8; }
+.dot-warrant { background: var(--red); }
+.kanban-count {
+  margin-left: auto;
+  background: var(--gray-bg); color: var(--gray-text);
+  border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 700;
+  border: 1px solid var(--gray-border);
+}
+.kanban-cards {
+  flex: 1; overflow-y: auto;
+  padding: 10px 10px 10px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.kanban-cards::-webkit-scrollbar { width: 4px; }
+.kanban-cards::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+.kanban-card {
+  background: white; border-radius: 9px;
+  border: 1px solid var(--gray-border);
+  padding: 12px 13px;
+  cursor: pointer; transition: all 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.kanban-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 2px 8px rgba(36,113,163,0.15);
+  transform: translateY(-1px);
+}
+.kanban-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 7px;
+}
+.kanban-case-num { font-size: 11px; font-weight: 700; color: var(--navy-light); }
+.kanban-client { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+.kanban-type { font-size: 11px; color: var(--gray-text); margin-bottom: 8px; }
+.kanban-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+.kanban-court { font-size: 11px; color: var(--gray-text); display: flex; align-items: center; gap: 4px; }
+.kanban-court.urgent { color: var(--red); font-weight: 600; }
+.kanban-empty {
+  text-align: center; color: var(--gray-muted);
+  font-size: 12px; font-style: italic;
+  padding: 20px 14px;
+}
+
+/* ── CALENDAR ─────────────────────────────────────────────────────────── */
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-nav {
+  display: flex; align-items: center; gap: 10px;
+}
+.cal-nav-btn {
+  background: white; border: 1px solid var(--gray-border);
+  border-radius: 7px; padding: 6px 12px; cursor: pointer;
+  font-size: 14px; color: var(--navy); transition: all 0.12s;
+}
+.cal-nav-btn:hover { background: #f8fafc; }
+.cal-month-title { font-size: 18px; font-weight: 800; color: var(--navy); }
+.cal-grid {
+  background: white; border-radius: 12px;
+  border: 1px solid var(--gray-border);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.cal-days-header {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  background: #f8fafc;
+  border-bottom: 1px solid var(--gray-border);
+}
+.cal-day-head {
+  padding: 10px 0; text-align: center;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--gray-text);
+}
+.cal-cells {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+}
+.cal-cell {
+  min-height: 110px; padding: 8px;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell.other-month { background: #f8fafc; }
+.cal-cell.today { background: #eff6ff; }
+.cal-cell-num {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+}
+.cal-cell.today .cal-cell-num {
+  background: var(--navy-mid); color: white;
+}
+.cal-cell.other-month .cal-cell-num { color: #cbd5e1; }
+.cal-event {
+  margin-top: 3px;
+  background: var(--navy-mid); color: white;
+  border-radius: 4px; padding: 3px 6px;
+  font-size: 10px; font-weight: 600;
+  cursor: pointer; line-height: 1.3;
+  transition: background 0.1s;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cal-event:hover { background: var(--navy); }
+.cal-event.urgent { background: var(--red); }
+.cal-event.dui { background: #7c3aed; }
+
+/* ── ATTORNEY PIPELINE ─────────────────────────────────────────────── */
+.atty-filters {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.filter-chip {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--gray-border);
+  background: white; color: var(--gray-text);
+  transition: all 0.12s;
+}
+.filter-chip.active { background: var(--navy-mid); color: white; border-color: var(--navy-mid); }
+.filter-chip:hover:not(.active) { background: #f8fafc; }
+
+/* ── PAYMENTS ─────────────────────────────────────────────────────────── */
+.pay-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 20px;
+}
+
+/* ── MODAL ─────────────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white; border-radius: 14px;
+  width: 680px; max-width: 100%; max-height: 85vh;
+  overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.modal::-webkit-scrollbar { width: 6px; }
+.modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.modal-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--gray-border);
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; background: white; z-index: 1;
+}
+.modal-case-num { font-size: 17px; font-weight: 800; color: var(--navy); }
+.modal-close {
+  margin-left: auto; cursor: pointer; color: var(--gray-text);
+  font-size: 20px; line-height: 1; padding: 4px;
+  border-radius: 6px; transition: background 0.12s;
+}
+.modal-close:hover { background: #f1f5f9; }
+.modal-body { padding: 20px 24px; }
+.modal-section {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gray-muted);
+  margin: 16px 0 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;
+}
+.modal-section:first-child { margin-top: 0; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-grid.tri { grid-template-columns: 1fr 1fr 1fr; }
+.modal-field { display: flex; flex-direction: column; gap: 3px; }
+.modal-field.full { grid-column: 1 / -1; }
+.modal-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--gray-text);
+}
+.modal-val {
+  font-size: 13px; color: var(--text);
+  background: #f8fafc; border: 1px solid var(--gray-border);
+  border-radius: 6px; padding: 7px 10px; min-height: 34px;
+  line-height: 1.4;
+}
+.modal-val.notes { min-height: 60px; white-space: pre-wrap; }
+.modal-val.link { color: var(--navy-light); text-decoration: none; }
+.modal-val.link:hover { text-decoration: underline; }
+.modal-photo {
+  width: 100%; border-radius: 8px; border: 1px solid var(--gray-border);
+  max-height: 200px; object-fit: contain; background: #f8fafc;
+}
+
+/* ── SEARCH BAR ─────────────────────────────────────────────────────── */
+.search-wrap {
+  display: flex; gap: 10px; align-items: center; margin-bottom: 18px;
+}
+.search-input {
+  flex: 1; padding: 9px 14px 9px 36px;
+  border: 1px solid var(--gray-border); border-radius: 8px;
+  font-size: 13px; background: white;
+  outline: none; transition: border-color 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 11px center;
+}
+.search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(41,128,185,0.12); }
+
+/* ── SPINNER ─────────────────────────────────────────────────────────── */
+.loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; padding: 60px; color: var(--gray-text);
+}
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid var(--gray-border);
+  border-top-color: var(--navy-mid);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── CHART CONTAINER ─────────────────────────────────────────────────── */
+.chart-wrap { padding: 16px 18px; }
+.chart-wrap canvas { max-height: 200px; }
+
+/* ── MISC ─────────────────────────────────────────────────────────── */
+.text-muted { color: var(--gray-muted); font-style: italic; font-size: 12px; }
+.text-red { color: var(--red); font-weight: 600; }
+.text-green { color: var(--green); font-weight: 600; }
+.text-navy { color: var(--navy-light); }
+.mono { font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; }
+.currency { color: var(--green); font-weight: 700; font-family: 'SF Mono', monospace; }
+.currency.neg { color: var(--red); }
+.no-wrap { white-space: nowrap; }
+.avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--navy-mid); color: white;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.row-actions { display: flex; gap: 6px; }
+.icon-btn {
+  background: none; border: 1px solid var(--gray-border);
+  border-radius: 5px; padding: 4px 8px; cursor: pointer;
+  font-size: 12px; color: var(--gray-text); transition: all 0.12s;
+}
+.icon-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+.icon-btn.view:hover { color: var(--navy-light); border-color: var(--blue-light); background: #eff6ff; }
+
+/* ── ALERT BANNER ─────────────────────────────────────────────────────── */
+.alert-banner {
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; color: #92400e;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--gray-muted);
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOP BAR ═══════════════════ -->
+<div class="topbar">
+  <div class="topbar-logo">
+    ⚖️ <span class="badge">TT</span> Ticket Terminator HQ
+  </div>
+  <span class="topbar-sub">/ Victor Valley Case Management</span>
+  <div class="topbar-right">
+    <span class="status-dot"></span>
+    <span id="refreshTime">Loading…</span>
+    <button class="topbar-btn" onclick="loadData()">🔄 Refresh</button>
+    <button class="topbar-btn primary" onclick="window.open('/.netlify/functions/submit','_blank')">＋ New Intake</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ LAYOUT ═══════════════════ -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <button class="sb-new-case" onclick="showPanel('dashboard')">⚖️ Case Management</button>
+
+    <div class="sb-section">Views</div>
+    <div class="sb-item active" id="nav-dashboard" onclick="showPanel('dashboard')">
+      <span class="sb-icon">📊</span> Dashboard
+    </div>
+    <div class="sb-item" id="nav-kanban" onclick="showPanel('kanban')">
+      <span class="sb-icon">🗂️</span> Kanban Board
+      <span class="sb-badge" id="sb-active-count">—</span>
+    </div>
+    <div class="sb-item" id="nav-calendar" onclick="showPanel('calendar')">
+      <span class="sb-icon">📅</span> Court Calendar
+      <span class="sb-badge urgent" id="sb-court-count">—</span>
+    </div>
+    <div class="sb-item" id="nav-attorney" onclick="showPanel('attorney')">
+      <span class="sb-icon">⚖️</span> Attorney Pipeline
+    </div>
+    <div class="sb-item" id="nav-payments" onclick="showPanel('payments')">
+      <span class="sb-icon">💰</span> Payments
+    </div>
+
+    <hr class="sb-divider">
+    <div class="sb-section">Quick Filters</div>
+    <div class="sb-item" onclick="showPanel('kanban');filterKanban('🔴 Urgent')">
+      <span class="sb-icon">🔴</span> Urgent Cases
+    </div>
+    <div class="sb-item" onclick="showPanel('kanban');filterKanban('court-week')">
+      <span class="sb-icon">⏰</span> Court This Week
+    </div>
+    <div class="sb-item" onclick="showPanel('payments');filterPayments('outstanding')">
+      <span class="sb-icon">💸</span> Outstanding Balances
+    </div>
+
+    <hr class="sb-divider">
+    <div class="sb-section">Links</div>
+    <div class="sb-item" onclick="window.open('https://airtable.com','_blank')">
+      <span class="sb-icon">🗄️</span> Airtable Base
+    </div>
+    <div class="sb-item" onclick="window.open('https://openphone.com','_blank')">
+      <span class="sb-icon">📱</span> OpenPhone (Quo)
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN ═══════════════════ -->
+  <div class="main">
+
+    <!-- ──────────── DASHBOARD PANEL ──────────── -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">📊 Dashboard</div>
+          <div class="page-sub" id="dash-sub">Loading case data…</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="btn primary" onclick="loadData()">🔄 Refresh Data</button>
+        </div>
+      </div>
+
+      <div id="dash-loading" class="loading">
+        <div class="spinner"></div>
+        <span>Loading cases from Airtable…</span>
+      </div>
+
+      <div id="dash-content" style="display:none;">
+        <!-- KPI ROW -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-icon">📋</span>
+            <div class="kpi-label">Total Cases</div>
+            <div class="kpi-value" id="kpi-total">0</div>
+            <div class="kpi-sub">All time</div>
+          </div>
+          <div class="kpi-card green">
+            <span class="kpi-icon">🟢</span>
+            <div class="kpi-label">Active Cases</div>
+            <div class="kpi-value" id="kpi-active">0</div>
+            <div class="kpi-sub">Lead + Open + Pending</div>
+          </div>
+          <div class="kpi-card yellow">
+            <span class="kpi-icon">📅</span>
+            <div class="kpi-label">Court This Month</div>
+            <div class="kpi-value" id="kpi-court-month">0</div>
+            <div class="kpi-sub" id="kpi-court-sub">Upcoming hearings</div>
+          </div>
+          <div class="kpi-card purple">
+            <span class="kpi-icon">💰</span>
+            <div class="kpi-label">Revenue Collected</div>
+            <div class="kpi-value" id="kpi-revenue">$0</div>
+            <div class="kpi-sub" id="kpi-rev-sub">Client fees</div>
+          </div>
+        </div>
+
+        <!-- SECOND ROW: Court Dates + Chart -->
+        <div class="dash-grid wide" style="margin-bottom:16px;">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⏰ Upcoming Court Dates</div>
+              <span class="card-action" onclick="showPanel('calendar')">View Calendar →</span>
+            </div>
+            <div class="card-body">
+              <div id="upcoming-courts" class="court-list">
+                <div class="loading" style="padding:30px;"><div class="spinner"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">📈 Cases by Status</div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="statusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- THIRD ROW: Leads + Flagged -->
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">🔵 New Leads (Last 30 Days)</div>
+              <span class="card-action" onclick="showPanel('kanban')">View Kanban →</span>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="recent-leads-table">
+                <thead>
+                  <tr>
+                    <th>Case #</th>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="recent-leads"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚠️ Needs Attention</div>
+            </div>
+            <div class="card-body" id="flagged-cases"></div>
+          </div>
+        </div>
+
+        <!-- FOURTH ROW: Case type breakdown + attorney stats -->
+        <div class="dash-grid tri" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">📊 Case Types</div></div>
+            <div class="chart-wrap" style="padding:14px 16px;">
+              <canvas id="typeChart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">⚖️ Attorney Queue</div></div>
+            <div class="card-body" id="atty-summary"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">💰 Financial Summary</div></div>
+            <div class="card-body" id="fin-summary"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────── KANBAN PANEL ──────────── -->
+    <div class="panel" id="panel-kanban">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🗂️ Kanban Board</div>
+          <div class="page-sub">Drag cards to update status (in Airtable)</div>
+        </div>
+        <div class="page-actions">
+          <input class="search-input" style="width:220px;" placeholder="Search cases…" oninput="filterKanbanSearch(this.value)">
+        </div>
+      </div>
+      <div class="kanban-wrap" id="kanban-wrap">
+        <div class="loading" style="width:100%;"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- ──────────── CALENDAR PANEL ──────────── -->
+    <div class="panel" id="panel-calendar">
+      <div class="page-header">
+        <div><div class="page-title">📅 Court Calendar</div></div>
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calPrev()">◀</button>
+          <div class="cal-month-title" id="cal-title">June 2026</div>
+          <button class="cal-nav-btn" onclick="calNext()">▶</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- ──────────── ATTORNEY PANEL ──────────── -->
+    <div class="panel" id="panel-attorney">
+      <div class="page-header">
+        <div>
+          <div class="page-title">⚖️ Attorney Pipeline</div>
+          <div class="page-sub">Manage quote requests, attorney assignments, and payment flow</div>
+        </div>
+      </div>
+      <div class="atty-filters">
+        <div class="filter-chip active" onclick="attyFilter('all',this)">All Cases</div>
+        <div class="filter-chip" onclick="attyFilter('no-atty',this)">🔴 No Attorney</div>
+        <div class="filter-chip" onclick="attyFilter('quote-sent',this)">📤 Quote Sent</div>
+        <div class="filter-chip" onclick="attyFilter('quote-recv',this)">📥 Quote Received</div>
+        <div class="filter-chip" onclick="attyFilter('accepted',this)">✅ Accepted</div>
+        <div class="filter-chip" onclick="attyFilter('payment-pend',this)">💸 Payment Pending</div>
+        <div class="filter-chip" onclick="attyFilter('payment-conf',this)">✔️ Paid</div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Case #</th>
+                <th>Client</th>
+                <th>Case Type</th>
+                <th>Court Date</th>
+                <th>Attorney</th>
+                <th>Quote Status</th>
+                <th>Atty Fee</th>
+                <th>Atty Paid?</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="atty-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────── PAYMENTS PANEL ──────────── -->
+    <div class="panel" id="panel-payments">
+      <div class="page-header">
+        <div>
+          <div class="page-title">💰 Payments</div>
+          <div class="page-sub">Client fees, attorney payouts, and profit tracking</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn" onclick="exportCSV()">⬇ Export</button>
+        </div>
+      </div>
+
+      <!-- Pay KPIs -->
+      <div class="pay-summary">
+        <div class="kpi-card green">
+          <span class="kpi-icon">💵</span>
+          <div class="kpi-label">Total Collected</div>
+          <div class="kpi-value" id="pay-collected">$0</div>
+          <div class="kpi-sub">Client fees received</div>
+        </div>
+        <div class="kpi-card yellow">
+          <span class="kpi-icon">⏳</span>
+          <div class="kpi-label">Outstanding</div>
+          <div class="kpi-value" id="pay-outstanding">$0</div>
+          <div class="kpi-sub">Client balance remaining</div>
+        </div>
+        <div class="kpi-card red">
+          <span class="kpi-icon">⚖️</span>
+          <div class="kpi-label">Attorney Owed</div>
+          <div class="kpi-value" id="pay-atty-owed">$0</div>
+          <div class="kpi-sub">Unpaid attorney fees</div>
+        </div>
+        <div class="kpi-card purple">
+          <span class="kpi-icon">📈</span>
+          <div class="kpi-label">Net Profit</div>
+          <div class="kpi-value" id="pay-profit">$0</div>
+          <div class="kpi-sub">Collected minus attorney fees</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">💳 All Case Financials</div>
+          <div class="page-actions">
+            <input class="search-input" style="width:200px;" placeholder="Search…" oninput="filterPayTable(this.value)">
+          </div>
+        </div>
+        <div class="card-body" style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Case #</th>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Client Fee</th>
+                <th>Collected</th>
+                <th>Balance Due</th>
+                <th>Atty Fee</th>
+                <th>Atty Paid?</th>
+                <th>Profit</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="pay-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ═══════════════════ CASE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="case-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content">
+    <div class="modal-head" id="modal-head"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let ALL_RECORDS = [];
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let statusChartInst = null;
+let typeChartInst   = null;
+let attyFilterVal   = 'all';
+let paySearchVal    = '';
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+const f = r => r.fields || {};
+
+function clientName(r) {
+  const fn = f(r)['First Name'] || '';
+  const ln = f(r)['Last Name']  || '';
+  return [fn, ln].filter(Boolean).join(' ') || '—';
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateShort(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function daysUntil(d) {
+  if (!d) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dt = new Date(d + 'T00:00:00');
+  return Math.round((dt - today) / 86400000);
+}
+
+function currency(v) {
+  if (!v && v !== 0) return '—';
+  return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function statusBadge(s) {
+  if (!s) return '<span class="text-muted">—</span>';
+  const map = {
+    '🔵 Lead':         'badge-lead',
+    '🟢 Open':         'badge-open',
+    '🟡 Pending Court':'badge-pending',
+    '✅ Closed':       'badge-closed',
+    '🚨 Warrant':      'badge-warrant',
+  };
+  const cls = Object.entries(map).find(([k]) => s.includes(k.slice(2)) || s === k)?.[1] || 'badge-routine';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function priorityBadge(p) {
+  if (!p) return '';
+  const map = { 'Urgent':'badge-urgent', 'High':'badge-high', 'Routine':'badge-routine', 'Low':'badge-routine' };
+  const cls = Object.entries(map).find(([k]) => p.includes(k))?.[1] || 'badge-routine';
+  return `<span class="badge ${cls}">${p}</span>`;
+}
+
+function typeBadge(t) {
+  if (!t) return '—';
+  if (t.includes('DUI')) return `<span class="badge badge-dui">${t}</span>`;
+  return `<span class="badge badge-traffic">${t}</span>`;
+}
+
+function quoteStatusBadge(q) {
+  if (!q) return '<span class="text-muted">Not sent</span>';
+  const map = {
+    'Quote Sent':     'badge-quote-sent',
+    'Quote Received': 'badge-quote-recv',
+    'Accepted':       'badge-quote-accept',
+    'Payment Pending':'badge-payment-pend',
+    'Payment Confirmed':'badge-payment-conf',
+  };
+  const cls = Object.entries(map).find(([k]) => q.includes(k))?.[1] || 'badge-routine';
+  return `<span class="badge ${cls}">${q}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  FETCH DATA
+// ═══════════════════════════════════════════════════════
+async function loadData() {
+  document.getElementById('dash-loading').style.display = 'flex';
+  document.getElementById('dash-content').style.display = 'none';
+
+  try {
+    const res = await fetch('/.netlify/functions/get-cases');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    ALL_RECORDS = data.records || [];
+
+    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('refreshTime').textContent = 'Updated ' + now;
+
+    renderAll();
+
+    document.getElementById('dash-loading').style.display = 'none';
+    document.getElementById('dash-content').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('dash-loading').innerHTML =
+      `<div style="color:var(--red);font-size:13px;">⚠ Could not load data: ${e.message}<br><br>
+       <button class="btn" onclick="loadData()">Retry</button></div>`;
+  }
+}
+
+function renderAll() {
+  renderKPIs();
+  renderUpcomingCourts();
+  renderRecentLeads();
+  renderFlaggedCases();
+  renderStatusChart();
+  renderTypeChart();
+  renderAttySummary();
+  renderFinSummary();
+  renderKanban();
+  renderCalendar();
+  renderAttyTable();
+  renderPayments();
+  updateSidebarBadges();
+}
+
+// ═══════════════════════════════════════════════════════
+//  KPIs
+// ═══════════════════════════════════════════════════════
+function renderKPIs() {
+  const total = ALL_RECORDS.length;
+  const active = ALL_RECORDS.filter(r => {
+    const s = f(r)['Status'] || '';
+    return s.includes('Lead') || s.includes('Open') || s.includes('Pending');
+  }).length;
+
+  const now = new Date();
+  const courtMonth = ALL_RECORDS.filter(r => {
+    const cd = f(r)['Court Date'];
+    if (!cd) return false;
+    const dt = new Date(cd + 'T12:00:00');
+    return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear() && dt >= now;
+  }).length;
+
+  const revenue = ALL_RECORDS.reduce((sum, r) => {
+    return sum + (Number(f(r)['Client Fee Collected']) || 0);
+  }, 0);
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-active').textContent = active;
+  document.getElementById('kpi-court-month').textContent = courtMonth;
+  document.getElementById('kpi-revenue').textContent = currency(revenue);
+
+  const mn = now.toLocaleString('en-US',{month:'long'});
+  document.getElementById('kpi-court-sub').textContent = `In ${mn}`;
+  document.getElementById('dash-sub').textContent =
+    `${total} total cases · ${active} active · Last refreshed just now`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  UPCOMING COURT DATES
+// ═══════════════════════════════════════════════════════
+function renderUpcomingCourts() {
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const upcoming = ALL_RECORDS
+    .filter(r => {
+      const cd = f(r)['Court Date'];
+      if (!cd) return false;
+      const dt = new Date(cd + 'T00:00:00');
+      return dt >= today;
+    })
+    .sort((a,b) => new Date(f(a)['Court Date']) - new Date(f(b)['Court Date']))
+    .slice(0, 8);
+
+  const el = document.getElementById('upcoming-courts');
+  if (!upcoming.length) {
+    el.innerHTML = '<div class="text-muted" style="padding:20px 18px;">No upcoming court dates</div>';
+    return;
+  }
+
+  el.innerHTML = upcoming.map(r => {
+    const cd = f(r)['Court Date'];
+    const dt = new Date(cd + 'T12:00:00');
+    const days = daysUntil(cd);
+    const mon = dt.toLocaleString('en-US',{month:'short'}).toUpperCase();
+    const day = dt.getDate();
+    const isUrgent = days <= 3;
+    const isSoon = days <= 7;
+    const daysLabel = days === 0 ? 'Today!' : days === 1 ? 'Tomorrow' : `${days} days`;
+    const daysClass = isUrgent ? 'days-urgent' : isSoon ? 'days-soon' : 'days-ok';
+    const boxClass  = isUrgent ? 'urgent' : isSoon ? 'soon' : '';
+    return `<div class="court-item">
+      <div class="court-date-box ${boxClass}">
+        <div class="mon">${mon}</div>
+        <div class="day">${day}</div>
+      </div>
+      <div class="court-info">
+        <div class="court-name">${clientName(r)}</div>
+        <div class="court-meta">${f(r)['Case #'] || '—'} · ${f(r)['Court Location'] || 'Court TBD'}</div>
+      </div>
+      <span class="court-days-left ${daysClass}">${daysLabel}</span>
+      <button class="icon-btn view" onclick="openModal('${r.id}')">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  RECENT LEADS
+// ═══════════════════════════════════════════════════════
+function renderRecentLeads() {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const leads = ALL_RECORDS
+    .filter(r => {
+      const ds = f(r)['Date Submitted'];
+      if (!ds) return false;
+      return new Date(ds) >= cutoff;
+    })
+    .sort((a,b) => new Date(f(b)['Date Submitted']) - new Date(f(a)['Date Submitted']))
+    .slice(0, 8);
+
+  const tbody = document.getElementById('recent-leads');
+  if (!leads.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No new leads in last 30 days</td></tr>';
+    return;
+  }
+  tbody.innerHTML = leads.map(r => `
+    <tr>
+      <td class="mono no-wrap">${f(r)['Case #'] || '—'}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;">
+        <div class="avatar">${(f(r)['First Name']||'?')[0]}${(f(r)['Last Name']||'')[0]||''}</div>
+        ${clientName(r)}
+      </div></td>
+      <td>${typeBadge(f(r)['Case Type'])}</td>
+      <td class="no-wrap" style="color:var(--gray-text);font-size:11px;">${formatDateShort(f(r)['Date Submitted'])}</td>
+      <td><button class="icon-btn view" onclick="openModal('${r.id}')">👁 View</button></td>
+    </tr>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  FLAGGED CASES
+// ═══════════════════════════════════════════════════════
+function renderFlaggedCases() {
+  const flagged = [];
+
+  ALL_RECORDS.forEach(r => {
+    const days = daysUntil(f(r)['Court Date']);
+    const p = f(r)['Priority'] || '';
+    const s = f(r)['Status']   || '';
+    if (days !== null && days <= 5 && days >= 0 && !s.includes('Closed')) {
+      flagged.push({ r, reason: `🔴 Court in ${days === 0 ? 'TODAY' : days + ' days'}`, severity: 'urgent' });
+    } else if (p.includes('Urgent')) {
+      flagged.push({ r, reason: '🚨 Marked Urgent', severity: 'urgent' });
+    } else if (f(r)['Case Type']?.includes('DUI')) {
+      flagged.push({ r, reason: '⚖️ DUI Case', severity: 'high' });
+    } else if (!f(r)['Attorney'] && (s.includes('Open') || s.includes('Pending'))) {
+      flagged.push({ r, reason: '⚠️ No attorney assigned', severity: 'warn' });
+    }
+  });
+
+  const el = document.getElementById('flagged-cases');
+  if (!flagged.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No flagged cases right now.</p></div>';
+    return;
+  }
+  el.innerHTML = flagged.slice(0,6).map(({r, reason, severity}) => {
+    const cls = severity === 'urgent' ? 'badge-urgent' : severity === 'high' ? 'badge-high' : 'badge-pending';
+    return `<div class="court-item">
+      <div class="court-info">
+        <div class="court-name">${clientName(r)} — <span class="mono" style="font-size:11px;">${f(r)['Case #']||'—'}</span></div>
+        <div class="court-meta">${f(r)['Case Type']||'—'} · ${f(r)['Court Location']||'No court'}</div>
+      </div>
+      <span class="badge ${cls}" style="font-size:10px;">${reason}</span>
+      <button class="icon-btn view" onclick="openModal('${r.id}')">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CHARTS
+// ═══════════════════════════════════════════════════════
+function renderStatusChart() {
+  const counts = {};
+  const statusLabels = ['🔵 Lead','🟢 Open','🟡 Pending Court','✅ Closed','🚨 Warrant'];
+  statusLabels.forEach(s => counts[s] = 0);
+  ALL_RECORDS.forEach(r => {
+    const s = f(r)['Status'] || 'Unknown';
+    const key = statusLabels.find(l => s.includes(l.slice(2)) || s === l) || s;
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  const labels = Object.keys(counts).filter(k => counts[k] > 0);
+  const data   = labels.map(k => counts[k]);
+  const colors = labels.map(l => {
+    if (l.includes('Lead'))    return '#3b82f6';
+    if (l.includes('Open'))    return '#22c55e';
+    if (l.includes('Pending')) return '#f59e0b';
+    if (l.includes('Closed'))  return '#94a3b8';
+    if (l.includes('Warrant')) return '#ef4444';
+    return '#6366f1';
+  });
+
+  if (statusChartInst) statusChartInst.destroy();
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  statusChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } },
+      },
+      cutout: '62%',
+    }
+  });
+}
+
+function renderTypeChart() {
+  const counts = {};
+  ALL_RECORDS.forEach(r => {
+    const t = f(r)['Case Type'] || 'Unknown';
+    counts[t] = (counts[t] || 0) + 1;
+  });
+  const labels = Object.keys(counts);
+  const data   = labels.map(k => counts[k]);
+  const colors = labels.map(l => l.includes('DUI') ? '#ef4444' : '#3b82f6');
+
+  if (typeChartInst) typeChartInst.destroy();
+  const ctx = document.getElementById('typeChart').getContext('2d');
+  typeChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors, borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  ATTORNEY + FIN SUMMARY
+// ═══════════════════════════════════════════════════════
+function renderAttySummary() {
+  const withAtty = ALL_RECORDS.filter(r => f(r)['Attorney'] && f(r)['Attorney'].length).length;
+  const noAtty   = ALL_RECORDS.filter(r => {
+    const s = f(r)['Status'] || '';
+    return (!f(r)['Attorney'] || !f(r)['Attorney'].length) && (s.includes('Open') || s.includes('Pending'));
+  }).length;
+  const quoteSent = ALL_RECORDS.filter(r => (f(r)['Quote Status']||'').includes('Quote Sent')).length;
+  const accepted  = ALL_RECORDS.filter(r => (f(r)['Quote Status']||'').includes('Accepted')).length;
+
+  document.getElementById('atty-summary').innerHTML = `
+    <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Cases with attorney</span><strong>${withAtty}</strong></div>
+      <div class="dash-row-item"><span class="text-red">Need attorney</span><strong class="text-red">${noAtty}</strong></div>
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Quote sent</span><strong>${quoteSent}</strong></div>
+      <div class="dash-row-item"><span class="text-green">Quote accepted</span><strong class="text-green">${accepted}</strong></div>
+    </div>
+  `;
+}
+
+function renderFinSummary() {
+  const collected  = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Client Fee Collected'])||0), 0);
+  const outstanding= ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Client Balance Remaining'])||0), 0);
+  const attyFees   = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Attorney Service Fee'])||0), 0);
+  const profit     = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Profit'])||0), 0);
+
+  document.getElementById('fin-summary').innerHTML = `
+    <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Total collected</span><strong class="text-green">${currency(collected)}</strong></div>
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Outstanding</span><strong class="text-red">${currency(outstanding)}</strong></div>
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Attorney fees total</span><strong>${currency(attyFees)}</strong></div>
+      <div class="dash-row-item"><span style="color:var(--gray-text);">Net profit</span><strong class="${profit>=0?'text-green':'text-red'}">${currency(profit)}</strong></div>
+    </div>
+  `;
+}
+
+// helper style
+const style = document.createElement('style');
+style.textContent = '.dash-row-item{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0;border-bottom:1px solid #f1f5f9;}.dash-row-item:last-child{border-bottom:none;}';
+document.head.appendChild(style);
+
+// ═══════════════════════════════════════════════════════
+//  KANBAN
+// ═══════════════════════════════════════════════════════
+const STATUSES = [
+  { key: '🔵 Lead',          label: '🔵 Lead',          dot: 'dot-lead' },
+  { key: '🟢 Open',          label: '🟢 Open',          dot: 'dot-open' },
+  { key: '🟡 Pending Court', label: '🟡 Pending Court', dot: 'dot-pending' },
+  { key: '✅ Closed',        label: '✅ Closed',        dot: 'dot-closed' },
+  { key: '🚨 Warrant',       label: '🚨 Warrant',       dot: 'dot-warrant' },
+];
+
+let kanbanSearch = '';
+function filterKanbanSearch(v) { kanbanSearch = v.toLowerCase(); renderKanban(); }
+
+function renderKanban(filter) {
+  const wrap = document.getElementById('kanban-wrap');
+  let records = ALL_RECORDS;
+  if (kanbanSearch) {
+    records = records.filter(r => {
+      const s = [clientName(r), f(r)['Case #'], f(r)['Case Type'], f(r)['Court Location']].join(' ').toLowerCase();
+      return s.includes(kanbanSearch);
+    });
+  }
+
+  wrap.innerHTML = STATUSES.map(({key, label, dot}) => {
+    const cards = records.filter(r => {
+      const s = f(r)['Status'] || '';
+      return s === key || s.includes(key.slice(2));
+    }).sort((a,b) => {
+      const da = f(a)['Court Date'] || '9999';
+      const db = f(b)['Court Date'] || '9999';
+      return da.localeCompare(db);
+    });
+
+    const cardsHtml = cards.length ? cards.map(r => {
+      const cd    = f(r)['Court Date'];
+      const days  = daysUntil(cd);
+      const prio  = f(r)['Priority'] || '';
+      const isUrgent = days !== null && days <= 5 && days >= 0;
+      const courtClass = isUrgent ? 'urgent' : '';
+      const prioHtml = prio ? priorityBadge(prio) : '';
+
+      return `<div class="kanban-card" onclick="openModal('${r.id}')">
+        <div class="kanban-card-top">
+          <span class="kanban-case-num">${f(r)['Case #']||'—'}</span>
+          ${prioHtml}
+        </div>
+        <div class="kanban-client">${clientName(r)}</div>
+        <div class="kanban-type">${f(r)['Case Type']||'—'} · ${f(r)['Court State']||''}</div>
+        <div class="kanban-footer">
+          <div class="kanban-court ${courtClass}">
+            📅 ${cd ? formatDateShort(cd) : 'No court date'}
+            ${isUrgent ? '<strong> ⚡</strong>' : ''}
+          </div>
+          ${f(r)['CDL Holder'] ? '<span class="badge badge-high" style="font-size:9px;">CDL</span>' : ''}
+        </div>
+      </div>`;
+    }).join('') : `<div class="kanban-empty">No cases</div>`;
+
+    return `<div class="kanban-col">
+      <div class="kanban-col-head">
+        <div class="dot ${dot}"></div>
+        ${label}
+        <span class="kanban-count">${cards.length}</span>
+      </div>
+      <div class="kanban-cards">${cardsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterKanban(v) { kanbanSearch = ''; renderKanban(v); }
+
+// ═══════════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════════
+function renderCalendar() {
+  const title = new Date(calYear, calMonth, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  document.getElementById('cal-title').textContent = title;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevDays = new Date(calYear, calMonth, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Index court dates
+  const courtMap = {};
+  ALL_RECORDS.forEach(r => {
+    const cd = f(r)['Court Date'];
+    if (!cd) return;
+    const dt = new Date(cd + 'T12:00:00');
+    if (dt.getFullYear() === calYear && dt.getMonth() === calMonth) {
+      const d = dt.getDate();
+      if (!courtMap[d]) courtMap[d] = [];
+      courtMap[d].push(r);
+    }
+  });
+
+  let cells = '';
+  // Prev month padding
+  for (let i = firstDay - 1; i >= 0; i--) {
+    cells += `<div class="cal-cell other-month"><div class="cal-cell-num">${prevDays - i}</div></div>`;
+  }
+  // Current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(calYear, calMonth, d);
+    dt.setHours(0,0,0,0);
+    const isToday = dt.getTime() === today.getTime();
+    const events = courtMap[d] || [];
+    const evHtml = events.slice(0,3).map(r => {
+      const isDUI = (f(r)['Case Type']||'').includes('DUI');
+      const cls = isDUI ? 'cal-event dui' : 'cal-event';
+      return `<div class="${cls}" onclick="openModal('${r.id}')" title="${clientName(r)}">${clientName(r)}</div>`;
+    }).join('');
+    const moreHtml = events.length > 3 ? `<div style="font-size:9px;color:var(--gray-muted);padding:2px 4px;">+${events.length-3} more</div>` : '';
+    cells += `<div class="cal-cell${isToday?' today':''}">
+      <div class="cal-cell-num">${d}</div>
+      ${evHtml}${moreHtml}
+    </div>`;
+  }
+  // Next month padding
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let d = 1; d <= totalCells - firstDay - daysInMonth; d++) {
+    cells += `<div class="cal-cell other-month"><div class="cal-cell-num">${d}</div></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = `
+    <div class="cal-days-header">
+      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-day-head">${d}</div>`).join('')}
+    </div>
+    <div class="cal-cells">${cells}</div>
+  `;
+}
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
+
+// ═══════════════════════════════════════════════════════
+//  ATTORNEY TABLE
+// ═══════════════════════════════════════════════════════
+function attyFilter(val, el) {
+  attyFilterVal = val;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAttyTable();
+}
+
+function renderAttyTable() {
+  let records = ALL_RECORDS.filter(r => {
+    const s = f(r)['Status'] || '';
+    return !s.includes('Closed');
+  });
+
+  if (attyFilterVal === 'no-atty') {
+    records = records.filter(r => !f(r)['Attorney'] || !f(r)['Attorney'].length);
+  } else if (attyFilterVal === 'quote-sent') {
+    records = records.filter(r => (f(r)['Quote Status']||'').includes('Quote Sent'));
+  } else if (attyFilterVal === 'quote-recv') {
+    records = records.filter(r => (f(r)['Quote Status']||'').includes('Quote Received'));
+  } else if (attyFilterVal === 'accepted') {
+    records = records.filter(r => (f(r)['Quote Status']||'').includes('Accepted'));
+  } else if (attyFilterVal === 'payment-pend') {
+    records = records.filter(r => (f(r)['Quote Status']||'').includes('Payment Pending'));
+  } else if (attyFilterVal === 'payment-conf') {
+    records = records.filter(r => f(r)['Attorney Payment Confirmed'] === true);
+  }
+
+  records.sort((a,b) => {
+    const da = f(a)['Court Date'] || '9999';
+    const db = f(b)['Court Date'] || '9999';
+    return da.localeCompare(db);
+  });
+
+  const tbody = document.getElementById('atty-tbody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No cases match this filter</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(r => {
+    const cd   = f(r)['Court Date'];
+    const days = daysUntil(cd);
+    const dateHtml = cd
+      ? `<span style="color:${days !== null && days <= 7 ? 'var(--red)' : 'inherit'}">${formatDateShort(cd)}</span>`
+      : '<span class="text-muted">—</span>';
+    const attyNames = Array.isArray(f(r)['Attorney'])
+      ? f(r)['Attorney'].join(', ')
+      : (f(r)['Attorney'] || '');
+    const paid = f(r)['Attorney Payment Confirmed']
+      ? '<span class="badge badge-payment-conf">✔ Paid</span>'
+      : '<span class="badge badge-payment-pend">Unpaid</span>';
+
+    return `<tr>
+      <td class="mono no-wrap">${f(r)['Case #']||'—'}</td>
+      <td><strong>${clientName(r)}</strong></td>
+      <td>${typeBadge(f(r)['Case Type'])}</td>
+      <td class="no-wrap">${dateHtml}</td>
+      <td>${attyNames || '<span class="text-red">Not assigned</span>'}</td>
+      <td>${quoteStatusBadge(f(r)['Quote Status'])}</td>
+      <td class="currency">${currency(f(r)['Attorney Service Fee'])}</td>
+      <td>${paid}</td>
+      <td><button class="icon-btn view" onclick="openModal('${r.id}')">👁 View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PAYMENTS
+// ═══════════════════════════════════════════════════════
+function renderPayments() {
+  const collected   = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Client Fee Collected'])||0), 0);
+  const outstanding = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Client Balance Remaining'])||0), 0);
+  const attyUnpaid  = ALL_RECORDS
+    .filter(r => !f(r)['Attorney Payment Confirmed'])
+    .reduce((s,r) => s + (Number(f(r)['Attorney Service Fee'])||0), 0);
+  const profit = ALL_RECORDS.reduce((s,r) => s + (Number(f(r)['Profit'])||0), 0);
+
+  document.getElementById('pay-collected').textContent   = currency(collected);
+  document.getElementById('pay-outstanding').textContent = currency(outstanding);
+  document.getElementById('pay-atty-owed').textContent   = currency(attyUnpaid);
+  document.getElementById('pay-profit').textContent      = currency(profit);
+
+  renderPayTable('');
+}
+
+function filterPayTable(v) { paySearchVal = v.toLowerCase(); renderPayTable(v); }
+
+function renderPayTable(search) {
+  let records = ALL_RECORDS;
+  if (search) {
+    const q = search.toLowerCase();
+    records = records.filter(r => {
+      return [clientName(r), f(r)['Case #']||''].join(' ').toLowerCase().includes(q);
+    });
+  }
+  records = records.sort((a,b) => {
+    const da = f(a)['Date Submitted'] || '';
+    const db = f(b)['Date Submitted'] || '';
+    return db.localeCompare(da);
+  });
+
+  const tbody = document.getElementById('pay-tbody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">No records</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(r => {
+    const fee       = Number(f(r)['Client Fee Collected']) || 0;
+    const balance   = Number(f(r)['Client Balance Remaining']) || 0;
+    const attyFee   = Number(f(r)['Attorney Service Fee']) || 0;
+    const paidAtty  = f(r)['Attorney Payment Confirmed'];
+    const profit    = Number(f(r)['Profit']) || 0;
+
+    // Derive a "total charged" = collected + balance remaining if no separate field
+    const charged = fee + balance;
+
+    return `<tr>
+      <td class="mono no-wrap">${f(r)['Case #']||'—'}</td>
+      <td><strong>${clientName(r)}</strong></td>
+      <td>${statusBadge(f(r)['Status'])}</td>
+      <td class="currency">${charged > 0 ? currency(charged) : '—'}</td>
+      <td class="currency">${fee > 0 ? currency(fee) : '—'}</td>
+      <td class="${balance > 0 ? 'currency neg' : 'currency'}">${balance > 0 ? currency(balance) : '—'}</td>
+      <td class="currency">${attyFee > 0 ? currency(attyFee) : '—'}</td>
+      <td>${paidAtty ? '<span class="badge badge-payment-conf">✔ Paid</span>' : (attyFee > 0 ? '<span class="badge badge-payment-pend">Unpaid</span>' : '—')}</td>
+      <td class="${profit >= 0 ? 'currency' : 'currency neg'}">${profit !== 0 ? currency(profit) : '—'}</td>
+      <td><button class="icon-btn view" onclick="openModal('${r.id}')">👁</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR BADGES
+// ═══════════════════════════════════════════════════════
+function updateSidebarBadges() {
+  const active = ALL_RECORDS.filter(r => {
+    const s = f(r)['Status'] || '';
+    return !s.includes('Closed');
+  }).length;
+  document.getElementById('sb-active-count').textContent = active;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const courtSoon = ALL_RECORDS.filter(r => {
+    const d = daysUntil(f(r)['Court Date']);
+    return d !== null && d >= 0 && d <= 14;
+  }).length;
+  document.getElementById('sb-court-count').textContent = courtSoon || '0';
+}
+
+// ═══════════════════════════════════════════════════════
+//  CASE MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(id) {
+  const r = ALL_RECORDS.find(x => x.id === id);
+  if (!r) return;
+  const fd = f(r);
+
+  const head = document.getElementById('modal-head');
+  head.innerHTML = `
+    ${statusBadge(fd['Status'])}
+    <span class="modal-case-num">${fd['Case #']||'New Case'}</span>
+    ${priorityBadge(fd['Priority'])}
+    ${typeBadge(fd['Case Type'])}
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  `;
+
+  const attyNames = Array.isArray(fd['Attorney']) ? fd['Attorney'].join(', ') : (fd['Attorney'] || '—');
+
+  const photoHtml = (field) => {
+    const attachments = fd[field];
+    if (!attachments || !attachments.length) return '<span class="text-muted">Not uploaded</span>';
+    return attachments.map(a => `<a href="${a.url}" target="_blank" rel="noopener">
+      <img src="${a.url}" class="modal-photo" alt="${a.filename}" onerror="this.style.display='none'">
+    </a>`).join('');
+  };
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">Client Information</div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <div class="modal-label">First Name</div>
+        <div class="modal-val">${fd['First Name']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Last Name</div>
+        <div class="modal-val">${fd['Last Name']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Phone</div>
+        <div class="modal-val">${fd['Phone'] ? `<a href="tel:${fd['Phone']}" class="modal-val link" style="background:none;border:none;padding:0;">${fd['Phone']}</a>` : '—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Email</div>
+        <div class="modal-val">${fd['Email'] ? `<a href="mailto:${fd['Email']}" class="link">${fd['Email']}</a>` : '—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">CDL Holder?</div>
+        <div class="modal-val">${fd['CDL Holder'] ? '✅ Yes' : 'No'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Traffic School (18 mo)?</div>
+        <div class="modal-val">${fd['Traffic School Past 18 Months?'] ? '⚠️ Yes' : 'No'}</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Case Details</div>
+    <div class="modal-grid tri">
+      <div class="modal-field">
+        <div class="modal-label">Date Submitted</div>
+        <div class="modal-val">${formatDate(fd['Date Submitted'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Date of Violation</div>
+        <div class="modal-val">${formatDate(fd['Date of Violation'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Citation / Arrest #</div>
+        <div class="modal-val mono">${fd['Citation/Arrest #']||'—'}</div>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <div class="modal-label">Court Date</div>
+        <div class="modal-val" style="color:${daysUntil(fd['Court Date']) !== null && daysUntil(fd['Court Date']) <= 7 ? 'var(--red)' : 'inherit'};font-weight:600;">
+          ${formatDate(fd['Court Date'])}
+          ${fd['Court Date'] && daysUntil(fd['Court Date']) !== null ? ` <small style="font-weight:400;opacity:0.7;">(${daysUntil(fd['Court Date'])} days)</small>` : ''}
+        </div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Court Location</div>
+        <div class="modal-val">${fd['Court Location']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Court State</div>
+        <div class="modal-val">${fd['Court State']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">County</div>
+        <div class="modal-val">${fd['County']||'—'}</div>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-field full">
+        <div class="modal-label">Client Statement</div>
+        <div class="modal-val notes">${fd['Client Statement']||'—'}</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Attorney</div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <div class="modal-label">Attorney</div>
+        <div class="modal-val">${attyNames}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Quote Status</div>
+        <div class="modal-val" style="background:none;border:none;padding:0;">${quoteStatusBadge(fd['Quote Status'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Attorney Service Fee</div>
+        <div class="modal-val currency">${currency(fd['Attorney Service Fee'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Attorney Paid?</div>
+        <div class="modal-val">${fd['Attorney Payment Confirmed'] ? '✅ Yes — ' + formatDate(fd['Attorney Paid Date']) : '❌ Not yet'}</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Financials</div>
+    <div class="modal-grid tri">
+      <div class="modal-field">
+        <div class="modal-label">Client Fee Collected</div>
+        <div class="modal-val currency">${currency(fd['Client Fee Collected'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Client Balance</div>
+        <div class="modal-val ${(fd['Client Balance Remaining']>0)?'currency neg':'currency'}">${currency(fd['Client Balance Remaining'])}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Net Profit</div>
+        <div class="modal-val ${(fd['Profit']>=0)?'currency':'currency neg'}">${currency(fd['Profit'])}</div>
+      </div>
+    </div>
+
+    <div class="modal-section">Documents</div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <div class="modal-label">Ticket Photo</div>
+        ${photoHtml('Ticket Upload')}
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">ID / License Photo</div>
+        ${photoHtml('ID Upload')}
+      </div>
+    </div>
+
+    <div class="modal-section">Internal</div>
+    <div class="modal-grid">
+      <div class="modal-field">
+        <div class="modal-label">Heard About Us</div>
+        <div class="modal-val">${fd['Heard About Us']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Referred By</div>
+        <div class="modal-val">${fd['Referred By']||'—'}</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Internal Notes</div>
+        <div class="modal-val notes">${fd['Internal Notes']||'—'}</div>
+      </div>
+      ${fd['Status']?.includes('Closed') ? `
+      <div class="modal-field">
+        <div class="modal-label">Resolution Notes</div>
+        <div class="modal-val notes">${fd['Resolution Notes']||'—'}</div>
+      </div>` : ''}
+    </div>
+
+    <div style="padding:16px 0 0;display:flex;gap:10px;">
+      <a href="https://airtable.com" target="_blank" class="btn" style="text-decoration:none;">🗄️ Open in Airtable</a>
+      <button class="btn" onclick="closeModal()">Close</button>
+    </div>
+  `;
+
+  document.getElementById('case-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('case-modal').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PANEL NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════
+function exportCSV() {
+  const cols = ['Case #','Status','Case Type','First Name','Last Name','Phone','Email','Court Date','Court Location','Attorney Service Fee','Client Fee Collected','Client Balance Remaining','Profit'];
+  const rows = [cols.join(',')];
+  ALL_RECORDS.forEach(r => {
+    rows.push(cols.map(c => {
+      const v = f(r)[c] ?? '';
+      return `"${String(v).replace(/"/g,'""')}"`;
+    }).join(','));
+  });
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `ticket-terminator-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILTER PAYMENTS (stub — called from sidebar)
+// ═══════════════════════════════════════════════════════
+function filterPayments(v) { showPanel('payments'); }
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+loadData();
+</script>
+</body>
+</html>
