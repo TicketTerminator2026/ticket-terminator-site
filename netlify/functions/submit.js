@@ -9,7 +9,7 @@ exports.handler = async function (event) {
   let data;
   try {
     data = JSON.parse(event.body);
-  } catch (e) {
+  } catch (e) 
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request body' }) };
   }
 
@@ -30,7 +30,7 @@ exports.handler = async function (event) {
 
   const fields = {
     'Case #':                        caseNum,
-    'Status':                        'New Lead',
+    'Status':                        'Lead,
     'Case Type':                     caseTypeMap[data.violationType] || '🚗 Traffic Citation',
     'Date of Intake':                new Date().toISOString().split('T')[0],
     'First Name':                    data.firstName  || '',
