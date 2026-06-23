@@ -576,6 +576,36 @@ body {
   max-height: 200px; object-fit: contain; background: #f8fafc;
 }
 
+/* ── EDIT INPUTS ────────────────────────────────────────────────────── */
+.edit-input {
+  font-size: 13px; color: var(--text); background: #fff;
+  border: 1.5px solid #cbd5e1; border-radius: 6px;
+  padding: 7px 10px; width: 100%; box-sizing: border-box;
+  transition: border-color .15s;
+}
+.edit-input:focus { outline: none; border-color: var(--navy); }
+.edit-input[type=checkbox] { width: auto; }
+textarea.edit-input { resize: vertical; min-height: 60px; }
+select.edit-input { appearance: auto; cursor: pointer; }
+/* ── ATTORNEY CARDS ─────────────────────────────────────────────────── */
+.atty-card {
+  background: #fff; border: 1px solid var(--gray-border);
+  border-radius: 10px; padding: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: box-shadow .15s;
+}
+.atty-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+.atty-card-name { font-weight: 700; font-size: 14px; }
+.atty-card-meta { font-size: 12px; color: var(--gray-text); display: flex; flex-wrap: wrap; gap: 6px; }
+.atty-card-meta span { display: flex; align-items: center; gap: 4px; }
+.atty-county-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.atty-county-chip {
+  font-size: 10px; font-weight: 600; color: var(--navy);
+  background: #e0e7ff; padding: 2px 7px; border-radius: 20px;
+}
+.atty-card-actions { display: flex; gap: 8px; margin-top: 4px; }
+.badge-active { background: #dcfce7; color: #166534; font-size: 10px; font-weight:700; padding: 2px 8px; border-radius:20px; }
+.badge-inactive { background: #fee2e2; color: #991b1b; font-size: 10px; font-weight:700; padding: 2px 8px; border-radius:20px; }
 /* ── SEARCH BAR ─────────────────────────────────────────────────────── */
 .search-wrap {
   display: flex; gap: 10px; align-items: center; margin-bottom: 18px;
@@ -670,7 +700,7 @@ body {
 
   <!-- SIDEBAR -->
   <div class="sidebar">
-    <button class="sb-new-case" onclick="showPanel('dashboard')">⚖️ Case Management</button>
+    <button class="sb-new-case" onclick="openNewCaseModal()">＋ New Case</button>
 
     <div class="sb-section">Views</div>
     <div class="sb-item active" id="nav-dashboard" onclick="showPanel('dashboard')">
@@ -687,7 +717,10 @@ body {
     <div class="sb-item" id="nav-attorney" onclick="showPanel('attorney')">
       <span class="sb-icon">⚖️</span> Attorney Pipeline
     </div>
-    <div class="sb-item" id="nav-payments" onclick="showPanel('payments')">
+    <div class="sb-item" id="nav-attorneys-mgmt" onclick="showPanel('attorneys-mgmt')">
+      <span class="sb-icon">👔</span> Attorneys
+    </div>
+    <div class="sb-item" id="nav-payments" onclick="showPanel('payments)">
       <span class="sb-icon">💰</span> Payments
     </div>
 
@@ -975,8 +1008,110 @@ body {
       </div>
     </div>
 
+
+    <!-- ──────────── ATTORNEYS MANAGEMENT PANEL ──────────── -->
+    <div class="panel" id="panel-attorneys-mgmt">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Attorneys</div>
+          <div class="page-sub" id="atty-mgmt-sub">Loading attorneys…</div>
+        </div>
+        <div class="page-actions">
+          <select id="atty-state-filter" class="btn" onchange="filterAttorneyList()" style="cursor:pointer;">
+            <option value="">All States</option>
+            <option>CA</option><option>NV</option><option>AZ</option><option>TX</option>
+            <option>FL</option><option>NY</option><option>WA</option><option>OR</option>
+            <option>CO</option><option>IL</option><option>GA</option><option>NC</option>
+            <option>OH</option><option>MI</option><option>PA</option><option>Other</option>
+          </select>
+          <input type="text" id="atty-search" class="btn" placeholder="🔍 Search attorneys…" oninput="filterAttorneyList()" style="min-width:180px;cursor:text;">
+          <button class="btn primary" onclick="openAttorneyModal()">＋ Add Attorney</button>
+        </div>
+      </div>
+      <div id="atty-mgmt-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:0 4px;"></div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /layout -->
+
+<!-- ═══════════════════ NEW CASE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="new-case-modal" onclick="if(event.target===this)closeNewCaseModal()">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <span style="font-weight:700;font-size:16px;">＋ New Case</span>
+      <button class="modal-close" onclick="closeNewCaseModal()">✕</button>
+    </div>
+    <div class="modal-body" id="new-case-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="modal-field"><div class="modal-label">First Name *</div><input class="edit-input" id="nc-first" placeholder="First name"></div>
+        <div class="modal-field"><div class="modal-label">Last Name *</div><input class="edit-input" id="nc-last" placeholder="Last name"></div>
+        <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="nc-phone" placeholder="(xxx) xxx-xxxx"></div>
+        <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" id="nc-email" type="email" placeholder="email@example.com"></div>
+        <div class="modal-field"><div class="modal-label">Case Type</div>
+          <select class="edit-input" id="nc-type">
+            <option value="🚗 Traffic Citation">🚗 Traffic Citation</option>
+            <option value="🚨 DUI / DWI">🚨 DUI / DWI</option>
+          </select>
+        </div>
+        <div class="modal-field"><div class="modal-label">Priority</div>
+          <select class="edit-input" id="nc-priority">
+            <option value="🟢 Low">🟢 Low</option>
+            <option value="🟡 Medium" selected>🟡 Medium</option>
+            <option value="🔴 High">🔴 High</option>
+          </select>
+        </div>
+        <div class="modal-field"><div class="modal-label">Court Date</div><input class="edit-input" id="nc-court-date" type="date"></div>
+        <div class="modal-field"><div class="modal-label">Court Location</div><input class="edit-input" id="nc-court-loc" placeholder="e.g. LA Superior Court"></div>
+        <div class="modal-field"><div class="modal-label">Court State</div><input class="edit-input" id="nc-court-state" placeholder="CA"></div>
+        <div class="modal-field"><div class="modal-label">County</div><input class="edit-input" id="nc-county" placeholder="e.g. Los Angeles"></div>
+        <div class="modal-field"><div class="modal-label">Citation / Arrest #</div><input class="edit-input" id="nc-citation" placeholder="Citation number"></div>
+        <div class="modal-field"><div class="modal-label">Date of Violation</div><input class="edit-input" id="nc-viol-date" type="date"></div>
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Client Statement</div><textarea class="edit-input" id="nc-statement" rows="3" placeholder="Client's account of events"></textarea></div>
+      </div>
+      <div id="nc-error" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn" onclick="closeNewCaseModal()">Cancel</button>
+        <button class="btn primary" id="nc-save-btn" onclick="saveNewCase()">Create Case</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ATTORNEY MODAL ═══════════════════ -->
+<div class="modal-overlay" id="attorney-modal" onclick="if(event.target===this)closeAttorneyModal()">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <span id="atty-modal-title" style="font-weight:700;font-size:16px;">Add Attorney</span>
+      <button class="modal-close" onclick="closeAttorneyModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Attorney Name *</div><input class="edit-input" id="am-name" placeholder="Full name"></div>
+        <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="am-phone" placeholder="(xxx) xxx-xxxx"></div>
+        <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" id="am-email" type="email" placeholder="attorney@firm.com"></div>
+        <div class="modal-field"><div class="modal-label">Bar Number</div><input class="edit-input" id="am-bar" placeholder="State bar number"></div>
+        <div class="modal-field"><div class="modal-label">State</div>
+          <select class="edit-input" id="am-state">
+            <option value="">Select state…</option>
+            <option>CA</option><option>NV</option><option>AZ</option><option>TX</option>
+            <option>FL</option><option>NY</option><option>WA</option><option>OR</option>
+            <option>CO</option><option>IL</option><option>GA</option><option>NC</option>
+            <option>OH</option><option>MI</option><option>PA</option><option>Other</option>
+          </select>
+        </div>
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Counties Covered <span style="opacity:.5;font-weight:400;">(comma-separated)</span></div><input class="edit-input" id="am-counties" placeholder="Los Angeles, Orange, San Bernardino"></div>
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Internal Notes</div><textarea class="edit-input" id="am-notes" rows="3" placeholder="Rates, specialties, contact preferences…"></textarea></div>
+        <div class="modal-field"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="am-active" checked style="width:16px;height:16px;"> Active</label></div>
+      </div>
+      <input type="hidden" id="am-record-id">
+      <div id="am-error" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn" onclick="closeAttorneyModal()">Cancel</button>
+        <button class="btn primary" id="am-save-btn" onclick="saveAttorney()">Save Attorney</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ CASE MODAL ═══════════════════ -->
 <div class="modal-overlay" id="case-modal" onclick="if(event.target===this)closeModal()">
@@ -1875,12 +2010,148 @@ function openModal(id) {
     </div>
 
     <div style="padding:16px 0 0;display:flex;gap:10px;">
-      <a href="https://airtable.com/app7IaHcv4nClafca/tbledZDHFKbsBiwMf/${r.id}" target="_blank" class="btn" style="text-decoration:none;">🗄️ Open in Airtable</a>
+      <button class="btn primary" onclick="openEditMode('${r.id}')">✏️ Edit Case</button>
+      <a href="https://airtable.com/app7IaHcv4nClafca/tbledZDHFKbsBiwMf/${r.id}" target="_blank" class="btn" style="text-decoration:none;">🗄️ Airtable</a>
       <button class="btn" onclick="closeModal()">Close</button>
     </div>
   `;
 
   document.getElementById('case-modal').classList.add('open');
+}
+
+// ─── EDIT CASE MODE ──────────────────────────────────────────────────────────
+function openEditMode(id) {
+  const r = ALL_RECORDS.find(x => x.id === id);
+  if (!r) return;
+  const fd = f(r);
+  const head = document.getElementById('modal-head');
+  head.innerHTML = `
+    <span style="font-size:11px;font-weight:700;color:var(--navy);background:#e0e7ff;padding:2px 8px;border-radius:20px;">✏️ EDITING</span>
+    <span class="modal-case-num">${fd['Case #']||'Case'}</span>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  `;
+  const statusOptions = ['🔵 Lead','🟡 Sent to Attorney','🟢 Active','🔴 Urgent','⚪ Inactive','✅ Closed — Won','❌ Closed — Dismissed','🏳️ Closed — Lost'];
+  const typeOptions   = ['🚗 Traffic Citation','🚨 DUI / DWI','🏍️ Other'];
+  const priorityOpts  = ['🟢 Low','🟡 Medium','🔴 High','🔴 Urgent'];
+  const quoteOpts     = ['Not Requested','Requested','Received','Accepted','Declined'];
+  const sel = (opts, val, id) =>
+    `<select class="edit-input" id="${id}">${opts.map(o => `<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-section">Client Information</div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="modal-label">First Name</div><input class="edit-input" id="ef-first" value="${esc(fd['First Name']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Last Name</div><input class="edit-input" id="ef-last" value="${esc(fd['Last Name']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="ef-phone" value="${esc(fd['Phone']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" type="email" id="ef-email" value="${esc(fd['Email']||'')}"></div>
+    </div>
+    <div class="modal-section">Case Status</div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="modal-label">Status</div>${sel(statusOptions, fd['Status'], 'ef-status')}</div>
+      <div class="modal-field"><div class="modal-label">Case Type</div>${sel(typeOptions, fd['Case Type'], 'ef-type')}</div>
+      <div class="modal-field"><div class="modal-label">Priority</div>${sel(priorityOpts, fd['Priority'], 'ef-priority')}</div>
+      <div class="modal-field"><div class="modal-label">Quote Status</div>${sel(quoteOpts, fd['Quote Status'], 'ef-quote')}</div>
+    </div>
+    <div class="modal-section">Case Details</div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="modal-label">Court Date</div><input class="edit-input" type="date" id="ef-court-date" value="${fd['Court Date']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Court Location</div><input class="edit-input" id="ef-court-loc" value="${esc(fd['Court Location']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Court State</div><input class="edit-input" id="ef-court-state" value="${esc(fd['Court State']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">County</div><input class="edit-input" id="ef-county" value="${esc(fd['County']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Citation / Arrest #</div><input class="edit-input" id="ef-citation" value="${esc(fd['Citation/Arrest #']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Date of Violation</div><input class="edit-input" type="date" id="ef-viol-date" value="${fd['Date of Violation']||''}"></div>
+      <div class="modal-field full"><div class="modal-label">Client Statement</div><textarea class="edit-input" id="ef-statement" rows="3">${esc(fd['Client Statement']||'')}</textarea></div>
+    </div>
+    <div class="modal-section">Financials</div>
+    <div class="modal-grid">
+      <div class="modal-field"><div class="modal-label">Client Fee Collected ($)</div><input class="edit-input" type="number" id="ef-fee" value="${fd['Client Fee Collected']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Attorney Service Fee ($)</div><input class="edit-input" type="number" id="ef-atty-fee" value="${fd['Attorney Service Fee']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Attorney Paid?</div>
+        <select class="edit-input" id="ef-atty-paid">
+          <option value="false"${!fd['Attorney Payment Confirmed']?' selected':''}>❌ Not yet</option>
+          <option value="true"${fd['Attorney Payment Confirmed']?' selected':''}>✅ Paid</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-section">Internal Notes</div>
+    <div class="modal-grid">
+      <div class="modal-field full"><div class="modal-label">Internal Notes</div><textarea class="edit-input" id="ef-notes" rows="3">${esc(fd['Internal Notes']||'')}</textarea></div>
+      <div class="modal-field full"><div class="modal-label">Resolution Notes</div><textarea class="edit-input" id="ef-resolution" rows="2">${esc(fd['Resolution Notes']||'')}</textarea></div>
+    </div>
+    <div id="ef-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none;"></div>
+    <div style="padding:16px 0 0;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="openModal('${r.id}')">← Back</button>
+      <button class="btn primary" id="ef-save-btn" onclick="saveCase('${r.id}')">💾 Save Changes</button>
+    </div>
+  `;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function saveCase(id) {
+  const btn = document.getElementById('ef-save-btn');
+  const errEl = document.getElementById('ef-error');
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  errEl.style.display = 'none';
+  const attyPaid = document.getElementById('ef-atty-paid').value === 'true';
+  const fields = {
+    'First Name': document.getElementById('ef-first').value.trim(),
+    'Last Name':  document.getElementById('ef-last').value.trim(),
+    'Phone':      document.getElementById('ef-phone').value.trim(),
+    'Email':      document.getElementById('ef-email').value.trim(),
+    'Status':     document.getElementById('ef-status').value,
+    'Case Type':  document.getElementById('ef-type').value,
+    'Priority':   document.getElementById('ef-priority').value,
+    'Quote Status': document.getElementById('ef-quote').value,
+    'Court Date': document.getElementById('ef-court-date').value || null,
+    'Court Location': document.getElementById('ef-court-loc').value.trim(),
+    'Court State': document.getElementById('ef-court-state').value.trim(),
+    'County':     document.getElementById('ef-county').value.trim(),
+    'Citation/Arrest #': document.getElementById('ef-citation').value.trim(),
+    'Date of Violation': document.getElementById('ef-viol-date').value || null,
+    'Client Statement':  document.getElementById('ef-statement').value.trim(),
+    'Internal Notes':    document.getElementById('ef-notes').value.trim(),
+    'Resolution Notes':  document.getElementById('ef-resolution').value.trim(),
+    'Attorney Payment Confirmed': attyPaid,
+  };
+  const fee = parseFloat(document.getElementById('ef-fee').value);
+  const attyFee = parseFloat(document.getElementById('ef-atty-fee').value);
+  if (!isNaN(fee)) fields['Client Fee Collected'] = fee;
+  if (!isNaN(attyFee)) fields['Attorney Service Fee'] = attyFee;
+  try {
+    const res = await fetch('/.netlify/functions/update-case', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recordId: id, fields }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Save failed');
+    const idx = ALL_RECORDS.findIndex(x => x.id === id);
+    if (idx !== -1) ALL_RECORDS[idx] = data.record;
+    closeModal();
+    renderAll();
+    showToast('✅ Case saved!');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = '💾 Save Changes';
+  }
+}
+
+function showToast(msg, type='success') {
+  let t = document.getElementById('tt-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'tt-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.2);';
+    document.body.appendChild(t);
+  }
+  t.style.background = type==='error' ? 'var(--red)' : 'var(--navy)';
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._to);
+  t._to = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
 
 function closeModal() {
@@ -1958,6 +2229,243 @@ function filterPayments(v) {
       </tr>`
     }).join('');
   }
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  NEW CASE MODAL
+// ═══════════════════════════════════════════════════════
+function openNewCaseModal() {
+  ['nc-first','nc-last','nc-phone','nc-email','nc-court-loc','nc-court-state',
+   'nc-county','nc-citation','nc-statement'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('nc-court-date').value = '';
+  document.getElementById('nc-viol-date').value = '';
+  document.getElementById('nc-type').value = '🚗 Traffic Citation';
+  document.getElementById('nc-priority').value = '🟡 Medium';
+  document.getElementById('nc-error').style.display = 'none';
+  const btn = document.getElementById('nc-save-btn');
+  btn.disabled = false; btn.textContent = 'Create Case';
+  document.getElementById('new-case-modal').classList.add('open');
+}
+function closeNewCaseModal() {
+  document.getElementById('new-case-modal').classList.remove('open');
+}
+async function saveNewCase() {
+  const btn   = document.getElementById('nc-save-btn');
+  const errEl = document.getElementById('nc-error');
+  const first = document.getElementById('nc-first').value.trim();
+  const last  = document.getElementById('nc-last').value.trim();
+  if (!first && !last) {
+    errEl.textContent = 'Please enter at least a first or last name.';
+    errEl.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = '⏳ Creating…';
+  errEl.style.display = 'none';
+  const fields = {};
+  if (first) fields['First Name'] = first;
+  if (last)  fields['Last Name']  = last;
+  const phone = document.getElementById('nc-phone').value.trim();
+  const email = document.getElementById('nc-email').value.trim();
+  if (phone) fields['Phone'] = phone;
+  if (email) fields['Email'] = email;
+  fields['Case Type'] = document.getElementById('nc-type').value;
+  fields['Priority']  = document.getElementById('nc-priority').value;
+  const cd = document.getElementById('nc-court-date').value;
+  if (cd) fields['Court Date'] = cd;
+  const loc = document.getElementById('nc-court-loc').value.trim();
+  if (loc) fields['Court Location'] = loc;
+  const cs = document.getElementById('nc-court-state').value.trim();
+  if (cs) fields['Court State'] = cs;
+  const co = document.getElementById('nc-county').value.trim();
+  if (co) fields['County'] = co;
+  const cit = document.getElementById('nc-citation').value.trim();
+  if (cit) fields['Citation/Arrest #'] = cit;
+  const vd = document.getElementById('nc-viol-date').value;
+  if (vd) fields['Date of Violation'] = vd;
+  const stmt = document.getElementById('nc-statement').value.trim();
+  if (stmt) fields['Client Statement'] = stmt;
+  try {
+    const res = await fetch('/.netlify/functions/create-case', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Create failed');
+    ALL_RECORDS.unshift(data.record);
+    closeNewCaseModal();
+    renderAll();
+    showToast('✅ Case ' + data.caseNum + ' created!');
+    setTimeout(() => openModal(data.recordId), 300);
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Create Case';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ATTORNEYS PANEL
+// ═══════════════════════════════════════════════════════
+let ALL_ATTORNEYS = [];
+
+async function loadAttorneys() {
+  const listEl = document.getElementById('atty-mgmt-list');
+  const subEl  = document.getElementById('atty-mgmt-sub');
+  listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">Loading attorneys…</div>';
+  try {
+    const res  = await fetch('/.netlify/functions/get-attorneys');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    ALL_ATTORNEYS = data.records || [];
+    subEl.textContent = ALL_ATTORNEYS.length + ' attorney' + (ALL_ATTORNEYS.length!==1?'s':'') + ' in Airtable';
+    renderAttorneyList();
+  } catch (e) {
+    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">⚠ ' + e.message + '<br><br><button class="btn" onclick="loadAttorneys()">🔄 Retry</button></div>';
+  }
+}
+
+function renderAttorneyList() {
+  const listEl   = document.getElementById('atty-mgmt-list');
+  const stateVal = document.getElementById('atty-state-filter').value;
+  const search   = (document.getElementById('atty-search').value || '').toLowerCase();
+  let filtered = ALL_ATTORNEYS.filter(r => {
+    const fd = r.fields || {};
+    if (stateVal && fd['State'] !== stateVal) return false;
+    if (search) {
+      const hay = [fd['Attorney Name'], fd['Email'], fd['Phone'],
+        ...(fd['Counties Covered']||[])].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  if (!filtered.length) {
+    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">No attorneys found. <button class="btn primary" onclick="openAttorneyModal()" style="margin-left:8px;">＋ Add Attorney</button></div>';
+    return;
+  }
+  listEl.innerHTML = filtered.map(r => {
+    const fd      = r.fields || {};
+    const name    = fd['Attorney Name'] || 'Unknown';
+    const state   = fd['State'] || '';
+    const active  = fd['Active'] !== false;
+    const counties = Array.isArray(fd['Counties Covered']) ? fd['Counties Covered'] : [];
+    const chips   = counties.map(c => '<span class="atty-county-chip">' + esc(c) + '</span>').join('');
+    const caseCount = Array.isArray(fd['Cases']) ? fd['Cases'].length : 0;
+    return '<div class="atty-card">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
+        '<div class="atty-card-name">⚖️ ' + esc(name) + '</div>' +
+        '<span class="' + (active ? 'badge-active' : 'badge-inactive') + '">' + (active ? 'Active' : 'Inactive') + '</span>' +
+      '</div>' +
+      '<div class="atty-card-meta">' +
+        (state ? '<span>📍 ' + state + '</span>' : '') +
+        (fd['Phone'] ? '<span>📞 <a href="tel:' + fd['Phone'] + '">' + esc(fd['Phone']) + '</a></span>' : '') +
+        (fd['Email'] ? '<span>✉️ <a href="mailto:' + fd['Email'] + '">' + esc(fd['Email']) + '</a></span>' : '') +
+        (fd['Bar Number'] ? '<span>🆔 Bar #' + esc(fd['Bar Number']) + '</span>' : '') +
+        (caseCount > 0 ? '<span>📂 ' + caseCount + ' case' + (caseCount!==1?'s':'') + '</span>' : '') +
+      '</div>' +
+      (chips ? '<div class="atty-county-chips">' + chips + '</div>' : '') +
+      (fd['Internal Notes'] ? '<div style="font-size:12px;color:var(--gray-text);line-height:1.4;">' + esc(fd['Internal Notes']) + '</div>' : '') +
+      '<div class="atty-card-actions"><button class="btn" onclick="openAttorneyModal('' + r.id + '')" style="font-size:12px;">✏️ Edit</button></div>' +
+      '</div>';
+  }).join('');
+}
+
+function filterAttorneyList() { renderAttorneyList(); }
+
+function openAttorneyModal(recordId) {
+  const titleEl = document.getElementById('atty-modal-title');
+  ['am-name','am-phone','am-email','am-bar','am-counties','am-notes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('am-state').value = '';
+  document.getElementById('am-active').checked = true;
+  document.getElementById('am-record-id').value = '';
+  document.getElementById('am-error').style.display = 'none';
+  const btn = document.getElementById('am-save-btn');
+  btn.disabled = false; btn.textContent = 'Save Attorney';
+  if (recordId) {
+    const r = ALL_ATTORNEYS.find(x => x.id === recordId);
+    if (r) {
+      const fd = r.fields || {};
+      titleEl.textContent = '✏️ Edit Attorney';
+      document.getElementById('am-name').value    = fd['Attorney Name'] || '';
+      document.getElementById('am-phone').value   = fd['Phone'] || '';
+      document.getElementById('am-email').value   = fd['Email'] || '';
+      document.getElementById('am-bar').value     = fd['Bar Number'] || '';
+      document.getElementById('am-state').value   = fd['State'] || '';
+      document.getElementById('am-counties').value = Array.isArray(fd['Counties Covered']) ? fd['Counties Covered'].join(', ') : (fd['Counties Covered'] || '');
+      document.getElementById('am-notes').value   = fd['Internal Notes'] || '';
+      document.getElementById('am-active').checked = fd['Active'] !== false;
+      document.getElementById('am-record-id').value = recordId;
+    }
+  } else {
+    titleEl.textContent = '＋ Add Attorney';
+  }
+  document.getElementById('attorney-modal').classList.add('open');
+}
+
+function closeAttorneyModal() {
+  document.getElementById('attorney-modal').classList.remove('open');
+}
+
+async function saveAttorney() {
+  const btn   = document.getElementById('am-save-btn');
+  const errEl = document.getElementById('am-error');
+  const name  = document.getElementById('am-name').value.trim();
+  if (!name) {
+    errEl.textContent = 'Attorney Name is required.';
+    errEl.style.display = 'block'; return;
+  }
+  btn.disabled = true; btn.textContent = '⏳ Saving…';
+  errEl.style.display = 'none';
+  const recordId = document.getElementById('am-record-id').value;
+  const countiesRaw = document.getElementById('am-counties').value;
+  const counties = countiesRaw.split(',').map(s=>s.trim()).filter(Boolean);
+  const fields = {
+    'Attorney Name': name,
+    'Phone':         document.getElementById('am-phone').value.trim(),
+    'Email':         document.getElementById('am-email').value.trim(),
+    'Bar Number':    document.getElementById('am-bar').value.trim(),
+    'Active':        document.getElementById('am-active').checked,
+    'Internal Notes': document.getElementById('am-notes').value.trim(),
+  };
+  const state = document.getElementById('am-state').value;
+  if (state) fields['State'] = state;
+  if (counties.length) fields['Counties Covered'] = counties;
+  const isUpdate = !!recordId;
+  try {
+    const res = await fetch('/.netlify/functions/save-attorney', {
+      method: isUpdate ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(isUpdate ? { recordId, fields } : { fields }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Save failed');
+    if (isUpdate) {
+      const idx = ALL_ATTORNEYS.findIndex(x => x.id === recordId);
+      if (idx !== -1) ALL_ATTORNEYS[idx] = data.record;
+    } else {
+      ALL_ATTORNEYS.unshift(data.record);
+    }
+    closeAttorneyModal();
+    renderAttorneyList();
+    document.getElementById('atty-mgmt-sub').textContent =
+      ALL_ATTORNEYS.length + ' attorney' + (ALL_ATTORNEYS.length!==1?'s':'') + ' in Airtable';
+    showToast('✅ Attorney ' + (isUpdate ? 'updated' : 'added') + '!');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Save Attorney';
+  }
+}
+
+// Panel hook: load attorneys on first visit
+const _origShowPanel = showPanel;
+function showPanel(id) {
+  _origShowPanel(id);
+  if (id === 'attorneys-mgmt' && ALL_ATTORNEYS.length === 0) loadAttorneys();
 }
 
 // ═══════════════════════════════════════════════════════
