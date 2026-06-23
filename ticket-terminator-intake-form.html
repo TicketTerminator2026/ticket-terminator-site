@@ -2,11 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="description" content="Got a traffic ticket or DUI? The Ticket Terminator connects you with real licensed attorneys in all 50 states. No upfront fees. Free case review in under 3 hours."/>
+<meta name="theme-color" content="#FF9000"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>The Ticket Terminator — Free Case Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* Eliminate 300ms tap delay on iOS/Android */
+a,button,label,select,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+/* Prevent iOS auto-zoom on input focus (requires font-size ≥ 16px) */
+@media(max-width:768px){
+  input[type=text],input[type=email],input[type=tel],input[type=date],select,textarea{font-size:16px!important;}
+}
 :root{
   --black:#060606;
   --dark:#0D0D0D;
@@ -235,10 +247,10 @@ select option{background:var(--dark2);color:var(--white);}
 .pill{cursor:pointer;user-select:none;}
 .pill input{display:none;}
 .pill-body{
-  display:flex;align-items:center;gap:8px;padding:10px 17px;
+  display:flex;align-items:center;gap:8px;padding:12px 17px;
   border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;
   font-size:13px;font-weight:600;color:var(--g2);background:var(--dark2);
-  transition:all 0.2s;cursor:pointer;
+  min-height:48px;transition:all 0.2s;cursor:pointer;
 }
 .pill-body:hover{border-color:rgba(255,255,255,0.16);color:var(--white);}
 .pill input:checked~.pill-body{
@@ -259,9 +271,10 @@ select option{background:var(--dark2);color:var(--white);}
 .vcard input{display:none;}
 .vcard-body{
   display:flex;flex-direction:column;align-items:center;
-  padding:14px 8px;
+  padding:16px 8px;
   border:1.5px solid rgba(255,255,255,0.07);border-radius:13px;
   background:var(--dark2);text-align:center;transition:all 0.2s;cursor:pointer;
+  min-height:80px;justify-content:center;
 }
 .vcard-body:hover{border-color:rgba(255,122,0,0.35);}
 .vcard input:checked~.vcard-body{
@@ -278,9 +291,10 @@ select option{background:var(--dark2);color:var(--white);}
 .hopt{cursor:pointer;user-select:none;}
 .hopt input{display:none;}
 .hopt-body{
-  display:flex;align-items:center;gap:9px;padding:11px 14px;
+  display:flex;align-items:center;gap:9px;padding:13px 14px;
   border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;
-  font-size:13px;font-weight:600;color:var(--g2);background:var(--dark2);transition:all 0.2s;
+  font-size:13px;font-weight:600;color:var(--g2);background:var(--dark2);
+  min-height:48px;transition:all 0.2s;
 }
 .hopt-body:hover{border-color:rgba(255,255,255,0.15);color:var(--white);}
 .hopt input:checked~.hopt-body{
@@ -291,7 +305,7 @@ select option{background:var(--dark2);color:var(--white);}
 /* ── UPLOAD ── */
 .upload-zone{
   border:2px dashed rgba(255,255,255,0.1);border-radius:16px;
-  padding:28px 20px;text-align:center;cursor:pointer;background:var(--dark2);
+  padding:32px 20px;text-align:center;cursor:pointer;background:var(--dark2);
   transition:all 0.25s;width:100%;
 }
 .upload-zone:hover{border-color:rgba(255,122,0,0.4);background:rgba(255,122,0,0.025);}
@@ -332,6 +346,7 @@ select option{background:var(--dark2);color:var(--white);}
   border:1.5px solid rgba(255,255,255,0.09);border-radius:12px;
   font-family:var(--font);font-size:14px;font-weight:700;color:var(--g2);
   cursor:pointer;transition:all 0.2s;display:none;align-items:center;gap:6px;
+  min-height:52px;
 }
 .btn-back:hover{border-color:rgba(255,255,255,0.2);color:var(--white);}
 .btn-back.show{display:flex;}
@@ -340,6 +355,7 @@ select option{background:var(--dark2);color:var(--white);}
   font-family:var(--font);font-size:15px;font-weight:800;color:var(--white);cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.2px;
   box-shadow:0 4px 28px rgba(255,122,0,0.28);transition:all 0.25s;position:relative;overflow:hidden;
+  min-height:52px;
 }
 .btn-next:hover{transform:translateY(-1.5px);box-shadow:0 8px 36px rgba(255,122,0,0.42);}
 .btn-next:active{transform:translateY(0);}
@@ -437,6 +453,65 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 .lang-btn{padding:7px 13px;cursor:pointer;background:transparent;border:none;font-family:var(--font);font-size:12px;font-weight:800;color:var(--g1);transition:all 0.18s;letter-spacing:1px;line-height:1;}
 .lang-btn.active{background:var(--grad);color:var(--white);text-shadow:0 1px 3px rgba(0,0,0,0.3);}
 .lang-btn:hover:not(.active){background:rgba(255,255,255,0.09);color:var(--white);}
+
+/* ── INLINE VALIDATION ERRORS ── */
+.val-err-inline{
+  font-size:12px;font-weight:700;color:#FF453A;margin-top:5px;
+  display:none;padding-left:2px;animation:fIn 0.2s ease;
+}
+.val-err-inline.show{display:block;}
+.pill-err-inline{
+  font-size:12px;font-weight:700;color:#FF453A;margin-top:6px;display:none;
+}
+.pill-err-inline.show{display:block;}
+
+/* ── ERROR TOAST ── */
+.err-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#1a0000;border:1px solid rgba(255,69,58,0.5);border-radius:16px;
+  padding:16px 24px;z-index:9999;min-width:300px;max-width:90vw;
+  box-shadow:0 20px 60px rgba(0,0,0,0.7);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  display:flex;flex-direction:column;gap:10px;
+}
+.err-toast.show{transform:translateX(-50%) translateY(0);}
+.err-toast-title{font-size:14px;font-weight:800;color:#FF453A;}
+.err-toast-msg{font-size:13px;color:var(--g1);line-height:1.5;}
+.err-toast-actions{display:flex;gap:8px;}
+.btn-retry{
+  padding:9px 16px;background:var(--grad);border:none;border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:800;color:var(--white);
+  cursor:pointer;flex:1;
+}
+.btn-call-fallback{
+  padding:9px 16px;background:transparent;border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;
+  font-family:var(--font);font-size:13px;font-weight:700;color:var(--g1);
+  cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;
+}
+
+/* ── DRAFT SAVE INDICATOR ── */
+.draft-indicator{
+  position:fixed;bottom:24px;right:24px;z-index:9000;
+  background:rgba(48,209,88,0.12);border:1px solid rgba(48,209,88,0.25);
+  border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--success);
+  opacity:0;transition:opacity 0.3s;pointer-events:none;
+}
+.draft-indicator.show{opacity:1;}
+
+/* ── MOBILE CARD PADDING ── */
+@media(max-width:400px){
+  .card-head{padding:20px 16px 18px;}
+  .card-body{padding:20px 16px;}
+  .card-foot{padding:14px 16px 20px;gap:8px;}
+  .card-foot .btn-back{padding:13px 14px;}
+  .form-shell{padding:32px 12px 80px;}
+  .prog-lbl{font-size:8px;letter-spacing:0.5px;}
+  .hero{padding:100px 16px 40px;}
+}
+/* Safe area for notched phones */
+@supports(padding:max(0px)){
+  .card-foot{padding-bottom:max(20px,env(safe-area-inset-bottom));}
+  .nav{padding-top:max(16px,env(safe-area-inset-top));}
+}
 </style>
 </head>
 <body>
@@ -717,20 +792,58 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         <div class="field">
           <label class="flabel"><span data-i18n="lblVtype">Type of Ticket or Violation</span> <span class="req">*</span></label>
           <div class="vgrid">
-            <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚗</span><span class="vlabel" data-i18n="vtSpeeding">Speeding</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="DUI / DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚦</span><span class="vlabel" data-i18n="vtRed">Red Light</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🛑</span><span class="vlabel" data-i18n="vtStop">Stop Sign</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">⚠️</span><span class="vlabel" data-i18n="vtReckless">Reckless</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Cell Phone" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📱</span><span class="vlabel" data-i18n="vtCell">Cell Phone</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Fix-It Ticket" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🔧</span><span class="vlabel" data-i18n="vtFix">Fix-It</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="Other" onchange="showEl('vdescField')"/><div class="vcard-body"><span class="vemoji">📋</span><span class="vlabel" data-i18n="vtOther">Other</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="onVtChange('speeding')"/><div class="vcard-body"><span class="vemoji">🚗</span><span class="vlabel" data-i18n="vtSpeeding">Speeding</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="DUI / DWI" onchange="onVtChange('dui')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="onVtChange('other')"/><div class="vcard-body"><span class="vemoji">🚦</span><span class="vlabel" data-i18n="vtRed">Red Light</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="onVtChange('other')"/><div class="vcard-body"><span class="vemoji">🛑</span><span class="vlabel" data-i18n="vtStop">Stop Sign</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="onVtChange('other')"/><div class="vcard-body"><span class="vemoji">⚠️</span><span class="vlabel" data-i18n="vtReckless">Reckless</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Cell Phone" onchange="onVtChange('other')"/><div class="vcard-body"><span class="vemoji">📱</span><span class="vlabel" data-i18n="vtCell">Cell Phone</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Fix-It Ticket" onchange="onVtChange('other')"/><div class="vcard-body"><span class="vemoji">🔧</span><span class="vlabel" data-i18n="vtFix">Fix-It</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="Other" onchange="onVtChange('desc')"/><div class="vcard-body"><span class="vemoji">📋</span><span class="vlabel" data-i18n="vtOther">Other</span></div></label>
           </div>
         </div>
         <div class="cond field" id="vdescField">
           <label class="flabel"><span data-i18n="lblVdesc">What is the violation?</span> <span class="req">*</span></label>
           <textarea id="vdesc" data-i18n-placeholder="phVdesc" placeholder="Include the violation code if you know it — e.g. CVC 22349(b) – Speed over 100mph, VC 14601 – Driving on suspended license, or just describe what you were cited for and we'll identify it."></textarea>
           <div class="ac-hint" data-i18n="vdescHint">Not sure of the code? No problem — a description is fine.</div>
+        </div>
+        <!-- DUI-specific fields -->
+        <div class="cond" id="duiFields" style="flex-direction:column;gap:16px;">
+          <div class="field">
+            <label class="flabel">Was a BAC (breathalyzer/blood) test administered? <span class="req">*</span></label>
+            <div class="pill-row" id="bacPillRow">
+              <label class="pill"><input type="radio" name="bac" value="yes_breathalyzer"/><div class="pill-body">🫁 Yes — Breathalyzer</div></label>
+              <label class="pill"><input type="radio" name="bac" value="yes_blood"/><div class="pill-body">🩸 Yes — Blood Test</div></label>
+              <label class="pill"><input type="radio" name="bac" value="refused"/><div class="pill-body">🚫 Refused</div></label>
+              <label class="pill"><input type="radio" name="bac" value="no"/><div class="pill-body">❌ No Test Given</div></label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="flabel">BAC Result (if known)</label>
+            <input type="text" id="bacResult" placeholder="e.g. 0.08, 0.12 — leave blank if unknown" autocomplete="off"/>
+          </div>
+          <div class="field">
+            <label class="flabel">Was a field sobriety test performed?</label>
+            <div class="pill-row">
+              <label class="pill"><input type="radio" name="fst" value="yes"/><div class="pill-body">Yes</div></label>
+              <label class="pill"><input type="radio" name="fst" value="no"/><div class="pill-body">No</div></label>
+              <label class="pill"><input type="radio" name="fst" value="refused"/><div class="pill-body">Refused</div></label>
+            </div>
+          </div>
+        </div>
+        <!-- Speeding-specific fields -->
+        <div class="cond" id="speedFields" style="flex-direction:column;gap:14px;">
+          <div class="frow">
+            <div class="field">
+              <label class="flabel">Alleged Speed (mph)</label>
+              <input type="text" id="speedAlleged" placeholder="e.g. 82" autocomplete="off" inputmode="numeric"/>
+            </div>
+            <div class="field">
+              <label class="flabel">Posted Speed Limit (mph)</label>
+              <input type="text" id="speedLimit" placeholder="e.g. 65" autocomplete="off" inputmode="numeric"/>
+            </div>
+          </div>
+          <div class="ibox" style="padding:10px 14px;"><span class="ibox-icon">💡</span><span style="font-size:12px;">Margin above the limit matters — our attorneys use this to challenge radar/LIDAR calibration records.</span></div>
         </div>
         <div class="field"><label class="flabel"><span data-i18n="lblVdate">Date of Violation</span> <span class="req">*</span></label><input type="date" id="vdate"/></div>
         <div class="field"><label class="flabel" data-i18n="lblCitation">Citation / Ticket # <span style="font-weight:400;opacity:0.6;">(if known)</span></label><input type="text" id="citation" data-i18n-placeholder="phCitation" placeholder="e.g. A123456 or leave blank if unknown" autocomplete="off"/></div>
@@ -809,7 +922,7 @@ The details that feel small to you can be the ones that win your case. Don't lea
         <div class="divider"></div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblTs">Traffic School in the past 18 months from your violation date?</span> <span class="req">*</span></label>
-          <div class="pill-row">
+          <div class="pill-row" id="s4TsPills">
             <label class="pill"><input type="radio" name="ts" value="yes"/><div class="pill-body" data-i18n="tsYes">Yes, I attended</div></label>
             <label class="pill"><input type="radio" name="ts" value="no"/><div class="pill-body" data-i18n="tsNo">No</div></label>
             <label class="pill"><input type="radio" name="ts" value="unsure"/><div class="pill-body" data-i18n="pdUnsure">Not Sure</div></label>
@@ -868,6 +981,31 @@ The details that feel small to you can be the ones that win your case. Don't lea
 <div class="page-footer" data-i18n-html="pageFooter">
   © 2026 The Ticket Terminator LLC · DBA The Ticket Terminator · All Rights Reserved · <a href="ticket-terminator-privacy-policy.html">Privacy Policy</a> · <a href="#">Terms</a>
 </div>
+
+<!-- ── HIDDEN NETLIFY FALLBACK FORM ── -->
+<!-- Netlify scans this at deploy time — DO NOT REMOVE even though it's hidden -->
+<form name="tt-intake-fallback" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"/>
+  <input name="firstName"/><input name="lastName"/>
+  <input name="phone"/><input name="email"/>
+  <input name="state"/><input name="violationType"/>
+  <input name="violationDate"/><input name="courtDate"/>
+  <textarea name="story"></textarea>
+  <input name="caseNum"/>
+</form>
+
+<!-- ── ERROR TOAST ── -->
+<div class="err-toast" id="errToast">
+  <div class="err-toast-title">⚠ Submission Failed</div>
+  <div class="err-toast-msg" id="errToastMsg">Something went wrong. Your data is saved — tap Retry or call us directly.</div>
+  <div class="err-toast-actions">
+    <button class="btn-retry" onclick="retrySubmit()">↺ Try Again</button>
+    <a class="btn-call-fallback" href="sms:+18778733187">💬 Text Us Instead</a>
+  </div>
+</div>
+
+<!-- ── DRAFT SAVED INDICATOR ── -->
+<div class="draft-indicator" id="draftIndicator">✓ Draft saved</div>
 
 <script>
 /* ── COURT DATA ── */
@@ -1755,55 +1893,133 @@ function clearPillError(errId, rowId) {
   const err = document.getElementById(errId);
   if (err) err.style.display = 'none';
 }
+/* ── VIOLATION TYPE TOGGLE ── */
+function onVtChange(type){
+  hideEl('vdescField');
+  hideEl('duiFields');
+  hideEl('speedFields');
+  if(type==='desc')showEl('vdescField');
+  else if(type==='dui')showEl('duiFields');
+  else if(type==='speeding')showEl('speedFields');
+}
+
+/* ── INLINE ERROR HELPERS ── */
+function showInlineErr(fieldId, msg){
+  const field=document.getElementById(fieldId);
+  if(!field)return;
+  field.style.borderColor='rgba(255,69,58,0.6)';
+  let err=field.parentElement.querySelector('.val-err-inline');
+  if(!err){err=document.createElement('div');err.className='val-err-inline';field.parentElement.appendChild(err);}
+  err.textContent=msg;err.classList.add('show');
+  field.scrollIntoView({behavior:'smooth',block:'center'});
+  field.focus();
+  const clear=()=>{field.style.borderColor='';err.classList.remove('show');field.removeEventListener('input',clear);};
+  field.addEventListener('input',clear);
+}
+function showPillErrInline(rowId, msg){
+  const row=document.getElementById(rowId);if(!row)return;
+  let err=row.parentElement.querySelector('.pill-err-inline');
+  if(!err){err=document.createElement('div');err.className='pill-err-inline';row.parentElement.appendChild(err);}
+  err.textContent='⚠ '+msg;err.classList.add('show');
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.parentElement.querySelectorAll('input[type=radio]').forEach(r=>r.addEventListener('change',()=>err.classList.remove('show'),{once:true}));
+}
+
+/* ── UPLOAD ZONE INLINE ERROR ── */
+function showUploadErr(zoneId,msg){
+  const z=document.getElementById(zoneId);if(!z)return;
+  z.style.borderColor='rgba(255,69,58,0.6)';
+  z.style.background='rgba(255,69,58,0.04)';
+  let err=z.parentElement.querySelector('.val-err-inline');
+  if(!err){err=document.createElement('div');err.className='val-err-inline';z.parentElement.appendChild(err);}
+  err.textContent=msg;err.classList.add('show');
+  z.scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>{z.style.borderColor='';z.style.background='';err.classList.remove('show');},5000);
+}
+
+/* ── TOAST ERROR ── */
+function showToast(msg){
+  document.getElementById('errToastMsg').textContent=msg;
+  document.getElementById('errToast').classList.add('show');
+  setTimeout(()=>document.getElementById('errToast').classList.remove('show'),10000);
+}
+function hideToast(){document.getElementById('errToast').classList.remove('show');}
+
+/* ── DRAFT SAVE / RESTORE ── */
+const DRAFT_KEY='tt_form_draft';
+function saveDraft(){
+  try{
+    const d={
+      fn:V('fn'),ln:V('ln'),ph:V('ph'),em:V('em'),st:V('st'),
+      cdl:R('cdl'),contact:R('contact'),step:step,ts:Date.now()
+    };
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(d));
+    const ind=document.getElementById('draftIndicator');
+    ind.classList.add('show');
+    setTimeout(()=>ind.classList.remove('show'),2000);
+  }catch(e){}
+}
+function V(id){const e=document.getElementById(id);return e?e.value:'';}
+function R(n){const e=document.querySelector(`input[name="${n}"]:checked`);return e?e.value:'';}
+function restoreDraft(){
+  try{
+    const raw=localStorage.getItem(DRAFT_KEY);
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    const age=Date.now()-(d.ts||0);
+    if(age>86400000){localStorage.removeItem(DRAFT_KEY);return;} // expire after 24h
+    if(d.fn)document.getElementById('fn').value=d.fn;
+    if(d.ln)document.getElementById('ln').value=d.ln;
+    if(d.ph)document.getElementById('ph').value=d.ph;
+    if(d.em)document.getElementById('em').value=d.em;
+    if(d.st)document.getElementById('st').value=d.st;
+    if(d.cdl){const r=document.querySelector(`input[name="cdl"][value="${d.cdl}"]`);if(r)r.checked=true;}
+    if(d.contact){const r=document.querySelector(`input[name="contact"][value="${d.contact}"]`);if(r)r.checked=true;}
+  }catch(e){}
+}
+
+/* ── VALIDATION ── */
 function validateStep(s) {
   if (s === 1) {
-    const fn = document.getElementById('fn').value.trim();
-    const ln = document.getElementById('ln').value.trim();
-    const ph = document.getElementById('ph').value.trim();
-    const em = document.getElementById('em').value.trim();
-    const st = document.getElementById('st').value;
-    const cdl = document.querySelector('input[name="cdl"]:checked');
-    const contact = document.querySelector('input[name="contact"]:checked');
-    if (!fn) { showFieldError('fn', 'First name is required'); return false; }
-    if (!ln) { showFieldError('ln', 'Last name is required'); return false; }
-    if (!ph || ph.replace(/\D/g,'').length < 10) { showFieldError('ph', 'A valid 10-digit phone number is required'); return false; }
-    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { showFieldError('em', 'A valid email address is required'); return false; }
-    if (!st) { showFieldError('st', 'Please select the state where you got the ticket'); return false; }
-    if (!cdl) { showPillError('cdlErr','Please select CDL status'); return false; }
-    if (!contact) { showPillError('contactErr','Please select a contact method'); return false; }
+    const fn=V('fn'),ln=V('ln'),ph=V('ph'),em=V('em'),st=V('st');
+    const cdl=document.querySelector('input[name="cdl"]:checked');
+    const contact=document.querySelector('input[name="contact"]:checked');
+    if (!fn){showInlineErr('fn','First name is required');return false;}
+    if (!ln){showInlineErr('ln','Last name is required');return false;}
+    if (!ph||ph.replace(/\D/g,'').length<10){showInlineErr('ph','Enter a valid 10-digit phone number');return false;}
+    if (!em||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){showInlineErr('em','Enter a valid email address');return false;}
+    if (!st){showInlineErr('st','Please select your state');return false;}
+    if (!cdl){showPillErrInline('cdlPillRow','Please select CDL status');return false;}
+    if (!contact){showPillErrInline('contactPillRow','Please select a contact method');return false;}
+    saveDraft();
     return true;
   }
   if (s === 2) {
-    const vt = document.querySelector('input[name="vt"]:checked');
-    const vdate = document.getElementById('vdate').value;
-    if (!vt) { alert('Please select the type of ticket or violation.'); return false; }
-    if (vt.value === 'Other') {
-      const vdesc = document.getElementById('vdesc').value.trim();
-      if (!vdesc) { showFieldError('vdesc', 'Please describe the violation'); return false; }
+    const vt=document.querySelector('input[name="vt"]:checked');
+    const vdate=V('vdate');
+    if (!vt){
+      const vgrid=document.querySelector('.vgrid');
+      if(vgrid){vgrid.style.border='2px solid rgba(255,69,58,0.5)';vgrid.style.borderRadius='14px';vgrid.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>vgrid.style.border='',4000);}
+      showToast('Please select the type of ticket or violation.');
+      return false;
     }
-    if (!vdate) { showFieldError('vdate', 'Date of violation is required'); return false; }
+    if(vt.value==='Other'){
+      const vdesc=document.getElementById('vdesc').value.trim();
+      if(!vdesc){showInlineErr('vdesc','Please describe the violation');return false;}
+    }
+    if(!vdate){showInlineErr('vdate','Date of violation is required');return false;}
     return true;
   }
   if (s === 3) {
-    const tf = document.getElementById('tf');
-    const idf = document.getElementById('idf');
-    if (!tf || !tf.files || !tf.files[0]) {
-      const z = document.getElementById('tz');
-      if (z) { z.style.border = '2px solid #e53e3e'; setTimeout(() => z.style.border = '', 4000); z.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-      alert('Please upload your ticket or court notice.');
-      return false;
-    }
-    if (!idf || !idf.files || !idf.files[0]) {
-      const z = document.getElementById('iz');
-      if (z) { z.style.border = '2px solid #e53e3e'; setTimeout(() => z.style.border = '', 4000); z.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-      alert("Please upload your driver's license or ID.");
-      return false;
-    }
+    const tf=document.getElementById('tf');
+    const idf=document.getElementById('idf');
+    if(!tf||!tf.files||!tf.files[0]){showUploadErr('tz','Please upload your ticket or court notice');return false;}
+    if(!idf||!idf.files||!idf.files[0]){showUploadErr('iz',"Please upload your driver's license or ID");return false;}
     return true;
   }
   if (s === 4) {
-    const ts = document.querySelector('input[name="ts"]:checked');
-    if (!ts) { alert('Please answer the traffic school question.'); return false; }
+    const ts=document.querySelector('input[name="ts"]:checked');
+    if (!ts){showPillErrInline('s4TsPills','Please answer the traffic school question');return false;}
     return true;
   }
   return true;
@@ -1909,45 +2125,108 @@ async function submit(){
   btn.textContent=TRANSLATIONS[currentLang].btnSubmitting;
 
 
+  /* Collect DUI / speeding conditional fields */
+  const bac          = (document.querySelector('input[name="bac"]:checked')||{}).value||'';
+  const bacResult    = document.getElementById('bacResult') ? document.getElementById('bacResult').value.trim() : '';
+  const fst          = (document.querySelector('input[name="fst"]:checked')||{}).value||'';
+  const speedAlleged = document.getElementById('speedAlleged') ? document.getElementById('speedAlleged').value.trim() : '';
+  const speedLimit   = document.getElementById('speedLimit') ? document.getElementById('speedLimit').value.trim() : '';
+
   /* Read uploaded files as base64 */
   const [ticketFile, idFile] = await Promise.all([
     readFileAsBase64('tf'),
     readFileAsBase64('idf'),
   ]);
+
+  const payload = {
+    firstName:     fn,
+    lastName:      ln,
+    phone:         ph,
+    email:         em,
+    state:         st,
+    cdl:           cdl,
+    citationNum:   citation || undefined,
+    violationType: vt,
+    violationDesc: vdesc,
+    violationDate: vdate || undefined,
+    courtDate:     cdate || undefined,
+    courtLocation: cloc,
+    county:        county,
+    preferredContact: contact || undefined,
+    pastDue:          pd      || undefined,
+    alreadyPaid:      paid    || undefined,
+    // DUI fields
+    bac:       bac        || undefined,
+    bacResult: bacResult  || undefined,
+    fst:       fst        || undefined,
+    // Speeding fields
+    speedAlleged: speedAlleged || undefined,
+    speedLimit:   speedLimit   || undefined,
+    trafficSchool: ts,
+    story:         story,
+    heardAbout:    hear,
+    referredBy:    ref,
+    ticketPhotoBase64:  ticketFile ? ticketFile.data : undefined,
+    ticketPhotoName:    ticketFile ? ticketFile.name : undefined,
+    idPhotoBase64:      idFile     ? idFile.data     : undefined,
+    idPhotoName:        idFile     ? idFile.name     : undefined,
+  };
+
+  // Store for retry
+  window._lastPayload = payload;
+  window._submitBtn   = btn;
+  window._submitBtnOrigText = origText;
+  window._submitFn = fn;
+  window._submitLn = ln;
+  window._submitPh = ph;
+  window._submitEm = em;
+  window._submitSt = st;
+  window._submitVt = vt;
+
+  await doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt);
+}
+
+/* ── RETRY HANDLER ── */
+async function retrySubmit(){
+  hideToast();
+  if(!window._lastPayload) return;
+  await doSubmit(window._lastPayload, window._submitBtn, window._submitBtnOrigText,
+    window._submitFn, window._submitLn, window._submitPh,
+    window._submitEm, window._submitSt, window._submitVt);
+}
+
+/* ── NETLIFY FALLBACK (form-based, no JS fetch) ── */
+function submitNetlifyFallback(fn, ln, ph, em, st, vt, story, caseNum) {
+  try {
+    const form = document.querySelector('form[name="tt-intake-fallback"]');
+    if (!form) return;
+    form.hidden = false;
+    const set = (n, v) => { const el = form.elements[n]; if (el) el.value = v || ''; };
+    set('firstName', fn); set('lastName', ln); set('phone', ph);
+    set('email', em); set('state', st); set('violationType', vt);
+    set('story', story); set('caseNum', caseNum || 'FALLBACK-' + Date.now());
+    form.submit();
+  } catch (e) { console.warn('Fallback submit failed:', e); }
+}
+
+/* ── CORE SUBMIT FUNCTION ── */
+async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
   try {
     const res = await fetch('/.netlify/functions/submit',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        firstName:     fn,
-        lastName:      ln,
-        phone:         ph,
-        email:         em,
-        state:         st,
-        cdl:           cdl,
-        citationNum:   citation || undefined,
-        violationType: vt,
-        violationDesc: vdesc,
-        violationDate: vdate || undefined,
-        courtDate:     cdate || undefined,
-        courtLocation: cloc,
-        county:        county,
-        preferredContact: contact || undefined,
-        pastDue:          pd      || undefined,
-        alreadyPaid:      paid    || undefined,
-        trafficSchool: ts,
-        story:         story,
-        heardAbout:    hear,
-        referredBy:    ref,
-        ticketPhotoBase64:  ticketFile ? ticketFile.data : undefined,
-        ticketPhotoName:    ticketFile ? ticketFile.name : undefined,
-        idPhotoBase64:      idFile     ? idFile.data     : undefined,
-        idPhotoName:        idFile     ? idFile.name     : undefined,
-      })
+      body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
-    if(!res.ok || !result.success) throw new Error(result.error||'Submission failed');
+    let result;
+    try { result = await res.json(); } catch(e) { result = {}; }
+
+    if(!res.ok || !result.success) {
+      throw new Error(result.error || 'Submission failed. Please try again.');
+    }
+
+    // Clear draft on success
+    try { localStorage.removeItem('tt_form_draft'); } catch(e){}
 
     const cn = result.caseNum;
 
@@ -1973,10 +2252,9 @@ async function submit(){
     window.scrollTo({top:0,behavior:'smooth'});
 
   } catch(err){
-    btn.disabled=false;
-    btn.textContent=origText;
-    alert('Something went wrong submitting your case. Please try again or call us directly.');
+    if(btn){ btn.disabled=false; btn.textContent=origText; }
     console.error('Submit error:',err);
+    showToast(err.message || 'Something went wrong. Tap retry or text us at 877-873-3187.');
   }
 }
 
@@ -2155,6 +2433,21 @@ function setLang(l){
   // Refresh step headers & buttons with new lang
   refresh();
 }
+
+/* ── INIT ── */
+(function init(){
+  // Restore draft values
+  restoreDraft();
+
+  // Auto-save draft on step 1 field blur
+  ['fn','ln','ph','em','st'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('blur', saveDraft);
+  });
+  document.querySelectorAll('input[name="cdl"],input[name="contact"]').forEach(el=>{
+    el.addEventListener('change', saveDraft);
+  });
+})();
 </script>
 </body>
 </html>
