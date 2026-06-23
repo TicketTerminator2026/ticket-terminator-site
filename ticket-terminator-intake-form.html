@@ -663,18 +663,20 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblCdl">Do you have a CDL (Commercial Driver's License)?</span> <span class="req">*</span></label>
-          <div class="pill-row">
-            <label class="pill"><input type="radio" name="cdl" value="yes"/><div class="pill-body" data-i18n="cdlYes">✅ Yes, I have a CDL</div></label>
-            <label class="pill"><input type="radio" name="cdl" value="no"/><div class="pill-body" data-i18n="cdlNo">No CDL</div></label>
+          <div class="pill-row" id="cdlPillRow">
+            <label class="pill"><input type="radio" name="cdl" value="yes" onchange="clearPillError('cdlErr','cdlPillRow')"/><div class="pill-body" data-i18n="cdlYes">✅ Yes, I have a CDL</div></label>
+            <label class="pill"><input type="radio" name="cdl" value="no" onchange="clearPillError('cdlErr','cdlPillRow')"/><div class="pill-body" data-i18n="cdlNo">No CDL</div></label>
           </div>
+          <div id="cdlErr" style="display:none;color:#FF453A;font-size:12px;font-weight:600;margin-top:5px;"></div>
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblContact">Best way to reach you</span> <span class="req">*</span></label>
-          <div class="pill-row">
-            <label class="pill"><input type="radio" name="contact" value="phone"/><div class="pill-body" data-i18n="cPhone">📞 Phone Call</div></label>
-            <label class="pill"><input type="radio" name="contact" value="text"/><div class="pill-body" data-i18n="cText">💬 Text / SMS</div></label>
-            <label class="pill"><input type="radio" name="contact" value="email"/><div class="pill-body" data-i18n="cEmail">✉️ Email</div></label>
+          <div class="pill-row" id="contactPillRow">
+            <label class="pill"><input type="radio" name="contact" value="phone" onchange="clearPillError('contactErr','contactPillRow')"/><div class="pill-body" data-i18n="cPhone">📞 Phone Call</div></label>
+            <label class="pill"><input type="radio" name="contact" value="text" onchange="clearPillError('contactErr','contactPillRow')"/><div class="pill-body" data-i18n="cText">💬 Text / SMS</div></label>
+            <label class="pill"><input type="radio" name="contact" value="email" onchange="clearPillError('contactErr','contactPillRow')"/><div class="pill-body" data-i18n="cEmail">✉️ Email</div></label>
           </div>
+          <div id="contactErr" style="display:none;color:#FF453A;font-size:12px;font-weight:600;margin-top:5px;"></div>
         </div>
       </div>
 
@@ -1614,20 +1616,26 @@ function initCourtAC(){
 initCourtAC();
 
 /* ── PHONE FORMATTER ── */
-document.getElementById('ph').addEventListener('input',function(e){
-  let raw=e.target.value.replace(/\D/g,'').substring(0,10);
-  let fmt='';
-  if(raw.length===0){fmt='';}
-  else if(raw.length<=3){fmt='('+raw;}
-  else if(raw.length<6){fmt='('+raw.substring(0,3)+') '+raw.substring(3);}
-  else{fmt='('+raw.substring(0,3)+') '+raw.substring(3,6)+'-'+raw.substring(6);}
-  e.target.value=fmt;
+function fmtPhone(val){
+  let raw=val.replace(/\D/g,'').substring(0,10);
+  if(raw.length===0) return '';
+  if(raw.length<=3) return '('+raw;
+  if(raw.length<6)  return '('+raw.substring(0,3)+') '+raw.substring(3);
+  return '('+raw.substring(0,3)+') '+raw.substring(3,6)+'-'+raw.substring(6);
+}
+const phEl=document.getElementById('ph');
+phEl.addEventListener('input',function(){this.value=fmtPhone(this.value);});
+phEl.addEventListener('paste',function(e){
+  e.preventDefault();
+  const pasted=(e.clipboardData||window.clipboardData).getData('text');
+  this.value=fmtPhone(pasted);
 });
+phEl.addEventListener('blur',function(){this.value=fmtPhone(this.value);});
 
 /* ── EMAIL VALIDATOR ── */
 const emEl=document.getElementById('em');
 const emHint=document.getElementById('emHint');
-function validateEmail(v){return/^[^s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());}
+function validateEmail(v){return/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());}
 emEl.addEventListener('input',function(){
   const v=this.value.trim();
   if(v.length===0){emHint.className='field-hint';emHint.textContent='';this.classList.remove('valid','invalid');return;}
@@ -1703,6 +1711,18 @@ function clearFieldError(id) {
   const el = document.getElementById(id);
   if (el) el.style.border = '';
 }
+function showPillError(errId, msg) {
+  const err = document.getElementById(errId);
+  if (!err) return;
+  err.textContent = '⚠ ' + msg;
+  err.style.display = 'block';
+  err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => { err.style.display = 'none'; }, 5000);
+}
+function clearPillError(errId, rowId) {
+  const err = document.getElementById(errId);
+  if (err) err.style.display = 'none';
+}
 function validateStep(s) {
   if (s === 1) {
     const fn = document.getElementById('fn').value.trim();
@@ -1717,8 +1737,8 @@ function validateStep(s) {
     if (!ph || ph.replace(/\D/g,'').length < 10) { showFieldError('ph', 'A valid 10-digit phone number is required'); return false; }
     if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { showFieldError('em', 'A valid email address is required'); return false; }
     if (!st) { showFieldError('st', 'Please select the state where you got the ticket'); return false; }
-    if (!cdl) { const c=document.querySelector('.pill-row'); if(c)c.scrollIntoView({behavior:'smooth',block:'center'}); alert('Please indicate whether you have a CDL.'); return false; }
-    if (!contact) { alert('Please select your preferred contact method.'); return false; }
+    if (!cdl) { showPillError('cdlErr','Please select CDL status'); return false; }
+    if (!contact) { showPillError('contactErr','Please select a contact method'); return false; }
     return true;
   }
   if (s === 2) {
@@ -1744,7 +1764,7 @@ function validateStep(s) {
     if (!idf || !idf.files || !idf.files[0]) {
       const z = document.getElementById('iz');
       if (z) { z.style.border = '2px solid #e53e3e'; setTimeout(() => z.style.border = '', 4000); z.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-      alert('Please upload your driver's license or ID.');
+      alert("Please upload your driver's license or ID.");
       return false;
     }
     return true;
