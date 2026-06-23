@@ -2,17 +2,16 @@
 <html lang="en">
 <head>
 <script>
-// ── Auth gate — runs before anything else ──────────────────────────────────
+// ── Auth gate ──────────────────────────────────────────────────────────────
 (async function() {
   const token = sessionStorage.getItem('tt_auth_token');
   if (!token) { window.location.replace('/auth.html'); return; }
   try {
-    const res = await fetch('/.netlify/functions/auth?token=' + encodeURIComponent(token));
+    const res = await fetch('/.netlify/functions/staff-auth?token=' + encodeURIComponent(token));
     const data = await res.json();
-    if (!data.valid) { sessionStorage.removeItem('tt_auth_token'); window.location.replace('/auth.html'); }
-  } catch(e) {
-    // Network error — allow through so offline usage isn't broken
-  }
+    if (!data.valid) { sessionStorage.removeItem('tt_auth_token'); window.location.replace('/auth.html'); return; }
+    if (data.staff) sessionStorage.setItem('tt_staff', JSON.stringify(data.staff));
+  } catch(e) {}
 })();
 </script>
 <meta charset="UTF-8">
@@ -689,6 +688,7 @@ select.edit-input { appearance: auto; cursor: pointer; }
   <div class="topbar-right">
     <span class="status-dot"></span>
     <span id="refreshTime">Loading…</span>
+    <span id="staff-name-display" style="font-size:12px;color:var(--gray-text);margin:0 6px;"></span>
     <button class="topbar-btn" onclick="loadData()">🔄 Refresh</button>
     <button class="topbar-btn primary" onclick="window.open('/ticket-terminator-intake-form.html','_blank')">＋ New Intake</button>
     <button class="topbar-btn" onclick="signOut()" title="Sign out" style="margin-left:4px;">🚪 Sign Out</button>
@@ -734,6 +734,22 @@ select.edit-input { appearance: auto; cursor: pointer; }
     </div>
     <div class="sb-item" onclick="showPanel('payments');filterPayments('outstanding')">
       <span class="sb-icon">💸</span> Outstanding Balances
+    </div>
+
+    <hr class="sb-divider">
+    <div class="sb-section">Tools</div>
+    <div class="sb-item" id="nav-tasks" onclick="showPanel('tasks')">
+      <span class="sb-icon">✅</span> Tasks
+      <span class="sb-badge" id="sb-task-count" style="display:none;"></span>
+    </div>
+    <div class="sb-item" id="nav-reports" onclick="showPanel('reports')" data-role="manager">
+      <span class="sb-icon">📈</span> Reports
+    </div>
+    <div class="sb-item" id="nav-activity" onclick="showPanel('activity')" data-role="manager">
+      <span class="sb-icon">🕒</span> Activity Log
+    </div>
+    <div class="sb-item" id="nav-staff" onclick="showPanel('staff')" data-role="admin">
+      <span class="sb-icon">👥</span> Staff
     </div>
 
     <hr class="sb-divider">
@@ -1009,7 +1025,71 @@ select.edit-input { appearance: auto; cursor: pointer; }
     </div>
 
 
-    <!-- ──────────── ATTORNEYS MANAGEMENT PANEL ──────────── -->
+    <!-- ──────────── TASKS PANEL ──────────── -->
+    <div class="panel" id="panel-tasks">
+      <div class="page-header">
+        <div><div class="page-title">Tasks &amp; Follow-ups</div><div class="page-sub" id="tasks-sub">Loading…</div></div>
+        <div class="page-actions">
+          <select id="task-filter-status" class="btn" onchange="loadTasks()" style="cursor:pointer;">
+            <option value="">Open &amp; In Progress</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+          <button class="btn primary" onclick="openTaskModal()" data-write>＋ New Task</button>
+        </div>
+      </div>
+      <div id="tasks-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- ──────────── REPORTS PANEL ──────────── -->
+    <div class="panel" id="panel-reports">
+      <div class="page-header">
+        <div><div class="page-title">Reports</div><div class="page-sub" id="reports-sub">Calculated from live data</div></div>
+        <div class="page-actions">
+          <select id="report-period" class="btn" onchange="renderReports()" style="cursor:pointer;">
+            <option value="today">Today</option><option value="week" selected>This Week</option>
+            <option value="month">This Month</option><option value="year">This Year</option><option value="all">All Time</option>
+          </select>
+          <button class="btn" onclick="renderReports()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="reports-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
+    </div>
+
+    <!-- ──────────── ACTIVITY LOG PANEL ──────────── -->
+    <div class="panel" id="panel-activity">
+      <div class="page-header">
+        <div><div class="page-title">Activity Log</div><div class="page-sub" id="activity-sub">Audit trail of all changes</div></div>
+        <div class="page-actions">
+          <select id="activity-filter-cat" class="btn" onchange="loadActivityLog()" style="cursor:pointer;">
+            <option value="">All Categories</option>
+            <option>Case</option><option>Attorney</option><option>Payment</option>
+            <option>Task</option><option>Staff</option><option>System</option>
+          </select>
+          <button class="btn" onclick="loadActivityLog()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="activity-table">
+          <thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Case #</th><th>Field</th><th>Old Value</th><th>New Value</th></tr></thead>
+          <tbody id="activity-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-text);">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ──────────── STAFF PANEL ──────────── -->
+    <div class="panel" id="panel-staff">
+      <div class="page-header">
+        <div><div class="page-title">Staff Management</div><div class="page-sub" id="staff-sub">Admin only</div></div>
+        <div class="page-actions">
+          <button class="btn primary" onclick="openStaffModal()" data-role="admin">＋ Add Staff Member</button>
+        </div>
+      </div>
+      <div id="staff-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;"></div>
+    </div>
+
+        <!-- ──────────── ATTORNEYS MANAGEMENT PANEL ──────────── -->
     <div class="panel" id="panel-attorneys-mgmt">
       <div class="page-header">
         <div>
@@ -1033,6 +1113,61 @@ select.edit-input { appearance: auto; cursor: pointer; }
 
   </div><!-- /main -->
 </div><!-- /layout -->
+
+<!-- ═══════════════════ TASK MODAL ═══════════════════ -->
+<div class="modal-overlay" id="task-modal" onclick="if(event.target===this)closeTaskModal()">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <span id="task-modal-title" style="font-weight:700;font-size:16px;">New Task</span>
+      <button class="modal-close" onclick="closeTaskModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Task Description *</div><input class="edit-input" id="tm-task" placeholder="What needs to be done?"></div>
+        <div class="modal-field"><div class="modal-label">Priority</div>
+          <select class="edit-input" id="tm-priority"><option value="🟡 Medium">🟡 Medium</option><option value="🟢 Low">🟢 Low</option><option value="🔴 High">🔴 High</option><option value="🚨 Urgent">🚨 Urgent</option></select>
+        </div>
+        <div class="modal-field"><div class="modal-label">Due Date</div><input class="edit-input" type="date" id="tm-due"></div>
+        <div class="modal-field"><div class="modal-label">Assign To</div><select class="edit-input" id="tm-assign"><option value="">Unassigned</option></select></div>
+        <div class="modal-field"><div class="modal-label">Case # (optional)</div><input class="edit-input" id="tm-case-num" placeholder="TT-2026-xxxxx"></div>
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Notes</div><textarea class="edit-input" id="tm-notes" rows="2"></textarea></div>
+      </div>
+      <input type="hidden" id="tm-record-id"><input type="hidden" id="tm-case-record-id">
+      <div id="tm-error" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn" onclick="closeTaskModal()">Cancel</button>
+        <button class="btn primary" id="tm-save-btn" onclick="saveTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ STAFF MODAL ═══════════════════ -->
+<div class="modal-overlay" id="staff-modal" onclick="if(event.target===this)closeStaffModal()">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <span id="staff-modal-title" style="font-weight:700;font-size:16px;">Add Staff Member</span>
+      <button class="modal-close" onclick="closeStaffModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Full Name *</div><input class="edit-input" id="sm-name" placeholder="First and last name"></div>
+        <div class="modal-field"><div class="modal-label">Email *</div><input class="edit-input" type="email" id="sm-email"></div>
+        <div class="modal-field"><div class="modal-label">Role</div><select class="edit-input" id="sm-role"><option value="Employee">Employee</option><option value="Manager">Manager</option><option value="Admin">Admin</option><option value="Read Only">Read Only</option></select></div>
+        <div class="modal-field"><div class="modal-label">Password *</div><input class="edit-input" type="password" id="sm-password" autocomplete="new-password"></div>
+        <div class="modal-field"><div class="modal-label">Confirm Password *</div><input class="edit-input" type="password" id="sm-password2" autocomplete="new-password"></div>
+        <div class="modal-field" style="grid-column:1/-1;"><div class="modal-label">Notes</div><textarea class="edit-input" id="sm-notes" rows="2"></textarea></div>
+        <div class="modal-field"><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="sm-active" checked style="width:16px;height:16px;"> Active</label></div>
+      </div>
+      <input type="hidden" id="sm-record-id">
+      <div id="sm-error" style="color:var(--red);font-size:13px;margin-top:10px;display:none;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+        <button class="btn" onclick="closeStaffModal()">Cancel</button>
+        <button class="btn primary" id="sm-save-btn" onclick="saveStaffMember()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ NEW CASE MODAL ═══════════════════ -->
 <div class="modal-overlay" id="new-case-modal" onclick="if(event.target===this)closeNewCaseModal()">
@@ -1210,9 +1345,28 @@ function quoteStatusBadge(q) {
 // ═══════════════════════════════════════════════════════
 //  FETCH DATA
 // ═══════════════════════════════════════════════════════
+// ─── STAFF HELPERS ────────────────────────────────────────────────────────────
+function getStaff() { try { return JSON.parse(sessionStorage.getItem('tt_staff') || 'null'); } catch { return null; } }
+function getToken() { return sessionStorage.getItem('tt_auth_token') || ''; }
+function staffHeader() { return { 'X-Staff-Token': getToken(), 'Content-Type': 'application/json' }; }
+function hasPermission(minRole) {
+  const order = { 'Admin': 4, 'Manager': 3, 'Employee': 2, 'Read Only': 1 };
+  const role = getStaff()?.role || 'Read Only';
+  return (order[role] || 0) >= (order[minRole] || 99);
+}
 function signOut() {
   sessionStorage.removeItem('tt_auth_token');
+  sessionStorage.removeItem('tt_staff');
   window.location.replace('/auth.html');
+}
+function applyRoleUI() {
+  const staff = getStaff();
+  if (!staff) return;
+  const nameEl = document.getElementById('staff-name-display');
+  if (nameEl) nameEl.textContent = staff.name + ' (' + staff.role + ')';
+  if (staff.role !== 'Admin') document.querySelectorAll('[data-role="admin"]').forEach(el => el.style.display = 'none');
+  if (!hasPermission('Manager')) document.querySelectorAll('[data-role="manager"]').forEach(el => el.style.display = 'none');
+  if (staff.role === 'Read Only') document.querySelectorAll('[data-write]').forEach(el => { el.disabled = true; el.title = 'Read Only access'; });
 }
 
 async function loadData() {
@@ -1227,7 +1381,7 @@ async function loadData() {
   // ── Step 1: fetch data ──────────────────────────────────────────
   let data;
   try {
-    const res = await fetch('/.netlify/functions/get-cases');
+    const res = await fetch('/.netlify/functions/get-cases', { headers: { 'X-Staff-Token': getToken() } });
     if (!res.ok) throw new Error('API error HTTP ' + res.status);
     data = await res.json();
   } catch(e) {
@@ -2024,6 +2178,9 @@ function openEditMode(id) {
   const r = ALL_RECORDS.find(x => x.id === id);
   if (!r) return;
   const fd = f(r);
+  // Pre-build attorney options for select
+  const currentAttyIds = Array.isArray(fd['Attorney']) ? fd['Attorney'].map(a => (typeof a === 'object' ? a.id : a)) : [];
+  window._ALL_ATTORNEYS_FOR_EDIT = buildAttorneyOptions(currentAttyIds);
   const head = document.getElementById('modal-head');
   head.innerHTML = `
     <span style="font-size:11px;font-weight:700;color:var(--navy);background:#e0e7ff;padding:2px 8px;border-radius:20px;">✏️ EDITING</span>
@@ -2077,8 +2234,15 @@ function openEditMode(id) {
       <div class="modal-field full"><div class="modal-label">Internal Notes</div><textarea class="edit-input" id="ef-notes" rows="3">${esc(fd['Internal Notes']||'')}</textarea></div>
       <div class="modal-field full"><div class="modal-label">Resolution Notes</div><textarea class="edit-input" id="ef-resolution" rows="2">${esc(fd['Resolution Notes']||'')}</textarea></div>
     </div>
+    <div class="modal-section">Assign Attorney</div>
+    <div class="modal-grid">
+      <div class="modal-field full"><div class="modal-label">Attorney</div>
+        <select class="edit-input" id="ef-attorney-select"><option value="">— No attorney assigned —</option></select>
+      </div>
+    </div>
     <div id="ef-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none;"></div>
     <div style="padding:16px 0 0;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" style="color:var(--red);border-color:var(--red);" onclick="archiveCase('${r.id}','${fd['Case #']||''}')">🗄️ Archive</button>
       <button class="btn" onclick="openModal('${r.id}')">← Back</button>
       <button class="btn primary" id="ef-save-btn" onclick="saveCase('${r.id}')">💾 Save Changes</button>
     </div>
@@ -2119,197 +2283,46 @@ async function saveCase(id) {
   const attyFee = parseFloat(document.getElementById('ef-atty-fee').value);
   if (!isNaN(fee)) fields['Client Fee Collected'] = fee;
   if (!isNaN(attyFee)) fields['Attorney Service Fee'] = attyFee;
+  const r = ALL_RECORDS.find(x => x.id === id);
+  const previousFields = r ? (r.fields || {}) : {};
   try {
     const res = await fetch('/.netlify/functions/update-case', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recordId: id, fields }),
+      method: 'PATCH', headers: staffHeader(),
+      body: JSON.stringify({ recordId: id, fields, previousFields }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.error || 'Save failed');
-    const idx = ALL_RECORDS.findIndex(x => x.id === id);
-    if (idx !== -1) ALL_RECORDS[idx] = data.record;
-    closeModal();
-    renderAll();
+    if (r) ALL_RECORDS[ALL_RECORDS.indexOf(r)] = data.record;
+    // Attorney assignment
+    const attySelect = document.getElementById('ef-attorney-select');
+    if (attySelect) {
+      const newAttyId = attySelect.value;
+      const currentAttyIds = Array.isArray(previousFields['Attorney'])
+        ? previousFields['Attorney'].map(a => (typeof a === 'object' ? a.id : a)) : [];
+      if (newAttyId !== (currentAttyIds[0] || '')) {
+        const ids = newAttyId ? [newAttyId] : [];
+        const newAtty = ALL_ATTORNEYS.find(a => a.id === newAttyId);
+        const prevAtty = ALL_ATTORNEYS.find(a => a.id === currentAttyIds[0]);
+        await fetch('/.netlify/functions/assign-attorney', {
+          method: 'PATCH', headers: staffHeader(),
+          body: JSON.stringify({
+            caseId: id, attorneyIds: ids,
+            caseNum: previousFields['Case #'] || '',
+            previousAttorneyName: prevAtty?.fields?.['Attorney Name'] || '',
+            newAttorneyName: newAtty?.fields?.['Attorney Name'] || '',
+          }),
+        });
+        // Update attorney options in select for next open
+        if (attySelect) attySelect.innerHTML = buildAttorneyOptions(ids);
+      }
+    }
+    closeModal(); renderAll();
     showToast('✅ Case saved!');
   } catch (e) {
-    errEl.textContent = 'Error: ' + e.message;
-    errEl.style.display = 'block';
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
     btn.disabled = false; btn.textContent = '💾 Save Changes';
   }
 }
-
-function showToast(msg, type='success') {
-  let t = document.getElementById('tt-toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'tt-toast';
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.2);';
-    document.body.appendChild(t);
-  }
-  t.style.background = type==='error' ? 'var(--red)' : 'var(--navy)';
-  t.textContent = msg;
-  t.style.opacity = '1';
-  clearTimeout(t._to);
-  t._to = setTimeout(() => { t.style.opacity = '0'; }, 3000);
-}
-
-function closeModal() {
-  document.getElementById('case-modal').classList.remove('open');
-}
-
-// ═══════════════════════════════════════════════════════
-//  PANEL NAVIGATION
-// ═══════════════════════════════════════════════════════
-function showPanel(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  const navEl = document.getElementById('nav-' + id);
-  if (navEl) navEl.classList.add('active');
-}
-
-// ═══════════════════════════════════════════════════════
-//  EXPORT
-// ═══════════════════════════════════════════════════════
-function exportCSV() {
-  const cols = ['Case #','Status','Case Type','First Name','Last Name','Phone','Email','Court Date','Court Location','Attorney Service Fee','Client Fee Collected','Client Balance Remaining','Profit'];
-  const rows = [cols.join(',')];
-  ALL_RECORDS.forEach(r => {
-    rows.push(cols.map(c => {
-      const v = f(r)[c] ?? '';
-      return `"${String(v).replace(/"/g,'""')}"`;
-    }).join(','));
-  });
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = `ticket-terminator-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-}
-
-// ═══════════════════════════════════════════════════════
-//  FILTER PAYMENTS (stub — called from sidebar)
-// ═══════════════════════════════════════════════════════
-function filterPayments(v) {
-  showPanel('payments');
-  if (v === 'outstanding') {
-    // Inject a temporary highlight/filter for records with outstanding balance
-    const tbody = document.getElementById('pay-tbody');
-    if (!tbody) return;
-    // Re-render with outstanding filter
-    let records = ALL_RECORDS.filter(r => (Number(f(r)['Client Balance Remaining']) || 0) > 0);
-    records = records.sort((a,b) => {
-      const ba = Number(f(a)['Client Balance Remaining']) || 0;
-      const bb = Number(f(b)['Client Balance Remaining']) || 0;
-      return bb - ba;
-    });
-    if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="10" class="empty">No outstanding balances 🎉</td></tr>';
-      return;
-    }
-    tbody.innerHTML = records.map(r => {
-      const fee     = Number(f(r)['Client Fee Collected']) || 0;
-      const balance = Number(f(r)['Client Balance Remaining']) || 0;
-      const attyFee = Number(f(r)['Attorney Service Fee']) || 0;
-      const paidAtty = f(r)['Attorney Payment Confirmed'];
-      const profit  = Number(f(r)['Profit']) || 0;
-      const charged = fee + balance;
-      return `<tr style="background:rgba(229,62,62,0.06);">
-        <td class="mono no-wrap">${f(r)['Case #']||'—'}</td>
-        <td><strong>${clientName(r)}</strong></td>
-        <td>${statusBadge(f(r)['Status'])}</td>
-        <td class="currency">${charged > 0 ? currency(charged) : '—'}</td>
-        <td class="currency">${fee > 0 ? currency(fee) : '—'}</td>
-        <td class="currency neg">${currency(balance)}</td>
-        <td class="currency">${attyFee > 0 ? currency(attyFee) : '—'}</td>
-        <td>${paidAtty ? '<span class="badge badge-payment-conf">✔ Paid</span>' : (attyFee > 0 ? '<span class="badge badge-payment-pend">Unpaid</span>' : '—')}</td>
-        <td class="${profit >= 0 ? 'currency' : 'currency neg'}">${profit !== 0 ? currency(profit) : '—'}</td>
-        <td><button class="icon-btn view" onclick="openModal('${r.id}')">👁</button></td>
-      </tr>`
-    }).join('');
-  }
-}
-
-
-// ═══════════════════════════════════════════════════════
-//  NEW CASE MODAL
-// ═══════════════════════════════════════════════════════
-function openNewCaseModal() {
-  ['nc-first','nc-last','nc-phone','nc-email','nc-court-loc','nc-court-state',
-   'nc-county','nc-citation','nc-statement'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  document.getElementById('nc-court-date').value = '';
-  document.getElementById('nc-viol-date').value = '';
-  document.getElementById('nc-type').value = '🚗 Traffic Citation';
-  document.getElementById('nc-priority').value = '🟡 Medium';
-  document.getElementById('nc-error').style.display = 'none';
-  const btn = document.getElementById('nc-save-btn');
-  btn.disabled = false; btn.textContent = 'Create Case';
-  document.getElementById('new-case-modal').classList.add('open');
-}
-function closeNewCaseModal() {
-  document.getElementById('new-case-modal').classList.remove('open');
-}
-async function saveNewCase() {
-  const btn   = document.getElementById('nc-save-btn');
-  const errEl = document.getElementById('nc-error');
-  const first = document.getElementById('nc-first').value.trim();
-  const last  = document.getElementById('nc-last').value.trim();
-  if (!first && !last) {
-    errEl.textContent = 'Please enter at least a first or last name.';
-    errEl.style.display = 'block'; return;
-  }
-  btn.disabled = true; btn.textContent = '⏳ Creating…';
-  errEl.style.display = 'none';
-  const fields = {};
-  if (first) fields['First Name'] = first;
-  if (last)  fields['Last Name']  = last;
-  const phone = document.getElementById('nc-phone').value.trim();
-  const email = document.getElementById('nc-email').value.trim();
-  if (phone) fields['Phone'] = phone;
-  if (email) fields['Email'] = email;
-  fields['Case Type'] = document.getElementById('nc-type').value;
-  fields['Priority']  = document.getElementById('nc-priority').value;
-  const cd = document.getElementById('nc-court-date').value;
-  if (cd) fields['Court Date'] = cd;
-  const loc = document.getElementById('nc-court-loc').value.trim();
-  if (loc) fields['Court Location'] = loc;
-  const cs = document.getElementById('nc-court-state').value.trim();
-  if (cs) fields['Court State'] = cs;
-  const co = document.getElementById('nc-county').value.trim();
-  if (co) fields['County'] = co;
-  const cit = document.getElementById('nc-citation').value.trim();
-  if (cit) fields['Citation/Arrest #'] = cit;
-  const vd = document.getElementById('nc-viol-date').value;
-  if (vd) fields['Date of Violation'] = vd;
-  const stmt = document.getElementById('nc-statement').value.trim();
-  if (stmt) fields['Client Statement'] = stmt;
-  try {
-    const res = await fetch('/.netlify/functions/create-case', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.error || 'Create failed');
-    ALL_RECORDS.unshift(data.record);
-    closeNewCaseModal();
-    renderAll();
-    showToast('✅ Case ' + data.caseNum + ' created!');
-    setTimeout(() => openModal(data.recordId), 300);
-  } catch (e) {
-    errEl.textContent = 'Error: ' + e.message;
-    errEl.style.display = 'block';
-    btn.disabled = false; btn.textContent = 'Create Case';
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-//  ATTORNEYS PANEL
-// ═══════════════════════════════════════════════════════
-let ALL_ATTORNEYS = [];
 
 async function loadAttorneys() {
   const listEl = document.getElementById('atty-mgmt-list');
@@ -2462,16 +2475,351 @@ async function saveAttorney() {
 }
 
 // Panel hook: load attorneys on first visit
-const _origShowPanel = showPanel;
+const // ═══════════════════════════════════════════════════════
+//  ARCHIVE CASE
+// ═══════════════════════════════════════════════════════
+async function archiveCase(id, caseNum) {
+  if (!confirm('Archive case ' + caseNum + '? It will be marked Archived and hidden from active views but not deleted.')) return;
+  try {
+    const res = await fetch('/.netlify/functions/update-case', {
+      method: 'PATCH', headers: staffHeader(),
+      body: JSON.stringify({ recordId: id, fields: { Status: '🗄️ Archived' }, previousFields: { 'Case #': caseNum } }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Archive failed');
+    const idx = ALL_RECORDS.findIndex(x => x.id === id);
+    if (idx !== -1) ALL_RECORDS[idx] = data.record;
+    closeModal(); renderAll();
+    showToast('🗄️ Case archived');
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  TASKS
+// ═══════════════════════════════════════════════════════
+let ALL_TASKS = [];
+let ALL_STAFF_LIST = [];
+
+async function loadTasks() {
+  const listEl = document.getElementById('tasks-list');
+  const subEl  = document.getElementById('tasks-sub');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">Loading tasks…</div>';
+  const status = document.getElementById('task-filter-status')?.value || '';
+  try {
+    const res  = await fetch('/.netlify/functions/get-tasks' + (status ? '?status=' + encodeURIComponent(status) : ''),
+      { headers: { 'X-Staff-Token': getToken() } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    ALL_TASKS = data.records || [];
+    if (subEl) subEl.textContent = ALL_TASKS.length + ' task' + (ALL_TASKS.length !== 1 ? 's' : '');
+    renderTaskList();
+    const openTasks = ALL_TASKS.filter(t => (t.fields?.Status || '') !== 'Done').length;
+    const countEl = document.getElementById('sb-task-count');
+    if (countEl) { countEl.textContent = openTasks || ''; countEl.style.display = openTasks ? '' : 'none'; }
+  } catch (e) {
+    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">⚠ ' + e.message + '<br><br><button class="btn" onclick="loadTasks()">🔄 Retry</button></div>';
+  }
+}
+
+function renderTaskList() {
+  const listEl = document.getElementById('tasks-list');
+  if (!listEl) return;
+  if (!ALL_TASKS.length) {
+    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">No tasks. <button class="btn primary" onclick="openTaskModal()" style="margin-left:8px;">＋ New Task</button></div>';
+    return;
+  }
+  const priorityColor = { '🟢 Low': '#16a34a', '🟡 Medium': '#d97706', '🔴 High': '#dc2626', '🚨 Urgent': '#9b1c1c' };
+  const statusColor   = { 'Open': '#3b82f6', 'In Progress': '#d97706', 'Done': '#16a34a', 'Cancelled': '#6b7280' };
+  listEl.innerHTML = ALL_TASKS.map(r => {
+    const fd = r.fields || {};
+    const overdue = fd['Due Date'] && new Date(fd['Due Date']) < new Date() && fd['Status'] !== 'Done';
+    return '<div style="background:#fff;border:1px solid var(--gray-border);border-left:3px solid ' + (priorityColor[fd['Priority']]||'#6b7280') + ';border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:12px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-weight:600;font-size:13px;' + (fd['Status']==='Done'?'text-decoration:line-through;opacity:.6;':'') + '">' + esc(fd['Task']||'Untitled') + '</div>' +
+        '<div style="font-size:11px;color:var(--gray-text);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap;">' +
+          (fd['Case #'] ? '<span>📂 ' + esc(fd['Case #']) + '</span>' : '') +
+          (fd['Assigned To'] ? '<span>👤 ' + esc(fd['Assigned To']) + '</span>' : '') +
+          (fd['Due Date'] ? '<span style="color:' + (overdue?'var(--red)':'inherit') + ';">📅 ' + formatDate(fd['Due Date']) + (overdue?' ⚠ OVERDUE':'') + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">' +
+        '<span style="font-size:10px;font-weight:700;color:' + (statusColor[fd['Status']]||'#6b7280') + ';background:' + (statusColor[fd['Status']]||'#6b7280') + '22;padding:2px 8px;border-radius:20px;">' + (fd['Status']||'Open') + '</span>' +
+        '<button class="btn" onclick="openTaskModal('' + r.id + '')" style="font-size:11px;padding:4px 8px;">✏️</button>' +
+        (fd['Status'] !== 'Done' ? '<button class="btn" onclick="markTaskDone('' + r.id + '')" style="font-size:11px;padding:4px 8px;">✅</button>' : '') +
+      '</div></div>';
+  }).join('');
+}
+
+async function markTaskDone(id) {
+  try {
+    const res = await fetch('/.netlify/functions/save-task', {
+      method: 'PATCH', headers: staffHeader(),
+      body: JSON.stringify({ recordId: id, fields: { Status: 'Done' } }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error);
+    const idx = ALL_TASKS.findIndex(x => x.id === id);
+    if (idx !== -1) ALL_TASKS[idx] = data.record;
+    renderTaskList(); showToast('✅ Task marked done!');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function openTaskModal(recordId) {
+  ['tm-task','tm-notes','tm-case-num'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('tm-due').value = '';
+  document.getElementById('tm-priority').value = '🟡 Medium';
+  document.getElementById('tm-record-id').value = '';
+  document.getElementById('tm-case-record-id').value = '';
+  document.getElementById('tm-error').style.display = 'none';
+  document.getElementById('task-modal-title').textContent = 'New Task';
+  const btn = document.getElementById('tm-save-btn'); btn.disabled = false; btn.textContent = 'Save Task';
+  const sel = document.getElementById('tm-assign');
+  sel.innerHTML = '<option value="">Unassigned</option>' +
+    ALL_STAFF_LIST.map(s => '<option value="' + s.id + '" data-name="' + esc(s.fields?.Name||'') + '">' + esc(s.fields?.Name||'') + ' (' + (s.fields?.Role||'') + ')</option>').join('');
+  if (recordId) {
+    const r = ALL_TASKS.find(x => x.id === recordId);
+    if (r) {
+      const fd = r.fields || {};
+      document.getElementById('task-modal-title').textContent = '✏️ Edit Task';
+      document.getElementById('tm-task').value = fd['Task'] || '';
+      document.getElementById('tm-priority').value = fd['Priority'] || '🟡 Medium';
+      document.getElementById('tm-due').value = fd['Due Date'] || '';
+      document.getElementById('tm-notes').value = fd['Notes'] || '';
+      document.getElementById('tm-case-num').value = fd['Case #'] || '';
+      document.getElementById('tm-case-record-id').value = fd['Case Record ID'] || '';
+      document.getElementById('tm-record-id').value = recordId;
+      const staffEntry = ALL_STAFF_LIST.find(s => s.id === fd['Assigned Staff ID']);
+      if (staffEntry) sel.value = staffEntry.id;
+    }
+  }
+  document.getElementById('task-modal').classList.add('open');
+}
+function closeTaskModal() { document.getElementById('task-modal').classList.remove('open'); }
+
+async function saveTask() {
+  const btn = document.getElementById('tm-save-btn');
+  const errEl = document.getElementById('tm-error');
+  const task = document.getElementById('tm-task').value.trim();
+  if (!task) { errEl.textContent = 'Task description required.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '⏳ Saving…'; errEl.style.display = 'none';
+  const recordId = document.getElementById('tm-record-id').value;
+  const sel = document.getElementById('tm-assign');
+  const staffId = sel.value;
+  const staffName = sel.options[sel.selectedIndex]?.getAttribute('data-name') || '';
+  const fields = {
+    'Task': task, 'Priority': document.getElementById('tm-priority').value,
+    'Due Date': document.getElementById('tm-due').value || null,
+    'Notes': document.getElementById('tm-notes').value.trim(),
+    'Case #': document.getElementById('tm-case-num').value.trim(),
+    'Case Record ID': document.getElementById('tm-case-record-id').value,
+    'Assigned To': staffName, 'Assigned Staff ID': staffId,
+  };
+  try {
+    const res = await fetch('/.netlify/functions/save-task', {
+      method: recordId ? 'PATCH' : 'POST', headers: staffHeader(),
+      body: JSON.stringify(recordId ? { recordId, fields } : { fields }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    if (recordId) { const idx = ALL_TASKS.findIndex(x => x.id === recordId); if (idx !== -1) ALL_TASKS[idx] = data.record; }
+    else ALL_TASKS.unshift(data.record);
+    closeTaskModal(); renderTaskList(); showToast('✅ Task saved!');
+  } catch(e) { errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Save Task'; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  REPORTS
+// ═══════════════════════════════════════════════════════
+function renderReports() {
+  const period = document.getElementById('report-period')?.value || 'week';
+  const bodyEl = document.getElementById('reports-body');
+  if (!bodyEl) return;
+  const now = new Date();
+  let since;
+  if (period === 'today') since = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  else if (period === 'week')  { since = new Date(now); since.setDate(now.getDate() - 7); }
+  else if (period === 'month') since = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (period === 'year')  since = new Date(now.getFullYear(), 0, 1);
+  else since = null;
+  const inPeriod = r => { if (!since) return true; const d = r.fields?.['Date Submitted']; return d && new Date(d) >= since; };
+  const periodRecs = since ? ALL_RECORDS.filter(inPeriod) : ALL_RECORDS;
+  const totalCases  = periodRecs.length;
+  const activeCases = ALL_RECORDS.filter(r => /Active|Lead|Sent to/i.test(r.fields?.['Status']||'')).length;
+  const urgentCases = ALL_RECORDS.filter(r => /Urgent/i.test(r.fields?.['Status']||'')).length;
+  const wonCases    = periodRecs.filter(r => /Won/i.test(r.fields?.['Status']||'')).length;
+  const revenue     = periodRecs.reduce((s, r) => s + (r.fields?.['Client Fee Collected'] || 0), 0);
+  const attyFees    = periodRecs.reduce((s, r) => s + (r.fields?.['Attorney Service Fee'] || 0), 0);
+  const netProfit   = periodRecs.reduce((s, r) => s + (r.fields?.['Profit'] || 0), 0);
+  const outstanding = ALL_RECORDS.reduce((s, r) => s + (r.fields?.['Client Balance Remaining'] || 0), 0);
+  const courtSoon   = ALL_RECORDS.filter(r => { const d = daysUntil(r.fields?.['Court Date']); return d !== null && d <= 7 && d >= 0; }).length;
+  const unassigned  = ALL_RECORDS.filter(r => !r.fields?.['Attorney'] || !r.fields['Attorney'].length).length;
+  const attyUnpaid  = ALL_RECORDS.filter(r => (r.fields?.['Attorney Service Fee']||0) > 0 && !r.fields?.['Attorney Payment Confirmed']).length;
+  const periodLabel = { today: 'Today', week: 'This Week', month: 'This Month', year: 'This Year', all: 'All Time' }[period];
+  const subEl = document.getElementById('reports-sub');
+  if (subEl) subEl.textContent = periodLabel + ' — ' + totalCases + ' case' + (totalCases !== 1 ? 's' : '');
+  const card = (emoji, label, value, sub, color) =>
+    '<div style="background:#fff;border:1px solid var(--gray-border);border-radius:10px;padding:20px;">' +
+    '<div style="font-size:24px;margin-bottom:8px;">' + emoji + '</div>' +
+    '<div style="font-size:22px;font-weight:800;color:' + (color||'var(--navy)') + ';">' + value + '</div>' +
+    '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-text);margin-top:2px;">' + label + '</div>' +
+    (sub ? '<div style="font-size:11px;color:var(--gray-text);margin-top:4px;">' + sub + '</div>' : '') + '</div>';
+  bodyEl.innerHTML = [
+    card('📂', 'Cases (' + periodLabel + ')', totalCases),
+    card('🟢', 'Active Cases', activeCases, 'Currently active'),
+    card('🔴', 'Urgent', urgentCases, 'Need immediate action', urgentCases > 0 ? 'var(--red)' : undefined),
+    card('✅', 'Won (' + periodLabel + ')', wonCases, (totalCases ? Math.round(wonCases/totalCases*100) : 0) + '% win rate'),
+    card('💰', 'Revenue (' + periodLabel + ')', currency(revenue)),
+    card('⚖️', 'Atty Fees (' + periodLabel + ')', currency(attyFees)),
+    card('📈', 'Net Profit (' + periodLabel + ')', currency(netProfit), '', netProfit >= 0 ? '#16a34a' : 'var(--red)'),
+    card('💸', 'Outstanding Balances', currency(outstanding), 'All time', outstanding > 0 ? '#d97706' : '#16a34a'),
+    card('📅', 'Court Dates (7 days)', courtSoon, 'Cases with upcoming court', courtSoon > 0 ? '#d97706' : undefined),
+    card('🔗', 'Unassigned Cases', unassigned, 'No attorney assigned', unassigned > 0 ? '#d97706' : undefined),
+    card('⚠️', 'Atty Fees Unpaid', attyUnpaid, 'Attorney not yet paid', attyUnpaid > 0 ? 'var(--red)' : undefined),
+  ].join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ACTIVITY LOG
+// ═══════════════════════════════════════════════════════
+async function loadActivityLog() {
+  const tbody = document.getElementById('activity-tbody');
+  const subEl = document.getElementById('activity-sub');
+  if (!tbody) return;
+  if (!hasPermission('Manager')) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-text);">Manager or Admin access required</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-text);">Loading…</td></tr>';
+  const cat = document.getElementById('activity-filter-cat')?.value || '';
+  const url = '/.netlify/functions/get-activity-log' + (cat ? '?category=' + encodeURIComponent(cat) : '');
+  try {
+    const res  = await fetch(url, { headers: { 'X-Staff-Token': getToken() } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const recs = data.records || [];
+    if (subEl) subEl.textContent = recs.length + ' entries' + (cat ? ' — ' + cat : '');
+    if (!recs.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-text);">No activity recorded yet.</td></tr>'; return; }
+    tbody.innerHTML = recs.map(r => {
+      const fd = r.fields || {};
+      const ts = fd['Timestamp'] ? new Date(fd['Timestamp']).toLocaleString('en-US', {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
+      return '<tr><td style="white-space:nowrap;font-size:12px;">' + ts + '</td><td style="font-weight:600;">' + esc(fd['Staff Name']||'—') + '</td><td>' + esc(fd['Action']||'—') + '</td><td class="mono">' + esc(fd['Case #']||'—') + '</td><td style="font-size:12px;opacity:.8;">' + esc(fd['Field Changed']||'—') + '</td><td style="font-size:11px;color:var(--red);max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + esc(fd['Old Value']||'—') + '</td><td style="font-size:11px;color:#16a34a;max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + esc(fd['New Value']||'—') + '</td></tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red);">⚠ ' + e.message + '</td></tr>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  STAFF MANAGEMENT
+// ═══════════════════════════════════════════════════════
+async function loadStaff() {
+  const listEl = document.getElementById('staff-list');
+  const subEl  = document.getElementById('staff-sub');
+  if (!listEl) return;
+  if (!hasPermission('Admin')) { listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">Admin access required</div>'; return; }
+  listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">Loading…</div>';
+  try {
+    const res  = await fetch('/.netlify/functions/get-staff', { headers: { 'X-Staff-Token': getToken() } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    ALL_STAFF_LIST = data.records || [];
+    if (subEl) subEl.textContent = ALL_STAFF_LIST.length + ' staff member' + (ALL_STAFF_LIST.length !== 1 ? 's' : '');
+    if (!ALL_STAFF_LIST.length) { listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-text);">No staff yet. <button class="btn primary" onclick="openStaffModal()">＋ Add Staff Member</button></div>'; return; }
+    const roleColor = { Admin: '#dc2626', Manager: '#d97706', Employee: '#2563eb', 'Read Only': '#6b7280' };
+    listEl.innerHTML = ALL_STAFF_LIST.map(r => {
+      const fd = r.fields || {};
+      const active = fd.Active !== false;
+      const last = fd['Last Login'] ? new Date(fd['Last Login']).toLocaleDateString('en-US') : 'Never';
+      return '<div class="atty-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;"><div class="atty-card-name">👤 ' + esc(fd.Name||'Unknown') + '</div><span class="' + (active?'badge-active':'badge-inactive') + '">' + (active?'Active':'Inactive') + '</span></div><div class="atty-card-meta"><span style="font-weight:700;color:' + (roleColor[fd.Role]||'#6b7280') + '">● ' + (fd.Role||'—') + '</span>' + (fd.Email ? '<span>✉️ ' + esc(fd.Email) + '</span>' : '') + '<span style="opacity:.7;">Last login: ' + last + '</span></div><div class="atty-card-actions"><button class="btn" onclick="openStaffModal('' + r.id + '')" style="font-size:12px;">✏️ Edit</button>' + (active ? '<button class="btn" onclick="toggleStaffActive('' + r.id + '', false)" style="font-size:12px;color:var(--red);">Deactivate</button>' : '<button class="btn" onclick="toggleStaffActive('' + r.id + '', true)" style="font-size:12px;color:#16a34a;">Activate</button>') + '</div></div>';
+    }).join('');
+  } catch(e) { listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">⚠ ' + e.message + '</div>'; }
+}
+
+async function toggleStaffActive(id, active) {
+  try {
+    const res = await fetch('/.netlify/functions/save-staff', { method: 'PATCH', headers: staffHeader(), body: JSON.stringify({ recordId: id, fields: { Active: active } }) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    const idx = ALL_STAFF_LIST.findIndex(x => x.id === id);
+    if (idx !== -1) ALL_STAFF_LIST[idx] = data.record;
+    loadStaff(); showToast(active ? '✅ Staff activated' : '🔒 Staff deactivated');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function openStaffModal(recordId) {
+  ['sm-name','sm-email','sm-password','sm-password2','sm-notes'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('sm-role').value = 'Employee';
+  document.getElementById('sm-active').checked = true;
+  document.getElementById('sm-record-id').value = '';
+  document.getElementById('sm-error').style.display = 'none';
+  document.getElementById('staff-modal-title').textContent = '＋ Add Staff Member';
+  const btn = document.getElementById('sm-save-btn'); btn.disabled = false; btn.textContent = 'Save';
+  if (recordId) {
+    const r = ALL_STAFF_LIST.find(x => x.id === recordId);
+    if (r) {
+      const fd = r.fields || {};
+      document.getElementById('staff-modal-title').textContent = '✏️ Edit ' + (fd.Name||'Staff');
+      document.getElementById('sm-name').value  = fd.Name  || '';
+      document.getElementById('sm-email').value = fd.Email || '';
+      document.getElementById('sm-role').value  = fd.Role  || 'Employee';
+      document.getElementById('sm-notes').value = fd.Notes || '';
+      document.getElementById('sm-active').checked = fd.Active !== false;
+      document.getElementById('sm-record-id').value = recordId;
+    }
+  }
+  document.getElementById('staff-modal').classList.add('open');
+}
+function closeStaffModal() { document.getElementById('staff-modal').classList.remove('open'); }
+
+async function saveStaffMember() {
+  const btn = document.getElementById('sm-save-btn');
+  const errEl = document.getElementById('sm-error');
+  const name  = document.getElementById('sm-name').value.trim();
+  const email = document.getElementById('sm-email').value.trim();
+  const pass  = document.getElementById('sm-password').value;
+  const pass2 = document.getElementById('sm-password2').value;
+  const recordId = document.getElementById('sm-record-id').value;
+  if (!name)  { errEl.textContent = 'Name required.'; errEl.style.display = 'block'; return; }
+  if (!recordId && !email) { errEl.textContent = 'Email required.'; errEl.style.display = 'block'; return; }
+  if (!recordId && !pass) { errEl.textContent = 'Password required for new staff.'; errEl.style.display = 'block'; return; }
+  if (pass && pass !== pass2) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '⏳ Saving…'; errEl.style.display = 'none';
+  const fields = { Name: name, Role: document.getElementById('sm-role').value, Active: document.getElementById('sm-active').checked, Notes: document.getElementById('sm-notes').value.trim() };
+  if (email) fields.Email = email;
+  if (pass)  fields.password = pass;
+  try {
+    const res = await fetch('/.netlify/functions/save-staff', { method: recordId ? 'PATCH' : 'POST', headers: staffHeader(), body: JSON.stringify(recordId ? { recordId, fields } : { fields }) });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed');
+    closeStaffModal(); loadStaff(); showToast('✅ Staff member saved!');
+  } catch(e) { errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Save'; }
+}
+
+function buildAttorneyOptions(currentAttyIds) {
+  return '<option value="">— No attorney —</option>' +
+    ALL_ATTORNEYS.map(a => {
+      const name = a.fields?.['Attorney Name'] || '';
+      const selected = Array.isArray(currentAttyIds) && currentAttyIds.some(x => (x?.id||x) === a.id);
+      return '<option value="' + a.id + '"' + (selected?' selected':'') + '>' + esc(name) + '</option>';
+    }).join('');
+}
+
+_origShowPanel = showPanel;
 function showPanel(id) {
   _origShowPanel(id);
   if (id === 'attorneys-mgmt' && ALL_ATTORNEYS.length === 0) loadAttorneys();
+  if (id === 'tasks')    loadTasks();
+  if (id === 'reports')  renderReports();
+  if (id === 'activity') loadActivityLog();
+  if (id === 'staff')    loadStaff();
 }
 
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
 loadData();
+applyRoleUI();
 </script>
 </body>
 </html>
