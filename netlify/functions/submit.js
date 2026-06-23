@@ -169,8 +169,7 @@ exports.handler = async function (event) {
 
   // Link client to case
   if (clientId) {
-    caseFields['Client'] = [{ id: clientId }];
-  }
+    caseFields['Client'] = [clientId];  }
 
   // ── Step 2: Create the Case record ───────────────────────────────────────
   let recordId;
