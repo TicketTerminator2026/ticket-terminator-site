@@ -684,7 +684,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <label class="flabel"><span data-i18n="lblVtype">Type of Ticket or Violation</span> <span class="req">*</span></label>
           <div class="vgrid">
             <label class="vcard"><input type="radio" name="vt" value="Speeding" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚗</span><span class="vlabel" data-i18n="vtSpeeding">Speeding</span></div></label>
-            <label class="vcard"><input type="radio" name="vt" value="DUI/DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
+            <label class="vcard"><input type="radio" name="vt" value="DUI / DWI" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🍺</span><span class="vlabel" data-i18n="vtDUI">DUI / DWI</span></div></label>
             <label class="vcard"><input type="radio" name="vt" value="Red Light" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🚦</span><span class="vlabel" data-i18n="vtRed">Red Light</span></div></label>
             <label class="vcard"><input type="radio" name="vt" value="Stop Sign" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">🛑</span><span class="vlabel" data-i18n="vtStop">Stop Sign</span></div></label>
             <label class="vcard"><input type="radio" name="vt" value="Reckless" onchange="hideEl('vdescField')"/><div class="vcard-body"><span class="vemoji">⚠️</span><span class="vlabel" data-i18n="vtReckless">Reckless</span></div></label>
@@ -699,6 +699,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
           <div class="ac-hint" data-i18n="vdescHint">Not sure of the code? No problem — a description is fine.</div>
         </div>
         <div class="field"><label class="flabel"><span data-i18n="lblVdate">Date of Violation</span> <span class="req">*</span></label><input type="date" id="vdate"/></div>
+        <div class="field"><label class="flabel" data-i18n="lblCitation">Citation / Ticket # <span style="font-weight:400;opacity:0.6;">(if known)</span></label><input type="text" id="citation" data-i18n-placeholder="phCitation" placeholder="e.g. A123456 or leave blank if unknown" autocomplete="off"/></div>
         <div class="field">
           <label class="flabel" data-i18n="lblPastDue">Is this ticket past due or in collections?</label>
           <div class="pill-row">
@@ -747,7 +748,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
             <div class="uz-title" id="uzTicketTitle" data-i18n="uzTicketTitle">Drop your ticket here</div>
             <div class="uz-sub" data-i18n-html="uzSub">or <span>browse to upload</span> · JPG, PNG, PDF</div>
           </div>
-          <div class="up-row" id="trow"><span>📎<span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz",'trow','ti','🐄')">✕</span></div>
+          <div class="up-row" id="trow"><span>📎<span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz','trow','ti','📄')">✕</span></div>
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblIdUp">Upload Your Driver's License or ID</span> <span class="req">*</span></label>
@@ -815,7 +816,7 @@ The details that feel small to you can be the ones that win your case. Don't lea
         <div class="sbox" id="sbox"></div>
         <div class="s-acts">
           <button class="btn-ghost" onclick="location.reload()" data-i18n="btnAnother">Submit Another Case</button>
-          <button class="btn-next" style="flex:0 0 auto;padding:13px 22px;" onclick="alert('Case portal coming soon!')" data-i18n="btnPortal">My Case Portal →</button>
+          <button class="btn-next" style="flex:0 0 auto;padding:13px 22px;" onclick="alert('Your case reference number is '+cn+'. A specialist will contact you within 1 business day.')" data-i18n="btnPortal">My Case Portal →</button>
         </div>
       </div>
 
@@ -1619,7 +1620,7 @@ document.getElementById('ph').addEventListener('input',function(e){
   if(raw.length===0){fmt='';}
   else if(raw.length<=3){fmt='('+raw;}
   else if(raw.length<6){fmt='('+raw.substring(0,3)+') '+raw.substring(3);}
-  else{fmt='('+raw.substring(0,3)+') '+raw.substring(3,6)+'-'+aw.substring(6);}
+  else{fmt='('+raw.substring(0,3)+') '+raw.substring(3,6)+'-'+raw.substring(6);}
   e.target.value=fmt;
 });
 
@@ -1630,7 +1631,7 @@ function validateEmail(v){return/^[^s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());}
 emEl.addEventListener('input',function(){
   const v=this.value.trim();
   if(v.length===0){emHint.className='field-hint';emHint.textContent='';this.classList.remove('valid','invalid');return;}
-  const T=TRACSLATIONS[currentLang];
+  const T=TRANSLATIONS[currentLang];
   if(validateEmail(v)){
     emHint.className='field-hint ok';emHint.textContent=T.emOk||'✓ Looks good';
     this.classList.add('valid');this.classList.remove('invalid');
@@ -1642,7 +1643,7 @@ emEl.addEventListener('input',function(){
 emEl.addEventListener('blur',function(){
   const v=this.value.trim();
   if(v.length>0&&!validateEmail(v)){
-    const T=TRACSLATIONS[currentLang];
+    const T=TRANSLATIONS[currentLang];
     emHint.className='field-hint err';emHint.textContent=T.emErr||'Please enter a valid email address';
     this.classList.add('invalid');this.classList.remove('valid');
   }
@@ -1683,8 +1684,81 @@ function refresh(){
   nb.textContent=step===TOTAL?T.btnNextFinal:T.btnNextDefault;
   nb.className='btn-next'+(step===TOTAL?' green':'');
 }
+function showFieldError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.border = '2px solid #e53e3e';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  let hint = el.parentElement.querySelector('.val-err');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'val-err';
+    hint.style.cssText = 'color:#e53e3e;font-size:12px;margin-top:4px;';
+    el.parentElement.appendChild(hint);
+  }
+  hint.textContent = msg;
+  setTimeout(() => { el.style.border = ''; if(hint) hint.textContent = ''; }, 4000);
+}
+function clearFieldError(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.border = '';
+}
+function validateStep(s) {
+  if (s === 1) {
+    const fn = document.getElementById('fn').value.trim();
+    const ln = document.getElementById('ln').value.trim();
+    const ph = document.getElementById('ph').value.trim();
+    const em = document.getElementById('em').value.trim();
+    const st = document.getElementById('st').value;
+    const cdl = document.querySelector('input[name="cdl"]:checked');
+    const contact = document.querySelector('input[name="contact"]:checked');
+    if (!fn) { showFieldError('fn', 'First name is required'); return false; }
+    if (!ln) { showFieldError('ln', 'Last name is required'); return false; }
+    if (!ph || ph.replace(/\D/g,'').length < 10) { showFieldError('ph', 'A valid 10-digit phone number is required'); return false; }
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { showFieldError('em', 'A valid email address is required'); return false; }
+    if (!st) { showFieldError('st', 'Please select the state where you got the ticket'); return false; }
+    if (!cdl) { const c=document.querySelector('.pill-row'); if(c)c.scrollIntoView({behavior:'smooth',block:'center'}); alert('Please indicate whether you have a CDL.'); return false; }
+    if (!contact) { alert('Please select your preferred contact method.'); return false; }
+    return true;
+  }
+  if (s === 2) {
+    const vt = document.querySelector('input[name="vt"]:checked');
+    const vdate = document.getElementById('vdate').value;
+    if (!vt) { alert('Please select the type of ticket or violation.'); return false; }
+    if (vt.value === 'Other') {
+      const vdesc = document.getElementById('vdesc').value.trim();
+      if (!vdesc) { showFieldError('vdesc', 'Please describe the violation'); return false; }
+    }
+    if (!vdate) { showFieldError('vdate', 'Date of violation is required'); return false; }
+    return true;
+  }
+  if (s === 3) {
+    const tf = document.getElementById('tf');
+    const idf = document.getElementById('idf');
+    if (!tf || !tf.files || !tf.files[0]) {
+      const z = document.getElementById('tz');
+      if (z) { z.style.border = '2px solid #e53e3e'; setTimeout(() => z.style.border = '', 4000); z.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      alert('Please upload your ticket or court notice.');
+      return false;
+    }
+    if (!idf || !idf.files || !idf.files[0]) {
+      const z = document.getElementById('iz');
+      if (z) { z.style.border = '2px solid #e53e3e'; setTimeout(() => z.style.border = '', 4000); z.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+      alert('Please upload your driver's license or ID.');
+      return false;
+    }
+    return true;
+  }
+  if (s === 4) {
+    const ts = document.querySelector('input[name="ts"]:checked');
+    if (!ts) { alert('Please answer the traffic school question.'); return false; }
+    return true;
+  }
+  return true;
+}
 function go(dir){
   if(dir===1&&step===TOTAL){submit();return;}
+  if(dir===1&&!validateStep(step)){return;}
   document.getElementById('s'+step).classList.remove('active');
   step=Math.min(Math.max(step+dir,1),TOTAL);
   document.getElementById('s'+step).classList.add('active');
@@ -1772,6 +1846,7 @@ async function submit(){
   const paid = (document.querySelector('input[name="paid"]:checked')||{}).value||'';
   const ts   = (document.querySelector('input[name="ts"]:checked')||{}).value||'';
   const story= document.getElementById('story').value.trim();
+  const citation = document.getElementById('citation') ? document.getElementById('citation').value.trim() : '';
   const hear = (document.querySelector('input[name="hear"]:checked')||{}).value||'';
   const ref  = document.getElementById('ref') ? document.getElementById('ref').value.trim() : '';
 
@@ -1798,6 +1873,7 @@ async function submit(){
         email:         em,
         state:         st,
         cdl:           cdl,
+        citationNum:   citation || undefined,
         violationType: vt,
         violationDesc: vdesc,
         violationDate: vdate || undefined,

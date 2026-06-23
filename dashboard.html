@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+// ── Auth gate — runs before anything else ──────────────────────────────────
+(async function() {
+  const token = sessionStorage.getItem('tt_auth_token');
+  if (!token) { window.location.replace('/auth.html'); return; }
+  try {
+    const res = await fetch('/.netlify/functions/auth?token=' + encodeURIComponent(token));
+    const data = await res.json();
+    if (!data.valid) { sessionStorage.removeItem('tt_auth_token'); window.location.replace('/auth.html'); }
+  } catch(e) {
+    // Network error — allow through so offline usage isn't broken
+  }
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ticket Terminator HQ — Case Management</title>
@@ -646,7 +660,8 @@ body {
     <span class="status-dot"></span>
     <span id="refreshTime">Loading…</span>
     <button class="topbar-btn" onclick="loadData()">🔄 Refresh</button>
-    <button class="topbar-btn primary" onclick="window.open('/.netlify/functions/submit','_blank')">＋ New Intake</button>
+    <button class="topbar-btn primary" onclick="window.open('/ticket-terminator-intake-form.html','_blank')">＋ New Intake</button>
+    <button class="topbar-btn" onclick="signOut()" title="Sign out" style="margin-left:4px;">🚪 Sign Out</button>
   </div>
 </div>
 
@@ -690,7 +705,7 @@ body {
 
     <hr class="sb-divider">
     <div class="sb-section">Links</div>
-    <div class="sb-item" onclick="window.open('https://airtable.com','_blank')">
+    <div class="sb-item" onclick="window.open('https://airtable.com/app7IaHcv4nClafca','_blank')">
       <span class="sb-icon">🗄️</span> Airtable Base
     </div>
     <div class="sb-item" onclick="window.open('https://openphone.com','_blank')">
@@ -1060,6 +1075,11 @@ function quoteStatusBadge(q) {
 // ═══════════════════════════════════════════════════════
 //  FETCH DATA
 // ═══════════════════════════════════════════════════════
+function signOut() {
+  sessionStorage.removeItem('tt_auth_token');
+  window.location.replace('/auth.html');
+}
+
 async function loadData() {
   document.getElementById('dash-loading').style.display = 'flex';
   document.getElementById('dash-content').style.display = 'none';
@@ -1386,6 +1406,14 @@ function renderKanban(filter) {
     records = records.filter(r => {
       const s = [clientName(r), f(r)['Case #'], f(r)['Case Type'], f(r)['Court Location']].join(' ').toLowerCase();
       return s.includes(kanbanSearch);
+    });
+  }
+  if (filter === '🔴 Urgent') {
+    records = records.filter(r => (f(r)['Priority'] || '').includes('High') || (f(r)['Priority'] || '').includes('🔴'));
+  } else if (filter === 'court-week') {
+    records = records.filter(r => {
+      const d = daysUntil(f(r)['Court Date']);
+      return d !== null && d >= 0 && d <= 7;
     });
   }
 
@@ -1821,7 +1849,7 @@ function openModal(id) {
     </div>
 
     <div style="padding:16px 0 0;display:flex;gap:10px;">
-      <a href="https://airtable.com" target="_blank" class="btn" style="text-decoration:none;">🗄️ Open in Airtable</a>
+      <a href="https://airtable.com/app7IaHcv4nClafca/tbledZDHFKbsBiwMf/${r.id}" target="_blank" class="btn" style="text-decoration:none;">🗄️ Open in Airtable</a>
       <button class="btn" onclick="closeModal()">Close</button>
     </div>
   `;
@@ -1866,7 +1894,45 @@ function exportCSV() {
 // ═══════════════════════════════════════════════════════
 //  FILTER PAYMENTS (stub — called from sidebar)
 // ═══════════════════════════════════════════════════════
-function filterPayments(v) { showPanel('payments'); }
+function filterPayments(v) {
+  showPanel('payments');
+  if (v === 'outstanding') {
+    // Inject a temporary highlight/filter for records with outstanding balance
+    const tbody = document.getElementById('pay-tbody');
+    if (!tbody) return;
+    // Re-render with outstanding filter
+    let records = ALL_RECORDS.filter(r => (Number(f(r)['Client Balance Remaining']) || 0) > 0);
+    records = records.sort((a,b) => {
+      const ba = Number(f(a)['Client Balance Remaining']) || 0;
+      const bb = Number(f(b)['Client Balance Remaining']) || 0;
+      return bb - ba;
+    });
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty">No outstanding balances 🎉</td></tr>';
+      return;
+    }
+    tbody.innerHTML = records.map(r => {
+      const fee     = Number(f(r)['Client Fee Collected']) || 0;
+      const balance = Number(f(r)['Client Balance Remaining']) || 0;
+      const attyFee = Number(f(r)['Attorney Service Fee']) || 0;
+      const paidAtty = f(r)['Attorney Payment Confirmed'];
+      const profit  = Number(f(r)['Profit']) || 0;
+      const charged = fee + balance;
+      return \`<tr style="background:rgba(229,62,62,0.06);">
+        <td class="mono no-wrap">\${f(r)['Case #']||'—'}</td>
+        <td><strong>\${clientName(r)}</strong></td>
+        <td>\${statusBadge(f(r)['Status'])}</td>
+        <td class="currency">\${charged > 0 ? currency(charged) : '—'}</td>
+        <td class="currency">\${fee > 0 ? currency(fee) : '—'}</td>
+        <td class="currency neg">\${currency(balance)}</td>
+        <td class="currency">\${attyFee > 0 ? currency(attyFee) : '—'}</td>
+        <td>\${paidAtty ? '<span class="badge badge-payment-conf">✔ Paid</span>' : (attyFee > 0 ? '<span class="badge badge-payment-pend">Unpaid</span>' : '—')}</td>
+        <td class="\${profit >= 0 ? 'currency' : 'currency neg'}">\${profit !== 0 ? currency(profit) : '—'}</td>
+        <td><button class="icon-btn view" onclick="openModal('\${r.id}')">👁</button></td>
+      </tr>\`;
+    }).join('');
+  }
+}
 
 // ═══════════════════════════════════════════════════════
 //  INIT
