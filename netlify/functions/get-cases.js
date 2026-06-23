@@ -1,64 +1,43 @@
-// Ticket Terminator — Secure Airtable GET proxy
-// API key lives in Netlify env vars, never exposed to the browser.
-
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
-
   const base  = process.env.AIRTABLE_BASE_ID;
   const table = process.env.AIRTABLE_TABLE_ID;
   const key   = process.env.AIRTABLE_API_KEY;
 
-  const headers = {
-    'Authorization': `Bearer ${key}`,
+  // Debug: show partial values to diagnose
+  const debug = {
+    base_prefix: base ? base.slice(0, 8) + '...' : 'MISSING',
+    table_value: table || 'MISSING',
+    key_prefix:  key  ? key.slice(0, 8) + '...' : 'MISSING',
   };
 
-  // Fetch all pages (Airtable returns max 100 per page)
-  let allRecords = [];
-  let offset = null;
+  const headers = { 'Authorization': `Bearer ${key}` };
+  const params = new URLSearchParams({ maxRecords: '100' });
+  const url = `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}?${params}`;
 
   try {
-    do {
-      const params = new URLSearchParams({ maxRecords: '500' });
-      if (offset) params.set('offset', offset);
-
-      const res = await fetch(
-        `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}?${params}`,
-        { headers }
-      );
-
-      if (!res.ok) {
-        const err = await res.text();
-        console.error('Airtable GET error:', err);
-        return {
-          statusCode: 500,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'Airtable fetch failed', detail: err }),
-        };
-      }
-
-      const data = await res.json();
-      allRecords = allRecords.concat(data.records || []);
-      offset = data.offset || null;
-
-    } while (offset);
-
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      const err = await res.text();
+      return {
+        statusCode: 500,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'Airtable fetch failed', detail: err, debug, url_called: url.replace(key || '', '[KEY]') }),
+      };
+    }
+    const data = await res.json();
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
-      body: JSON.stringify({ records: allRecords, total: allRecords.length }),
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+      body: JSON.stringify({ records: data.records || [], total: (data.records || []).length }),
     };
-
   } catch (err) {
-    console.error('get-cases error:', err.message);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }),
+      body: JSON.stringify({ error: err.message, debug }),
     };
   }
 };
