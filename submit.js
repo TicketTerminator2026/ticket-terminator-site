@@ -170,9 +170,9 @@ exports.handler = async function (event) {
     console.warn('Client lookup/create failed:', e.message);
   }
 
-  // Link client to case — only if we have a valid Airtable record ID
+  // Link client to case — Airtable v0 API requires plain string array, NOT [{id:...}]
   if (clientId && typeof clientId === 'string' && clientId.startsWith('rec')) {
-    caseFields['Client'] = [{ id: clientId }];
+    caseFields['Client'] = [clientId];
   }
 
   // ── Step 2: Create the Case record ───────────────────────────────────────
