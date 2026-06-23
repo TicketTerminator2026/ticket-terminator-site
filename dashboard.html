@@ -1403,6 +1403,10 @@ async function loadData() {
   loadEl.style.display = 'none';
   contEl.style.display = 'block';
 
+  
+  // ── Step 2b: prefetch attorneys in background (non-blocking) ────
+  _attorneyPrefetchPromise = prefetchAttorneys();
+
   // ── Step 3: render all panels ─────────────────────────────────────
   try {
     renderAll();
@@ -2174,10 +2178,22 @@ function openModal(id) {
 }
 
 // ─── EDIT CASE MODE ──────────────────────────────────────────────────────────
-function openEditMode(id) {
+async function openEditMode(id) {
   const r = ALL_RECORDS.find(x => x.id === id);
   if (!r) return;
   const fd = f(r);
+  // Wait for background attorney prefetch if still in flight
+  if (_attorneyPrefetchPromise) {
+    const _ae = document.getElementById('ef-attorney-select');
+    if (_ae && ALL_ATTORNEYS.length === 0) {
+      _ae.innerHTML = '<option value="">&#9203; Loading attorneys…</option>';
+    }
+    await _attorneyPrefetchPromise;
+  }
+  if (ALL_ATTORNEYS.length === 0) {
+    const _ae2 = document.getElementById('ef-attorney-select');
+    if (_ae2) _ae2.innerHTML = '<option value="">⚠ No attorneys found — add one in the Attorneys tab</option>';
+  }
   // Pre-build attorney options for select
   const currentAttyIds = Array.isArray(fd['Attorney']) ? fd['Attorney'].map(a => (typeof a === 'object' ? a.id : a)) : [];
   window._ALL_ATTORNEYS_FOR_EDIT = buildAttorneyOptions(currentAttyIds);
@@ -2321,6 +2337,19 @@ async function saveCase(id) {
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
     btn.disabled = false; btn.textContent = '💾 Save Changes';
+  }
+}
+
+let _attorneyPrefetchPromise = null;
+
+async function prefetchAttorneys() {
+  try {
+    const _r = await fetch('/.netlify/functions/get-attorneys');
+    const _d = await _r.json();
+    if (!_r.ok) throw new Error(_d.error || 'Failed');
+    ALL_ATTORNEYS = _d.records || [];
+  } catch (_e) {
+    console.warn('[prefetchAttorneys] failed:', _e.message);
   }
 }
 
