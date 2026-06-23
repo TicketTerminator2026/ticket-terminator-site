@@ -1081,27 +1081,53 @@ function signOut() {
 }
 
 async function loadData() {
-  document.getElementById('dash-loading').style.display = 'flex';
-  document.getElementById('dash-content').style.display = 'none';
+  const loadEl = document.getElementById('dash-loading');
+  const contEl = document.getElementById('dash-content');
 
+  // Reset loading state (in case this is a retry)
+  loadEl.style.display = 'flex';
+  loadEl.innerHTML = '<div class="spinner"></div><span>Loading cases from Airtable…</span>';
+  contEl.style.display = 'none';
+
+  // ── Step 1: fetch data ──────────────────────────────────────────
+  let data;
   try {
     const res = await fetch('/.netlify/functions/get-cases');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    ALL_RECORDS = data.records || [];
-
-    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    document.getElementById('refreshTime').textContent = 'Updated ' + now;
-
-    renderAll();
-
-    document.getElementById('dash-loading').style.display = 'none';
-    document.getElementById('dash-content').style.display = 'block';
-
+    if (!res.ok) throw new Error('API error HTTP ' + res.status);
+    data = await res.json();
   } catch(e) {
-    document.getElementById('dash-loading').innerHTML =
-      `<div style="color:var(--red);font-size:13px;">⚠ Could not load data: ${e.message}<br><br>
-       <button class="btn" onclick="loadData()">Retry</button></div>`;
+    loadEl.innerHTML = `<div style="color:var(--red);text-align:center;font-size:13px;">
+      <div style="font-size:28px;margin-bottom:8px;">⚠</div>
+      <strong>Could not reach Airtable</strong><br><br>
+      ${e.message}<br><br>
+      <button class="btn" onclick="loadData()">🔄 Retry</button>
+    </div>`;
+    return;
+  }
+
+  ALL_RECORDS = data.records || [];
+  const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  document.getElementById('refreshTime').textContent = 'Updated ' + now;
+
+  // ── Step 2: show content BEFORE rendering charts ──────────────────
+  // Chart.js needs visible (non-zero-size) canvases to initialise correctly.
+  loadEl.style.display = 'none';
+  contEl.style.display = 'block';
+
+  // ── Step 3: render all panels ─────────────────────────────────────
+  try {
+    renderAll();
+  } catch(e) {
+    console.error('renderAll error:', e);
+    loadEl.style.display = 'flex';
+    contEl.style.display = 'none';
+    loadEl.innerHTML = `<div style="color:var(--red);text-align:center;font-size:13px;">
+      <div style="font-size:28px;margin-bottom:8px;">⚠</div>
+      <strong>Dashboard render error</strong><br><br>
+      ${e.message}<br>
+      <small style="opacity:.6;font-family:monospace;">${(e.stack||'').split('\n').slice(0,2).join(' › ')}</small><br><br>
+      <button class="btn" onclick="loadData()">🔄 Retry</button>
+    </div>`;
   }
 }
 
