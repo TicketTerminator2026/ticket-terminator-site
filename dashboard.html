@@ -1944,18 +1944,18 @@ function filterPayments(v) {
       const paidAtty = f(r)['Attorney Payment Confirmed'];
       const profit  = Number(f(r)['Profit']) || 0;
       const charged = fee + balance;
-      return \`<tr style="background:rgba(229,62,62,0.06);">
-        <td class="mono no-wrap">\${f(r)['Case #']||'—'}</td>
-        <td><strong>\${clientName(r)}</strong></td>
-        <td>\${statusBadge(f(r)['Status'])}</td>
-        <td class="currency">\${charged > 0 ? currency(charged) : '—'}</td>
-        <td class="currency">\${fee > 0 ? currency(fee) : '—'}</td>
-        <td class="currency neg">\${currency(balance)}</td>
-        <td class="currency">\${attyFee > 0 ? currency(attyFee) : '—'}</td>
-        <td>\${paidAtty ? '<span class="badge badge-payment-conf">✔ Paid</span>' : (attyFee > 0 ? '<span class="badge badge-payment-pend">Unpaid</span>' : '—')}</td>
-        <td class="\${profit >= 0 ? 'currency' : 'currency neg'}">\${profit !== 0 ? currency(profit) : '—'}</td>
-        <td><button class="icon-btn view" onclick="openModal('\${r.id}')">👁</button></td>
-      </tr>\`;
+      return `<tr style="background:rgba(229,62,62,0.06);">
+        <td class="mono no-wrap">${f(r)['Case #']||'—'}</td>
+        <td><strong>${clientName(r)}</strong></td>
+        <td>${statusBadge(f(r)['Status'])}</td>
+        <td class="currency">${charged > 0 ? currency(charged) : '—'}</td>
+        <td class="currency">${fee > 0 ? currency(fee) : '—'}</td>
+        <td class="currency neg">${currency(balance)}</td>
+        <td class="currency">${attyFee > 0 ? currency(attyFee) : '—'}</td>
+        <td>${paidAtty ? '<span class="badge badge-payment-conf">✔ Paid</span>' : (attyFee > 0 ? '<span class="badge badge-payment-pend">Unpaid</span>' : '—')}</td>
+        <td class="${profit >= 0 ? 'currency' : 'currency neg'}">${profit !== 0 ? currency(profit) : '—'}</td>
+        <td><button class="icon-btn view" onclick="openModal('${r.id}')">👁</button></td>
+      </tr>`
     }).join('');
   }
 }
