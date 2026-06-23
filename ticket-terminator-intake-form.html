@@ -63,6 +63,56 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .nav-tag{font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--g2);margin-top:3px;}
 .nav-right{font-size:13px;color:var(--g2);}
 .nav-right a{color:var(--orange);text-decoration:none;font-weight:700;}
+
+/* ── SMS CONTACT BUTTON ── */
+.sms-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;
+  background:var(--grad);
+  border:none;border-radius:100px;
+  font-family:var(--font);font-size:13px;font-weight:800;color:var(--white)!important;
+  text-decoration:none;cursor:pointer;
+  box-shadow:0 2px 14px rgba(255,144,0,0.35);
+  transition:opacity 0.2s,transform 0.15s;
+  white-space:nowrap;flex-shrink:0;
+  min-height:38px;
+}
+.sms-btn:hover{opacity:0.88;transform:translateY(-1px);}
+.sms-btn:active{opacity:1;transform:translateY(0);}
+
+/* ── DESKTOP SMS FALLBACK MODAL ── */
+.sms-modal-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.sms-modal-overlay.open{display:flex;}
+.sms-modal{
+  background:#1C1C1C;border:1px solid rgba(255,255,255,0.12);border-radius:20px;
+  padding:28px 28px 24px;max-width:360px;width:100%;
+  box-shadow:0 32px 80px rgba(0,0,0,0.7);text-align:center;
+}
+.sms-modal-icon{font-size:36px;margin-bottom:12px;}
+.sms-modal-title{font-size:17px;font-weight:800;color:var(--white);margin-bottom:6px;}
+.sms-modal-sub{font-size:13px;color:var(--g2);margin-bottom:20px;line-height:1.5;}
+.sms-modal-number{
+  display:block;font-size:22px;font-weight:900;color:var(--orange);
+  letter-spacing:0.5px;margin-bottom:6px;text-decoration:none;
+}
+.sms-modal-number:hover{text-decoration:underline;}
+.sms-modal-hint{font-size:11px;color:var(--g3);margin-bottom:20px;}
+.sms-modal-actions{display:flex;flex-direction:column;gap:10px;}
+.sms-modal-tel{
+  display:block;padding:13px;background:var(--grad);border-radius:12px;
+  font-family:var(--font);font-size:14px;font-weight:800;color:var(--white);
+  text-decoration:none;
+}
+.sms-modal-close{
+  background:transparent;border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;
+  padding:11px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--g2);
+  cursor:pointer;
+}
+
 .ig-badge,.google-badge{
   display:inline-flex;align-items:center;gap:7px;
   text-decoration:none;
@@ -76,7 +126,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .ig-badge svg,.google-badge svg{width:16px;height:16px;flex-shrink:0;}
 .ig-badge-text,.google-badge-text{font-size:12px;font-weight:700;color:var(--g1);letter-spacing:0.2px;}
 @media(max-width:768px){.nav-name{font-size:16px;}.nav-the{font-size:10px;}.nav-tag{font-size:9px;}.google-badge{display:none;}}
-@media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:15px;}.nav-the{font-size:9px;}.ig-badge{display:none;}}
+@media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:15px;}.nav-the{font-size:9px;}.ig-badge{display:none;}.sms-btn{font-size:12px;padding:8px 13px;gap:5px;}}
 
 /* ── HERO ── */
 .hero{
@@ -545,7 +595,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
       </svg>
       <span class="ig-badge-text">The Ticket Terminator</span>
     </a>
-    <div class="nav-right" id="navCallText" data-i18n="navCall"><a href="sms:+18778733187">💬 Contact Us</a></div>
+    <a id="navSmsBtn" class="sms-btn" href="sms:+18778733187" onclick="return handleSmsClick(event)" aria-label="Text us">💬 <span id="navSmsBtnText" data-i18n="navCallLabel">Contact Us</span></a>
     <div class="lang-toggle">
       <button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button>
       <button class="lang-btn" id="btnES" onclick="setLang('es')">ES</button>
@@ -993,6 +1043,21 @@ The details that feel small to you can be the ones that win your case. Don't lea
   <textarea name="story"></textarea>
   <input name="caseNum"/>
 </form>
+
+<!-- ── DESKTOP SMS FALLBACK MODAL ── -->
+<div class="sms-modal-overlay" id="smsModalOverlay" onclick="closeSmsModal(event)">
+  <div class="sms-modal" role="dialog" aria-modal="true" aria-label="Contact us via text">
+    <div class="sms-modal-icon">💬</div>
+    <div class="sms-modal-title">Text Us Directly</div>
+    <div class="sms-modal-sub">SMS apps aren't available on desktop — use your phone to text us, or call us now.</div>
+    <a class="sms-modal-number" href="tel:+18778733187">1-877-873-3187</a>
+    <div class="sms-modal-hint">Tap to call from this device</div>
+    <div class="sms-modal-actions">
+      <a class="sms-modal-tel" href="tel:+18778733187">📞 Call 1-877-873-3187</a>
+      <button class="sms-modal-close" onclick="closeSmsModal()">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── ERROR TOAST ── -->
 <div class="err-toast" id="errToast">
@@ -2262,7 +2327,8 @@ async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
 const TRANSLATIONS={
   en:{
     navTag:'No Court · No Points · No Stress · No BS',
-    navCall:'<a href="sms:+18778733187">💬 Contact Us</a>',
+    navCall:'<a id="navSmsBtn" class="sms-btn" href="sms:+18778733187" onclick="return handleSmsClick(event)" aria-label="Text us">💬 <span id="navSmsBtnText">Contact Us</span></a>',
+    navCallLabel:'Contact Us',
     eyebrow:'Free Case Review — Real Attorneys, Not a Bot',
     h1Line1:'Got a Ticket or DUI?',
     h1Line2:"Don't Pay It Yet.",
@@ -2332,7 +2398,8 @@ const TRANSLATIONS={
   },
   es:{
     navTag:'Sin Corte · Sin Puntos · Sin Estrés',
-    navCall:'<a href="sms:+18778733187">💬 Contáctenos</a>',
+    navCall:'<a id="navSmsBtn" class="sms-btn" href="sms:+18778733187" onclick="return handleSmsClick(event)" aria-label="Escríbenos">💬 <span id="navSmsBtnText">Contáctenos</span></a>',
+    navCallLabel:'Contáctenos',
     eyebrow:'Revisión Gratuita — Abogados Reales, No un Bot',
     h1Line1:'¿Tienes una Multa?',
     h1Line2:'No La Pagues Aún.',
@@ -2428,11 +2495,44 @@ function setLang(l){
     const k=el.dataset.i18n;
     if(T[k]!==undefined)el.textContent=T[k];
   });
-  // Update nav call text
-  document.getElementById('navCallText').innerHTML=T.navCall;
+  // Update SMS button label (just update the text span, not the whole button)
+  const smsBtnText = document.getElementById('navSmsBtnText');
+  if (smsBtnText) smsBtnText.textContent = T.navCallLabel;
   // Refresh step headers & buttons with new lang
   refresh();
 }
+
+/* ── SMS BUTTON HANDLER ── */
+function handleSmsClick(e){
+  const ua = navigator.userAgent || '';
+  const isMobile = /iPhone|iPad|iPod|Android|Mobile|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  if (isMobile) {
+    // Let the href do its job — sms:+18778733187 opens Messages on iOS and SMS app on Android natively
+    return true;
+  }
+
+  // Desktop: prevent the useless sms: link and show the fallback modal
+  e.preventDefault();
+  openSmsModal();
+  return false;
+}
+
+function openSmsModal(){
+  document.getElementById('smsModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSmsModal(e){
+  // If called from overlay click, only close if clicking the backdrop itself
+  if (e && e.target !== document.getElementById('smsModalOverlay')) return;
+  document.getElementById('smsModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closeSmsModal();
+});
 
 /* ── INIT ── */
 (function init(){
