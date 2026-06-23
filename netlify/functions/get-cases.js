@@ -20,7 +20,7 @@ exports.handler = async function (event) {
 
   try {
     do {
-      const params = new URLSearchParams({ maxRecords: '500', view: 'Grid view' });
+      const params = new URLSearchParams({ maxRecords: '500' });
       if (offset) params.set('offset', offset);
 
       const res = await fetch(
