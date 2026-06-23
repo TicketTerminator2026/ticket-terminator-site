@@ -8,19 +8,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --black:#080808;
-  --dark:#0F0F0F;
-  --dark2:#161616;
-  --dark3:#1E1E1E;
-  --border:rgba(255,255,255,0.07);
-  --border2:rgba(255,255,255,0.12);
-  --orange:#FF7A00;
-  --red:#D63000;
-  --grad:linear-gradient(135deg,#FF7A00 0%,#D63000 100%);
+  --black:#060606;
+  --dark:#0D0D0D;
+  --dark2:#141414;
+  --dark3:#1C1C1C;
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --orange:#FF9000;
+  --red:#E03800;
+  --grad:linear-gradient(135deg,#FFA000 0%,#FF6800 55%,#E03800 100%);
   --white:#FFFFFF;
-  --g1:#CCCCCC;
-  --g2:#888888;
-  --g3:#444444;
+  --g1:#D0D0D0;
+  --g2:#909090;
+  --g3:#484848;
   --success:#30D158;
   --font:'Inter',sans-serif;
 }
@@ -46,12 +46,24 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
   box-shadow:0 0 20px rgba(255,122,0,0.3),0 2px 8px rgba(0,0,0,0.4);
 }
 .nav-wordmark{display:flex;flex-direction:column;line-height:1;}
-.nav-the{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:2px;}
-.nav-name{font-size:15px;font-weight:900;color:var(--white);letter-spacing:0.3px;}
-.nav-tag{font-size:9px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--g2);margin-top:2px;}
-.nav-right{font-size:12px;color:var(--g2);}
+.nav-the{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:2px;}
+.nav-name{font-size:18px;font-weight:900;color:var(--white);letter-spacing:0.3px;}
+.nav-tag{font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--g2);margin-top:3px;}
+.nav-right{font-size:13px;color:var(--g2);}
 .nav-right a{color:var(--orange);text-decoration:none;font-weight:700;}
-@media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:13px;}.nav-the{font-size:8px;}}
+.ig-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  text-decoration:none;
+  padding:6px 12px;
+  border:1px solid rgba(255,255,255,0.1);border-radius:100px;
+  background:rgba(255,255,255,0.04);
+  transition:background 0.2s,border-color 0.2s;
+}
+.ig-badge:hover{background:rgba(255,144,0,0.08);border-color:rgba(255,144,0,0.35);}
+.ig-badge svg{width:16px;height:16px;flex-shrink:0;}
+.ig-badge-text{font-size:12px;font-weight:700;color:var(--g1);letter-spacing:0.2px;}
+@media(max-width:768px){.nav-name{font-size:16px;}.nav-the{font-size:10px;}.nav-tag{font-size:9px;}}
+@media(max-width:560px){.nav{padding:14px 18px;}.nav-right{display:none;}.nav-name{font-size:15px;}.nav-the{font-size:9px;}.ig-badge{display:none;}}
 
 /* ── HERO ── */
 .hero{
@@ -61,13 +73,13 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
 .hero-glow{
   position:absolute;top:0;left:50%;transform:translateX(-50%);
   width:800px;height:500px;
-  background:radial-gradient(ellipse at 50% 20%,rgba(255,122,0,0.1) 0%,rgba(214,48,0,0.05) 45%,transparent 70%);
+  background:radial-gradient(ellipse at 50% 20%,rgba(255,144,0,0.12) 0%,rgba(224,56,0,0.06) 45%,transparent 70%);
   pointer-events:none;
 }
 .hero-inner{position:relative;z-index:1;max-width:680px;margin:0 auto;}
 .eyebrow{
   display:inline-flex;align-items:center;gap:10px;
-  font-size:10px;font-weight:800;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);
+  font-size:11px;font-weight:800;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);
   margin-bottom:24px;
 }
 .eyebrow::before,.eyebrow::after{content:'';display:block;width:26px;height:1.5px;background:var(--orange);opacity:0.5;}
@@ -76,7 +88,7 @@ html,body{background:var(--black);color:var(--white);font-family:var(--font);-we
   font-weight:900;letter-spacing:-2.5px;line-height:1.0;color:var(--white);margin-bottom:8px;
 }
 .hero h1 .grad-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-tagline{font-size:clamp(11px,1.8vw,14px);font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);margin-bottom:18px;opacity:0.85;}
+.hero-tagline{font-size:clamp(13px,2vw,16px);font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:var(--orange);margin-bottom:18px;opacity:0.9;}
 .hero-sub{font-size:clamp(14px,2vw,17px);color:var(--g2);line-height:1.7;max-width:480px;margin:0 auto 40px;}
 .trust-row{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:0;}
 .trust-pill{
@@ -438,8 +450,17 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
       <span class="nav-tag" data-i18n="navTag">No Court · No Points · No Stress · No BS</span>
     </div>
   </a>
-  <div style="display:flex;align-items:center;gap:14px;">
-    <div class="nav-right" id="navCallText">Questions? <a href="tel:+1">Call Us Now</a></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a class="ig-badge" href="https://www.instagram.com/the_ticket_terminator/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FFDC80"/><stop offset="25%" stop-color="#FCAF45"/><stop offset="50%" stop-color="#F77737"/><stop offset="75%" stop-color="#C13584"/><stop offset="100%" stop-color="#833AB4"/></linearGradient></defs>
+        <rect x="2" y="2" width="20" height="20" rx="5.5" ry="5.5" stroke="url(#ig-grad)" stroke-width="2" fill="none"/>
+        <circle cx="12" cy="12" r="4.5" stroke="url(#ig-grad)" stroke-width="2" fill="none"/>
+        <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-grad)"/>
+      </svg>
+      <span class="ig-badge-text">The Ticket Terminator</span>
+    </a>
+    <div class="nav-right" id="navCallText" data-i18n="navCall"><a href="sms:+18778733187">💬 Message Us</a></div>
     <div class="lang-toggle">
       <button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button>
       <button class="lang-btn" id="btnES" onclick="setLang('es')">ES</button>
@@ -451,7 +472,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 <div class="hero">
   <div class="hero-glow"></div>
   <div class="hero-inner">
-    <div class="eyebrow" data-i18n="eyebrow">Free Case Review &mdash; Real Specialists, Not a Bot</div>
+    <div class="eyebrow" data-i18n="eyebrow">Free Case Review &mdash; Real Attorneys, Not a Bot</div>
     <h1><span data-i18n="h1Line1">Got a Ticket or DUI?</span><br/><span class="grad-text" data-i18n="h1Line2">Don't Pay It Yet.</span></h1>
     <div class="hero-tagline" data-i18n="heroTagline">No Court &nbsp;·&nbsp; No Points &nbsp;·&nbsp; No Stress &nbsp;·&nbsp; No BS</div>
     <p class="hero-sub" data-i18n-html="heroSub">One ticket can raise your insurance rates for 3–5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> — and most clients never set foot in a courthouse.</p>
@@ -461,7 +482,8 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
       <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill3">Response in Under 3 Hours</span></div>
       <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill4">No Upfront Fees</span></div>
       <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill5">100% Confidential</span></div>
-      <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill6">CDL &amp; Commercial Drivers</span></div>
+      <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill6">CDL Holders</span></div>
+      <div class="trust-pill"><span class="live-dot"></span><span data-i18n="pill7">Real Licensed Attorneys</span></div>
     </div>
   </div>
 </div>
@@ -1952,14 +1974,14 @@ async function submit(){
 const TRANSLATIONS={
   en:{
     navTag:'No Court · No Points · No Stress · No BS',
-    navCall:'Questions? <a href="tel:+1">Call Us Now</a>',
-    eyebrow:'Free Case Review — Real Specialists, Not a Bot',
+    navCall:'<a href="sms:+18778733187">💬 Message Us</a>',
+    eyebrow:'Free Case Review — Real Attorneys, Not a Bot',
     h1Line1:'Got a Ticket or DUI?',
     h1Line2:"Don't Pay It Yet.",
     heroTagline:'No Court · No Points · No Stress · No BS',
     heroSub:'One ticket can raise your insurance rates for 3–5 years. Our specialists fight traffic citations and DUI cases across <strong style="color:var(--white)">all 50 states</strong> — and most clients never set foot in a courthouse.',
     pill1:'All 50 States',pill2:'1,000+ Cases Won',pill3:'Response in Under 3 Hours',
-    pill4:'No Upfront Fees',pill5:'100% Confidential',pill6:'CDL & Commercial Drivers',
+    pill4:'No Upfront Fees',pill5:'100% Confidential',pill6:'CDL Holders',pill7:'Real Licensed Attorneys',
     gCountSub:'200+ verified reviews',reviewsTitle:'What Our Clients Are Saying',
     pl1:'You',pl2:'Violation',pl3:'Docs',pl4:'Details',pl5:'Submit',
     cfg:[null,
@@ -2022,14 +2044,14 @@ const TRANSLATIONS={
   },
   es:{
     navTag:'Sin Corte · Sin Puntos · Sin Estrés',
-    navCall:'¿Preguntas? <a href="tel:+1">Llámenos Ahora</a>',
-    eyebrow:'Revisión Gratuita — Especialistas Reales, No un Bot',
+    navCall:'<a href="sms:+18778733187">💬 Escríbenos</a>',
+    eyebrow:'Revisión Gratuita — Abogados Reales, No un Bot',
     h1Line1:'¿Tienes una Multa?',
     h1Line2:'No La Pagues Aún.',
     heroTagline:'Sin Corte · Sin Puntos · Sin Estrés',
     heroSub:'Una multa puede aumentar tu seguro por 3 a 5 años. Nuestros especialistas luchan contra infracciones de tráfico y casos de DUI en <strong style="color:var(--white)">los 50 estados</strong> — y la mayoría de los clientes nunca pisan un tribunal.',
     pill1:'Los 50 Estados',pill2:'Más de 1,000 Casos Ganados',pill3:'Respuesta en Menos de 3 Horas',
-    pill4:'Sin Honorarios Iniciales',pill5:'100% Confidencial',pill6:'CDL y Conductores Comerciales',
+    pill4:'Sin Honorarios Iniciales',pill5:'100% Confidencial',pill6:'Titulares de CDL',pill7:'Abogados Reales y Licenciados',
     gCountSub:'Más de 200 reseñas verificadas',reviewsTitle:'Lo Que Dicen Nuestros Clientes',
     pl1:'Tú',pl2:'Infracción',pl3:'Docs',pl4:'Detalles',pl5:'Enviar',
     cfg:[null,
