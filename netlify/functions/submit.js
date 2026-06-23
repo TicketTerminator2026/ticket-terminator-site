@@ -76,6 +76,7 @@ exports.handler = async function (event) {
     'Case Type':        caseTypeMap[data.violationType] || '🚗 Traffic Citation',
     'Priority':         priority,
     'Date Submitted':   new Date().toISOString().split('T')[0],
+    'Citation / Arrest #': data.citationNum || '',
 
     // Client contact (kept denormalized on Case for quick access)
     'First Name':  data.firstName || '',
