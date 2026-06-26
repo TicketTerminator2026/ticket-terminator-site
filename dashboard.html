@@ -145,7 +145,7 @@
     <div class="panel active" id="panel-dashboard">
       <div class="page-header">
         <div>
-          <div class="page-title">📊 Dashboard</div>
+          <div class="page-title">📊 Command Center</div>
           <div class="page-sub" id="dash-sub">Loading case data…</div>
         </div>
         <div class="page-actions">
@@ -160,6 +160,7 @@
       </div>
 
       <div id="dash-content" style="display:none;">
+
         <!-- KPI ROW -->
         <div class="kpi-grid">
           <div class="kpi-card">
@@ -169,7 +170,7 @@
             <div class="kpi-sub">All time</div>
           </div>
           <div class="kpi-card green">
-            <span class="kpi-icon">🟢</span>
+            <span class="kpi-icon">⚡</span>
             <div class="kpi-label">Active Cases</div>
             <div class="kpi-value" id="kpi-active">0</div>
             <div class="kpi-sub">Lead + Open + Pending</div>
@@ -188,8 +189,8 @@
           </div>
         </div>
 
-        <!-- SECOND ROW: Court Dates + Chart -->
-        <div class="dash-grid wide" style="margin-bottom:16px;">
+        <!-- COMMAND ROW: Court Dates + Needs Attention -->
+        <div class="cmd-grid">
           <div class="card">
             <div class="card-head">
               <div class="card-title">⏰ Upcoming Court Dates</div>
@@ -203,61 +204,29 @@
           </div>
           <div class="card">
             <div class="card-head">
-              <div class="card-title">📈 Cases by Status</div>
-            </div>
-            <div class="chart-wrap">
-              <canvas id="statusChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- THIRD ROW: Leads + Flagged -->
-        <div class="dash-grid">
-          <div class="card">
-            <div class="card-head">
-              <div class="card-title">🔵 New Leads (Last 30 Days)</div>
-              <span class="card-action" onclick="showPanel('kanban')">View Kanban →</span>
-            </div>
-            <div class="card-body">
-              <table class="data-table" id="recent-leads-table">
-                <thead>
-                  <tr>
-                    <th>Case #</th>
-                    <th>Client</th>
-                    <th>Type</th>
-                    <th>Date</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="recent-leads"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-head">
               <div class="card-title">⚠️ Needs Attention</div>
             </div>
             <div class="card-body" id="flagged-cases"></div>
           </div>
         </div>
 
-        <!-- FOURTH ROW: Case type breakdown + attorney stats -->
-        <div class="dash-grid tri" style="margin-top:16px;">
-          <div class="card">
-            <div class="card-head"><div class="card-title">📊 Case Types</div></div>
-            <div class="chart-wrap" style="padding:14px 16px;">
-              <canvas id="typeChart"></canvas>
-            </div>
+        <!-- ATTORNEY QUEUE ROW -->
+        <div class="card" style="margin-top:16px;">
+          <div class="card-head">
+            <div class="card-title">⚖️ Attorney Queue</div>
+            <span class="card-action" onclick="showPanel('attorney')">Full Pipeline →</span>
           </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">⚖️ Attorney Queue</div></div>
-            <div class="card-body" id="atty-summary"></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">💰 Financial Summary</div></div>
-            <div class="card-body" id="fin-summary"></div>
-          </div>
+          <div id="atty-summary"></div>
         </div>
+
+        <!-- Hidden elements kept for JS compatibility -->
+        <div style="display:none;">
+          <canvas id="statusChart"></canvas>
+          <canvas id="typeChart"></canvas>
+          <table><tbody id="recent-leads"></tbody></table>
+          <div id="fin-summary"></div>
+        </div>
+
       </div>
     </div>
 
@@ -1180,11 +1149,26 @@ function renderAttySummary() {
   const accepted  = ALL_RECORDS.filter(r => (f(r)['Quote Status']||'').includes('Accepted')).length;
 
   document.getElementById('atty-summary').innerHTML = `
-    <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
-      <div class="dash-row-item"><span style="color:var(--gray-text);">Cases with attorney</span><strong>${withAtty}</strong></div>
-      <div class="dash-row-item"><span class="text-red">Need attorney</span><strong class="text-red">${noAtty}</strong></div>
-      <div class="dash-row-item"><span style="color:var(--gray-text);">Quote sent</span><strong>${quoteSent}</strong></div>
-      <div class="dash-row-item"><span class="text-green">Quote accepted</span><strong class="text-green">${accepted}</strong></div>
+    <div class="atty-stat-row">
+      <div class="atty-stat">
+        <div class="atty-stat-val">${withAtty}</div>
+        <div class="atty-stat-label">Assigned</div>
+      </div>
+      <div class="atty-stat-divider"></div>
+      <div class="atty-stat atty-stat-alert">
+        <div class="atty-stat-val">${noAtty}</div>
+        <div class="atty-stat-label">Need Attorney</div>
+      </div>
+      <div class="atty-stat-divider"></div>
+      <div class="atty-stat">
+        <div class="atty-stat-val">${quoteSent}</div>
+        <div class="atty-stat-label">Quote Sent</div>
+      </div>
+      <div class="atty-stat-divider"></div>
+      <div class="atty-stat atty-stat-good">
+        <div class="atty-stat-val">${accepted}</div>
+        <div class="atty-stat-label">Quote Accepted</div>
+      </div>
     </div>
   `;
 }
