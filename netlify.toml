@@ -2,6 +2,9 @@
   functions = "netlify/functions"
   publish   = "."
 
+[build.processing]
+  skip_processing = true
+
 [functions]
   node_bundler = "esbuild"
 
