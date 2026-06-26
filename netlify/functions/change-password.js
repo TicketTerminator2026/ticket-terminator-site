@@ -12,6 +12,7 @@ const cors = {
   'Content-Type': 'application/json',
 };
 
+// ── Token verification (mirrors staff-auth.js) ────────────────────────────────
 function sign(payload, secret) {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex');
 }
@@ -32,13 +33,14 @@ function verifyToken(token, secret) {
   } catch { return null; }
 }
 
+// ── Password helpers (mirrors staff-auth.js) ──────────────────────────────────
 function hashPassword(password, salt) {
   return crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256').toString('hex');
 }
 
 function makeHash(password) {
   const salt = crypto.randomBytes(16).toString('hex');
-  return salt + ':' + hashPassword(password, salt);
+  return `${salt}:${hashPassword(password, salt)}`;
 }
 
 function checkPassword(password, stored) {
@@ -50,6 +52,7 @@ function checkPassword(password, stored) {
   } catch { return false; }
 }
 
+// ── Handler ───────────────────────────────────────────────────────────────────
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers: cors, body: 'Method Not Allowed' };
@@ -73,39 +76,43 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'New password must be at least 8 characters' }) };
   }
 
+  // 1. Verify the session token
   const payload = verifyToken(token, secret);
   if (!payload) {
     return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid or expired session. Please log in again.' }) };
   }
 
+  // 2. Fetch the staff record from Airtable
   const lookup = await fetch(
-    'https://api.airtable.com/v0/' + base + '/' + STAFF_TABLE + '/' + payload.staffId,
-    { headers: { 'Authorization': 'Bearer ' + key } }
+    `https://api.airtable.com/v0/${base}/${STAFF_TABLE}/${payload.staffId}`,
+    { headers: { 'Authorization': `Bearer ${key}` } }
   );
   if (!lookup.ok) {
     return { statusCode: 404, headers: cors, body: JSON.stringify({ error: 'Staff record not found' }) };
   }
   const staffRecord = await lookup.json();
-  const storedHash = staffRecord.fields && staffRecord.fields['Password Hash'] || '';
+  const storedHash = staffRecord.fields?.['Password Hash'] || '';
 
+  // 3. Verify the current password
   if (!storedHash || !checkPassword(currentPassword, storedHash)) {
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 500)); // brute-force delay
     return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Current password is incorrect' }) };
   }
 
+  // 4. Hash the new password and update Airtable
   const newHash = makeHash(newPassword);
   const update = await fetch(
-    'https://api.airtable.com/v0/' + base + '/' + STAFF_TABLE + '/' + payload.staffId,
+    `https://api.airtable.com/v0/${base}/${STAFF_TABLE}/${payload.staffId}`,
     {
       method:  'PATCH',
-      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
       body:    JSON.stringify({ fields: { 'Password Hash': newHash } }),
     }
   );
 
   if (!update.ok) {
     const err = await update.json();
-    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: (err.error && err.error.message) || 'Failed to update password' }) };
+    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: err.error?.message || 'Failed to update password' }) };
   }
 
   return { statusCode: 200, headers: cors, body: JSON.stringify({ success: true }) };
