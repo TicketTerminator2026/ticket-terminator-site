@@ -24,7 +24,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="/dashboard.css">
 </head>
-<body>
+<body class="dark">
 
 <!-- ═══════════════════ TOP BAR ═══════════════════ -->
 <div class="topbar">
@@ -148,9 +148,16 @@
           <div class="page-title">📊 Command Center</div>
           <div class="page-sub" id="dash-sub">Loading case data…</div>
         </div>
-        <div class="page-actions">
-          <button class="btn" onclick="exportCSV()">⬇ Export CSV</button>
-          <button class="btn primary" onclick="loadData()">🔄 Refresh Data</button>
+        <div class="page-actions" style="flex-wrap:wrap;gap:8px;align-items:center;">
+          <div class="filter-bar" id="dash-filters">
+            <button class="filter-btn" id="filter-today" onclick="setDashFilter('today')">Today</button>
+            <button class="filter-btn" id="filter-week" onclick="setDashFilter('week')">This Week</button>
+            <button class="filter-btn active" id="filter-month" onclick="setDashFilter('month')">This Month</button>
+            <button class="filter-btn" id="filter-year" onclick="setDashFilter('year')">This Year</button>
+            <button class="filter-btn" id="filter-all" onclick="setDashFilter('all')">All Time</button>
+          </div>
+          <button class="btn" onclick="exportCSV()">⬇ Export</button>
+          <button class="btn primary" onclick="loadData()">🔄 Refresh</button>
         </div>
       </div>
 
@@ -161,36 +168,56 @@
 
       <div id="dash-content" style="display:none;">
 
-        <!-- KPI ROW -->
-        <div class="kpi-grid">
+        <!-- ── ROW 1: 6 KPI CARDS ────────────────────────── -->
+        <div class="kpi-grid-6">
+
           <div class="kpi-card">
             <span class="kpi-icon">📋</span>
-            <div class="kpi-label">Total Cases</div>
+            <div class="kpi-label">Total Cases YTD</div>
             <div class="kpi-value" id="kpi-total">0</div>
-            <div class="kpi-sub">All time</div>
+            <div class="kpi-sub">Jan 1 – today</div>
           </div>
+
           <div class="kpi-card green">
             <span class="kpi-icon">⚡</span>
             <div class="kpi-label">Active Cases</div>
             <div class="kpi-value" id="kpi-active">0</div>
-            <div class="kpi-sub">Lead + Open + Pending</div>
+            <div class="kpi-sub">Paid · attorney assigned</div>
           </div>
+
+          <div class="kpi-card orange">
+            <span class="kpi-icon">⚖️</span>
+            <div class="kpi-label">Need Attorney</div>
+            <div class="kpi-value" id="kpi-need-atty">0</div>
+            <div class="kpi-sub" style="color:#f97316;font-weight:700;">Action required</div>
+          </div>
+
           <div class="kpi-card yellow">
             <span class="kpi-icon">📅</span>
             <div class="kpi-label">Court This Month</div>
             <div class="kpi-value" id="kpi-court-month">0</div>
             <div class="kpi-sub" id="kpi-court-sub">Upcoming hearings</div>
           </div>
-          <div class="kpi-card purple">
+
+          <div class="kpi-card green">
             <span class="kpi-icon">💰</span>
-            <div class="kpi-label">Revenue Collected</div>
+            <div class="kpi-label">Revenue MTD</div>
             <div class="kpi-value" id="kpi-revenue">$0</div>
-            <div class="kpi-sub" id="kpi-rev-sub">Client fees</div>
+            <div class="kpi-sub"><span id="kpi-rev-toggle" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px;" onclick="toggleRevView()">See YTD →</span></div>
           </div>
+
+          <div class="kpi-card red">
+            <span class="kpi-icon">⏳</span>
+            <div class="kpi-label">Outstanding</div>
+            <div class="kpi-value" id="kpi-outstanding">$0</div>
+            <div class="kpi-sub">Unpaid balances</div>
+          </div>
+
         </div>
 
-        <!-- COMMAND ROW: Court Dates + Needs Attention -->
-        <div class="cmd-grid">
+        <!-- ── ROW 2: 2×2 PANELS ──────────────────────────── -->
+        <div class="dash-2col">
+
           <div class="card">
             <div class="card-head">
               <div class="card-title">⏰ Upcoming Court Dates</div>
@@ -202,29 +229,76 @@
               </div>
             </div>
           </div>
+
           <div class="card">
             <div class="card-head">
               <div class="card-title">⚠️ Needs Attention</div>
             </div>
             <div class="card-body" id="flagged-cases"></div>
           </div>
-        </div>
 
-        <!-- ATTORNEY QUEUE ROW -->
-        <div class="card" style="margin-top:16px;">
-          <div class="card-head">
-            <div class="card-title">⚖️ Attorney Queue</div>
-            <span class="card-action" onclick="showPanel('attorney')">Full Pipeline →</span>
+          <div class="card card-priority">
+            <div class="card-head">
+              <div class="card-title">🔴 Paid · No Attorney Yet</div>
+              <span class="card-action" onclick="showPanel('attorney')">Assign Now →</span>
+            </div>
+            <div class="card-body" id="paid-no-atty">
+              <div class="empty-state"><div class="empty-icon">✅</div><p>Loading…</p></div>
+            </div>
           </div>
-          <div id="atty-summary"></div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">🕒 Overdue Follow-Ups</div>
+            </div>
+            <div class="card-body" id="overdue-followups">
+              <div class="empty-state"><div class="empty-icon">✅</div><p>Loading…</p></div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Hidden elements kept for JS compatibility -->
+        <!-- ── ROW 3: 3-COLUMN SECTIONS ──────────────────── -->
+        <div class="dash-3col">
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">⚖️ Attorney Queue</div>
+              <span class="card-action" onclick="showPanel('attorney')">Full Pipeline →</span>
+            </div>
+            <div id="atty-queue-detail">
+              <div class="empty-state"><p>Loading…</p></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">💳 Payment Queue</div>
+              <span class="card-action" onclick="showPanel('payments')">All Payments →</span>
+            </div>
+            <div id="payment-queue-dash">
+              <div class="empty-state"><p>Loading…</p></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">🕒 Recent Cases</div>
+            </div>
+            <div id="recent-cases-dash">
+              <div class="empty-state"><p>Loading…</p></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Hidden elements — keep for JS compatibility -->
         <div style="display:none;">
           <canvas id="statusChart"></canvas>
           <canvas id="typeChart"></canvas>
           <table><tbody id="recent-leads"></tbody></table>
           <div id="fin-summary"></div>
+          <div id="atty-summary"></div>
         </div>
 
       </div>
@@ -632,11 +706,59 @@ let statusChartInst = null;
 let typeChartInst   = null;
 let attyFilterVal   = 'all';
 let paySearchVal    = '';
+let DASH_FILTER     = 'month';   // today | week | month | year | all
+let REV_VIEW        = 'mtd';     // 'mtd' | 'ytd'
 
 // ═══════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════
 const f = r => r.fields || {};
+
+// ── Business logic helpers ─────────────────────────────
+function isPaid(r) {
+  return (Number(f(r)['Client Fee Collected']) || 0) > 0;
+}
+function isClosed(r) {
+  const s = (f(r)['Status'] || '').toLowerCase();
+  return s.includes('closed') || s.includes('cancel') || s.includes('refund')
+      || s.includes('dismiss') || s.includes('school') || s.includes('reduced')
+      || s.includes('completed') || s.includes('✅');
+}
+function hasAttorney(r) {
+  const a = f(r)['Attorney'];
+  if (!a) return false;
+  if (Array.isArray(a)) return a.length > 0;
+  return String(a).trim() !== '';
+}
+function isActive(r)       { return isPaid(r) && !isClosed(r) && hasAttorney(r); }
+function needsAttorney(r)  { return isPaid(r) && !isClosed(r) && !hasAttorney(r); }
+
+// ── Date filter helper ─────────────────────────────────
+function filterWindowDates() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch (DASH_FILTER) {
+    case 'today': return { start: startOfDay, end: now };
+    case 'week': {
+      const dow = now.getDay();
+      const weekStart = new Date(startOfDay);
+      weekStart.setDate(weekStart.getDate() - dow);
+      return { start: weekStart, end: now };
+    }
+    case 'month':
+      return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: now };
+    case 'year':
+      return { start: new Date(now.getFullYear(), 0, 1), end: now };
+    default:
+      return { start: new Date(0), end: now };
+  }
+}
+function inFilterWindow(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const { start, end } = filterWindowDates();
+  return d >= start && d <= end;
+}
 
 function clientName(r) {
   const fn = f(r)['First Name'] || '';
@@ -900,10 +1022,17 @@ async function loadData() {
 }
 
 function renderAll() {
+  // Dashboard command center
   renderKPIs();
   renderUpcomingCourts();
-  renderRecentLeads();
   renderFlaggedCases();
+  renderPaidNoAtty();
+  renderOverdueFollowUps();
+  renderAttyQueueDetail();
+  renderPaymentQueueDash();
+  renderRecentCasesDash();
+  // Other panels
+  renderRecentLeads();
   renderStatusChart();
   renderTypeChart();
   renderAttySummary();
@@ -919,33 +1048,289 @@ function renderAll() {
 //  KPIs
 // ═══════════════════════════════════════════════════════
 function renderKPIs() {
-  const total = ALL_RECORDS.length;
-  const active = ALL_RECORDS.filter(r => {
-    const s = f(r)['Status'] || '';
-    return s.includes('Lead') || s.includes('Open') || s.includes('Pending');
+  const now = new Date();
+  const yearStart  = new Date(now.getFullYear(), 0, 1);
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const today0     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Total Cases YTD — submitted this calendar year
+  const ytdTotal = ALL_RECORDS.filter(r => {
+    const ds = f(r)['Date Submitted'];
+    if (!ds) return false;
+    const dt = new Date(ds);
+    return dt >= yearStart && dt <= now;
   }).length;
 
-  const now = new Date();
+  // Active = paid + not closed + attorney assigned
+  const active = ALL_RECORDS.filter(r => isActive(r)).length;
+
+  // Need Attorney = paid + not closed + no attorney
+  const needAtty = ALL_RECORDS.filter(r => needsAttorney(r)).length;
+
+  // Court This Month = upcoming court dates in current calendar month
   const courtMonth = ALL_RECORDS.filter(r => {
     const cd = f(r)['Court Date'];
     if (!cd) return false;
     const dt = new Date(cd + 'T12:00:00');
-    return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear() && dt >= now;
+    return dt >= today0
+        && dt.getMonth() === now.getMonth()
+        && dt.getFullYear() === now.getFullYear();
   }).length;
 
-  const revenue = ALL_RECORDS.reduce((sum, r) => {
-    return sum + (Number(f(r)['Client Fee Collected']) || 0);
+  // Revenue MTD — Client Fee Collected for records submitted this month
+  const revMTD = ALL_RECORDS.reduce((sum, r) => {
+    const ds = f(r)['Date Submitted'];
+    if (!ds) return sum;
+    const dt = new Date(ds);
+    return (dt >= monthStart && dt <= now)
+      ? sum + (Number(f(r)['Client Fee Collected']) || 0)
+      : sum;
   }, 0);
 
-  document.getElementById('kpi-total').textContent = total;
-  document.getElementById('kpi-active').textContent = active;
-  document.getElementById('kpi-court-month').textContent = courtMonth;
-  document.getElementById('kpi-revenue').textContent = currency(revenue);
+  // Revenue YTD — all time this year
+  const revYTD = ALL_RECORDS.reduce((sum, r) => {
+    const ds = f(r)['Date Submitted'];
+    if (!ds) return sum;
+    const dt = new Date(ds);
+    return dt >= yearStart ? sum + (Number(f(r)['Client Fee Collected']) || 0) : sum;
+  }, 0);
 
-  const mn = now.toLocaleString('en-US',{month:'long'});
-  document.getElementById('kpi-court-sub').textContent = `In ${mn}`;
+  // Outstanding balances — Client Balance Remaining on non-closed cases
+  const outstanding = ALL_RECORDS.reduce((sum, r) => {
+    if (isClosed(r)) return sum;
+    return sum + (Number(f(r)['Client Balance Remaining']) || 0);
+  }, 0);
+
+  // Update DOM
+  document.getElementById('kpi-total').textContent        = ytdTotal;
+  document.getElementById('kpi-active').textContent       = active;
+  document.getElementById('kpi-need-atty').textContent    = needAtty;
+  document.getElementById('kpi-court-month').textContent  = courtMonth;
+  document.getElementById('kpi-revenue').textContent      = currency(REV_VIEW === 'mtd' ? revMTD : revYTD);
+  document.getElementById('kpi-outstanding').textContent  = currency(outstanding);
+
+  const mn = now.toLocaleString('en-US', { month: 'long' });
+  document.getElementById('kpi-court-sub').textContent    = `Upcoming in ${mn}`;
+
+  const togEl = document.getElementById('kpi-rev-toggle');
+  if (togEl) togEl.textContent = REV_VIEW === 'mtd' ? 'See YTD →' : 'See MTD →';
+
   document.getElementById('dash-sub').textContent =
-    `${total} total cases · ${active} active · Last refreshed just now`;
+    `${ytdTotal} cases YTD · ${active} active · ${needAtty} need attorney`;
+}
+
+// Toggle between MTD and YTD on the Revenue card
+function toggleRevView() {
+  REV_VIEW = REV_VIEW === 'mtd' ? 'ytd' : 'mtd';
+  renderKPIs();
+}
+
+// Filter bar handler
+function setDashFilter(filter) {
+  DASH_FILTER = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('filter-' + filter);
+  if (btn) btn.classList.add('active');
+  renderDashboardSections();
+}
+
+// Re-render all dashboard cards (not charts/kanban/etc.)
+function renderDashboardSections() {
+  renderKPIs();
+  renderUpcomingCourts();
+  renderFlaggedCases();
+  renderPaidNoAtty();
+  renderOverdueFollowUps();
+  renderAttyQueueDetail();
+  renderPaymentQueueDash();
+  renderRecentCasesDash();
+}
+
+// ── Paid with no attorney yet ──────────────────────────
+function renderPaidNoAtty() {
+  const el = document.getElementById('paid-no-atty');
+  if (!el) return;
+
+  const cases = ALL_RECORDS
+    .filter(r => needsAttorney(r))
+    .sort((a, b) => {
+      const da = f(a)['Court Date'] || '9999-99-99';
+      const db = f(b)['Court Date'] || '9999-99-99';
+      return da.localeCompare(db);
+    })
+    .slice(0, 6);
+
+  if (!cases.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>All paid cases have attorneys.</p></div>';
+    return;
+  }
+
+  el.innerHTML = cases.map(r => {
+    const cd   = f(r)['Court Date'];
+    const days = daysUntil(cd);
+    const isUrg = days !== null && days <= 7;
+    const dayLabel = days === null ? 'No court set' : days === 0 ? 'TODAY' : days < 0 ? `${Math.abs(days)}d overdue` : `${days}d`;
+    const badgeCls = isUrg ? 'badge-urgent' : '';
+    return `<div class="court-item">
+      <div class="court-info">
+        <div class="court-name">${clientName(r)} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
+        <div class="court-meta">${esc(f(r)['Case Type'] || '—')} · ${esc(f(r)['Court Location'] || 'No location')}</div>
+      </div>
+      ${cd ? `<span class="badge ${badgeCls}" style="font-size:10px;flex-shrink:0;">${dayLabel}</span>` : ''}
+      <button class="icon-btn view" onclick="openModal('${r.id}')" title="View case">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Overdue follow-ups ─────────────────────────────────
+function renderOverdueFollowUps() {
+  const el = document.getElementById('overdue-followups');
+  if (!el) return;
+
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const items  = [];
+
+  ALL_RECORDS.forEach(r => {
+    if (isClosed(r)) return;
+    const s    = f(r)['Status'] || '';
+    const cd   = f(r)['Court Date'];
+    const days = daysUntil(cd);
+
+    // Past court dates not yet closed
+    if (cd && days !== null && days < 0) {
+      items.push({ r, reason: `Court ${Math.abs(days)}d ago`, severity: 'urgent' });
+    }
+    // Leads older than 7 days (not yet paid)
+    else if (!isPaid(r)) {
+      const ds = f(r)['Date Submitted'];
+      if (ds) {
+        const leadDays = Math.floor((today0 - new Date(ds)) / 86400000);
+        if (leadDays >= 7) {
+          items.push({ r, reason: `Lead ${leadDays}d old`, severity: 'warn' });
+        }
+      }
+    }
+  });
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No overdue follow-ups.</p></div>';
+    return;
+  }
+
+  el.innerHTML = items.slice(0, 6).map(({ r, reason, severity }) => {
+    const cls = severity === 'urgent' ? 'badge-urgent' : 'badge-pending';
+    return `<div class="court-item">
+      <div class="court-info">
+        <div class="court-name">${clientName(r)} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
+        <div class="court-meta">${esc(f(r)['Status'] || '—')} · ${esc(f(r)['Case Type'] || '—')}</div>
+      </div>
+      <span class="badge ${cls}" style="font-size:10px;flex-shrink:0;">${reason}</span>
+      <button class="icon-btn view" onclick="openModal('${r.id}')" title="View case">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Attorney Queue pipeline detail ────────────────────
+function renderAttyQueueDetail() {
+  const el = document.getElementById('atty-queue-detail');
+  if (!el) return;
+
+  const paidOpen = ALL_RECORDS.filter(r => isPaid(r) && !isClosed(r));
+
+  const stages = [
+    { label: 'No Attorney Assigned', icon: '🔴', color: '#f87171',
+      cases: paidOpen.filter(r => !hasAttorney(r) && !(f(r)['Quote Status'] || '').includes('Quote')) },
+    { label: 'Quote Requested',       icon: '📤', color: '#fb923c',
+      cases: paidOpen.filter(r => (f(r)['Quote Status'] || '') === 'Quote Sent') },
+    { label: 'Quote Received',        icon: '📥', color: '#fbbf24',
+      cases: paidOpen.filter(r => (f(r)['Quote Status'] || '') === 'Quote Received') },
+    { label: 'Quote Accepted',        icon: '✅', color: '#4ade80',
+      cases: paidOpen.filter(r => (f(r)['Quote Status'] || '') === 'Accepted') },
+    { label: 'Awaiting Atty Payment', icon: '💸', color: '#a78bfa',
+      cases: paidOpen.filter(r => (f(r)['Quote Status'] || '') === 'Payment Pending') },
+    { label: 'Attorney Assigned',     icon: '⚖️', color: '#4ade80',
+      cases: paidOpen.filter(r => hasAttorney(r) && (f(r)['Quote Status'] || '') === 'Payment Confirmed') },
+  ];
+
+  el.innerHTML = `<div class="pipeline-stages">${stages.map(({ label, icon, color, cases }) => {
+    const names  = cases.slice(0, 2).map(r => clientName(r)).join(', ');
+    const more   = cases.length > 2 ? ` +${cases.length - 2}` : '';
+    const cntClr = cases.length > 0 ? color : '#484f58';
+    return `<div class="pipeline-stage">
+      <div class="pipeline-stage-left">
+        <div class="pipeline-stage-label">
+          <span>${icon}</span><span>${label}</span>
+        </div>
+        ${cases.length ? `<div class="pipeline-stage-cases">${names}${more}</div>` : ''}
+      </div>
+      <div class="pipeline-stage-count" style="color:${cntClr};">${cases.length}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Payment queue ─────────────────────────────────────
+function renderPaymentQueueDash() {
+  const el = document.getElementById('payment-queue-dash');
+  if (!el) return;
+
+  const owed = ALL_RECORDS
+    .filter(r => !isClosed(r) && (Number(f(r)['Client Balance Remaining']) || 0) > 0)
+    .sort((a, b) =>
+      (Number(f(b)['Client Balance Remaining']) || 0) - (Number(f(a)['Client Balance Remaining']) || 0)
+    )
+    .slice(0, 6);
+
+  if (!owed.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><p>No outstanding balances.</p></div>';
+    return;
+  }
+
+  el.innerHTML = owed.map(r => {
+    const bal       = Number(f(r)['Client Balance Remaining']) || 0;
+    const collected = Number(f(r)['Client Fee Collected']) || 0;
+    const total     = bal + collected;
+    const pct       = total > 0 ? Math.round((collected / total) * 100) : 0;
+    return `<div class="pay-queue-item">
+      <div style="flex:1;min-width:0;">
+        <div class="court-name" style="font-size:12px;">${clientName(r)} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
+        <div class="pay-queue-bar-wrap"><div class="pay-queue-bar" style="width:${pct}%"></div></div>
+        <div class="court-meta">${pct}% paid · ${esc(f(r)['Case Type'] || '—')}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:#f87171;flex-shrink:0;">${currency(bal)}</span>
+      <button class="icon-btn view" onclick="openModal('${r.id}')" title="View case">👁</button>
+    </div>`;
+  }).join('');
+}
+
+// ── Recent cases ──────────────────────────────────────
+function renderRecentCasesDash() {
+  const el = document.getElementById('recent-cases-dash');
+  if (!el) return;
+
+  const recent = [...ALL_RECORDS]
+    .sort((a, b) => {
+      const da = f(a)['Date Submitted'] || '';
+      const db = f(b)['Date Submitted'] || '';
+      return db.localeCompare(da);
+    })
+    .slice(0, 7);
+
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty-state"><p>No cases yet.</p></div>';
+    return;
+  }
+
+  el.innerHTML = recent.map(r => {
+    const dotColor = isClosed(r) ? '#484f58' : isPaid(r) ? '#4ade80' : '#60a5fa';
+    return `<div class="court-item">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:3px;"></div>
+      <div class="court-info">
+        <div class="court-name" style="font-size:12px;">${clientName(r)} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
+        <div class="court-meta">${esc(f(r)['Status'] || '—')} · ${formatDateShort(f(r)['Date Submitted'])}</div>
+      </div>
+      <button class="icon-btn view" onclick="openModal('${r.id}')" title="View case">👁</button>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1475,10 +1860,7 @@ function renderPayTable(search) {
 //  SIDEBAR BADGES
 // ═══════════════════════════════════════════════════════
 function updateSidebarBadges() {
-  const active = ALL_RECORDS.filter(r => {
-    const s = f(r)['Status'] || '';
-    return !s.includes('Closed');
-  }).length;
+  const active = ALL_RECORDS.filter(r => isActive(r)).length;
   document.getElementById('sb-active-count').textContent = active;
 
   const today = new Date(); today.setHours(0,0,0,0);
