@@ -2,19 +2,5 @@
   functions = "netlify/functions"
   publish   = "."
 
-[build.processing]
-  skip_processing = true
-
-[functions]
-  node_bundler = "esbuild"
-
 [functions."submit"]
-  # Allow up to 20MB request body for base64-encoded photo uploads
   max_body_size = 20971520
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options     = "DENY"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy     = "strict-origin-when-cross-origin"
