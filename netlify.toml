@@ -1,0 +1,6 @@
+[build]
+  functions = "netlify/functions"
+  publish   = "."
+
+[functions."submit"]
+  max_body_size = 20971520
