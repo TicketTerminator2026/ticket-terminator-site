@@ -3931,4 +3931,133 @@ body.dark .kpi-sub                { color: #64748b; }
 }
 .kanban-cards                     { min-height: 80px; } /* ensure drop target always exists */
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   POLISH PASS 4 — Info icons, Pipeline layout, readability, spacing
+   2026-06-29
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Info icon: clearly visible on light background ─────────────────────── */
+body.dark .kpi-info {
+  width: 15px;
+  height: 15px;
+  background: #e2e8f0;
+  border: 1px solid #94a3b8;
+  color: #4b6070;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: help;
+  transition: background .12s, border-color .12s;
+}
+body.dark .kpi-info:hover,
+body.dark .kpi-info:focus,
+body.dark .kpi-info.tip-open {
+  background: #cbd5e1;
+  border-color: #64748b;
+  color: #1e293b;
+  outline: none;
+}
+
+/* Tooltip: multiline dark card — appears below icon, proper contrast on light bg */
+body.dark .kpi-tip {
+  display: none;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: normal;
+  max-width: 270px;
+  min-width: 200px;
+  padding: 9px 13px;
+  /* Position BELOW the icon so it doesn't go off-screen above the KPI cards */
+  bottom: auto;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 18px rgba(0,0,0,.22);
+  border-radius: 7px;
+  z-index: 200;
+}
+body.dark .kpi-info:hover .kpi-tip,
+body.dark .kpi-info:focus .kpi-tip,
+body.dark .kpi-info.tip-open .kpi-tip { display: block; }
+/* Arrow points UP (tooltip is below icon) */
+body.dark .kpi-tip::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: #1e293b;
+}
+
+/* ── Pipeline Snapshot: equal width with other deadline cards ────────────── */
+body.dark .dash-below-grid {
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Section labels: slightly larger, tighter top margin ─────────────────── */
+body.dark .section-label {
+  color: #64748b;
+  font-size: 10.5px;
+  margin-top: 18px;
+  margin-bottom: 10px;
+}
+body.dark .recent-act-lbl { margin-top: 12px; }
+
+/* ── Today's Work table: column breathing room ───────────────────────────── */
+body.dark .priority-head,
+body.dark .priority-row {
+  grid-template-columns: 5px 145px 90px 82px 88px 110px 70px 115px 46px;
+  gap: 4px;
+}
+body.dark .pri-th {
+  color: #475569;
+  font-size: 10px;
+  padding: 0 4px;
+}
+body.dark .pri-cell { padding: 0 4px; color: #475569; }
+body.dark .priority-row:hover { background: #f8fafc; }
+
+/* View button: clearly tappable, obviously interactive */
+body.dark .priority-card .icon-btn.view {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+  font-size: 14px;
+  padding: 5px 9px;
+}
+body.dark .priority-card .icon-btn.view:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+/* ── Formula row: fully readable, proper weight ──────────────────────────── */
+body.dark .formula-bar {
+  opacity: 1;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 4px 6px;
+  margin-top: 6px;
+}
+body.dark .formula-lbl  { color: #64748b; font-size: 9px; }
+body.dark .formula-val  { color: #1e293b; }
+body.dark .formula-op   { color: #94a3b8; }
+body.dark .formula-note { color: #475569; font-size: 10.5px; }
+body.dark .formula-note strong { color: #6d28d9; }
+
+/* ── Recent Activity: tighter spacing, easier to scan ───────────────────── */
+body.dark #recent-activity-dash { max-height: 260px; }
+body.dark .activity-row {
+  padding: 8px 14px;
+  border-bottom-color: #f1f5f9;
+}
+body.dark .activity-action { color: #1e293b; font-weight: 600; font-size: 12px; }
+body.dark .activity-text   { color: #334155; font-size: 12px; }
+body.dark .activity-client { color: #475569; font-size: 11px; }
+body.dark .activity-time   { color: #64748b; font-size: 11px; }
+
+/* ── Kpi label/info — stronger label contrast ────────────────────────────── */
+body.dark .kpi-label { color: #475569; font-size: 10.5px; }
+body.dark .kpi-note  { color: #64748b; font-size: 10.5px; }
+
 /* ─── END HYBRID THEME ──────────────────────────────────────────────────── */

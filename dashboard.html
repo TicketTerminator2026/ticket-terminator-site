@@ -292,7 +292,7 @@
                 <div class="kpi-sub link-toggle" id="kpi-rev-toggle" onclick="toggleRevView()" style="cursor:pointer;">See YTD →</div>
               </div>
               <div class="kpi-card green-2">
-                <div class="kpi-label">Cash Profit MTD <span class="kpi-info">i<span class="kpi-tip">Revenue minus attorney fees actually paid out this month</span></span></div>
+                <div class="kpi-label">Cash Profit MTD <span class="kpi-info" role="button" aria-label="What is Cash Profit MTD?" tabindex="0">i<span class="kpi-tip">Revenue collected this month minus attorney fees marked paid this month. Unpaid attorney payables are excluded until marked paid.</span></span></div>
                 <div class="kpi-value" id="kpi-cash-profit">$0</div>
                 <div class="kpi-note">Excl. payables (<span id="kpi-payables-note">$0</span> pending)</div>
               </div>
@@ -404,7 +404,7 @@
         </div>
 
         <!-- ═══ RECENT ACTIVITY ══════════════════════════════════════════ -->
-        <div class="section-label" style="margin-top:20px;">Recent Activity</div>
+        <div class="section-label recent-act-lbl">Recent Activity</div>
         <div class="card">
           <div id="recent-activity-dash">
             <div class="loading" style="padding:20px;"><div class="spinner"></div></div>
@@ -6667,6 +6667,28 @@ function buildAttorneyOptions(currentAttyIds) {
 // ═══════════════════════════════════════════════════════
 loadData();
 applyRoleUI();
+
+// ── Mobile / touch tooltip toggle for .kpi-info ────────
+// On non-hover devices, clicking the icon toggles the tip;
+// clicking anywhere else closes all open tips.
+document.addEventListener('click', function kpiInfoToggle(e) {
+  const icon = e.target.closest('.kpi-info');
+  if (icon) {
+    e.stopPropagation();
+    const isOpen = icon.classList.contains('tip-open');
+    document.querySelectorAll('.kpi-info.tip-open').forEach(el => el.classList.remove('tip-open'));
+    if (!isOpen) icon.classList.add('tip-open');
+  } else {
+    document.querySelectorAll('.kpi-info.tip-open').forEach(el => el.classList.remove('tip-open'));
+  }
+});
+// Keyboard accessibility: Enter/Space also toggle
+document.addEventListener('keydown', function kpiInfoKey(e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('kpi-info')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
 </script>
 </body>
 </html>
