@@ -5039,6 +5039,7 @@ function renderLeadsPage() {
         <button class="lead-btn" onclick="openModal('${r.id}')" title="View case">👁</button>
         ${digits ? `<a class="lead-btn" href="${opHref}" target="_blank" rel="noopener" title="Follow up in OpenPhone">📞</a>` : ''}
         <button class="lead-btn lead-btn-convert" onclick="openConvertLead('${r.id}')" title="Mark as paid / convert">💰</button>
+        <button class="lead-btn lead-btn-stripe" onclick="openStripeLink('${r.id}')" title="Generate Stripe payment link">💳</button>
       </div>
     </div>`;
   }).join('');
@@ -5153,6 +5154,150 @@ async function submitConvertLead(recordId) {
     errEl.style.display = 'block';
   }
 }
+// ── Stripe Payment Link ────────────────────────────────
+// Opens an inline form under the lead row to generate a Stripe Checkout link.
+// The staff enters the amount, clicks "Generate Link", and gets a copyable URL.
+
+function openStripeLink(recordId) {
+  // Close any open convert or stripe panels first
+  document.getElementById(`lcf-${recordId}`)?.remove();
+  document.getElementById(`slf-${recordId}`)?.remove();
+
+  const r  = ALL_RECORDS.find(x => x.id === recordId);
+  if (!r) return;
+  const fd   = f(r);
+  const name = `${fd['First Name'] || ''} ${fd['Last Name'] || ''}`.trim() || 'Lead';
+
+  // If already paid, show warning instead of form
+  if (fd['Payment Status'] === 'Paid' || fd['Stripe Session ID']) {
+    const row = document.querySelector(`.lead-row[data-id="${recordId}"]`);
+    if (!row) return;
+    row.insertAdjacentHTML('afterend', `
+      <div class="lead-convert-form" id="slf-${recordId}">
+        <div class="lcf-inner">
+          <div class="lcf-title" style="color:var(--green);">✅ ${name} already has a recorded Stripe payment.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Session ID: ${fd['Stripe Session ID'] || '—'}</div>
+          <div class="lcf-btns" style="margin-top:12px;">
+            <button class="btn" onclick="cancelStripeLink('${recordId}')">Close</button>
+          </div>
+        </div>
+      </div>`);
+    return;
+  }
+
+  const row = document.querySelector(`.lead-row[data-id="${recordId}"]`);
+  if (!row) return;
+
+  row.insertAdjacentHTML('afterend', `
+    <div class="lead-convert-form" id="slf-${recordId}">
+      <div class="lcf-inner">
+        <div class="lcf-title">💳 Generate Stripe Payment Link — <strong>${name}</strong></div>
+        <div class="lcf-row" style="margin-top:12px;">
+          <div class="lcf-field">
+            <label class="lcf-label">Amount ($)</label>
+            <input type="number" id="slf-amount-${recordId}" class="edit-input lcf-input"
+              placeholder="e.g. 299.00" min="1" step="0.01" style="width:140px;">
+          </div>
+        </div>
+        <div id="slf-link-wrap-${recordId}" style="display:none;margin-top:12px;">
+          <div class="lcf-label" style="margin-bottom:4px;">Payment Link</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input id="slf-link-${recordId}" class="edit-input" readonly
+              style="flex:1;min-width:220px;font-size:12px;color:var(--blue);cursor:text;"
+              onclick="this.select()">
+            <button class="btn" onclick="copyStripeLink('${recordId}')" title="Copy to clipboard">📋 Copy</button>
+            <a id="slf-open-${recordId}" class="btn" href="#" target="_blank" rel="noopener" title="Open in browser">🔗 Open</a>
+          </div>
+        </div>
+        <div class="lcf-btns" style="margin-top:14px;">
+          <button class="btn" onclick="cancelStripeLink('${recordId}')">Cancel</button>
+          <button class="btn primary" id="slf-gen-${recordId}" onclick="generateStripeLink('${recordId}')">⚡ Generate Link</button>
+        </div>
+        <div id="slf-err-${recordId}" style="display:none;color:var(--red);font-size:12px;margin-top:8px;"></div>
+      </div>
+    </div>`);
+
+  document.getElementById(`slf-amount-${recordId}`)?.focus();
+}
+
+function cancelStripeLink(recordId) {
+  document.getElementById(`slf-${recordId}`)?.remove();
+}
+
+function copyStripeLink(recordId) {
+  const input = document.getElementById(`slf-link-${recordId}`);
+  if (!input) return;
+  input.select();
+  navigator.clipboard?.writeText(input.value).catch(() => {});
+  showToast('📋 Payment link copied to clipboard');
+}
+
+async function generateStripeLink(recordId) {
+  const amtEl = document.getElementById(`slf-amount-${recordId}`);
+  const errEl = document.getElementById(`slf-err-${recordId}`);
+  const genBtn = document.getElementById(`slf-gen-${recordId}`);
+  const amt   = parseFloat(amtEl?.value || '0');
+
+  errEl.style.display = 'none';
+
+  if (!amt || amt < 1) {
+    errEl.textContent = 'Please enter a valid amount ($1.00 minimum).';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const tok = sessionStorage.getItem('tt_auth_token') || '';
+  if (!tok) {
+    errEl.textContent = 'Session expired — please log in again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  genBtn.disabled    = true;
+  genBtn.textContent = '⏳ Generating…';
+
+  try {
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Staff-Token': tok },
+      body: JSON.stringify({ recordId, amount: amt }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      // 409 = already paid
+      if (res.status === 409 && data.alreadyPaid) {
+        errEl.textContent = data.error || 'Case already has a recorded payment.';
+        errEl.style.display = 'block';
+        genBtn.disabled    = false;
+        genBtn.textContent = '⚡ Generate Link';
+        return;
+      }
+      throw new Error(data.error || 'Failed to generate payment link');
+    }
+
+    // Show the link
+    const linkInput = document.getElementById(`slf-link-${recordId}`);
+    const openAnchor = document.getElementById(`slf-open-${recordId}`);
+    const wrapEl    = document.getElementById(`slf-link-wrap-${recordId}`);
+
+    if (linkInput)   linkInput.value = data.checkoutUrl;
+    if (openAnchor)  openAnchor.href = data.checkoutUrl;
+    if (wrapEl)      wrapEl.style.display = 'block';
+
+    genBtn.disabled    = false;
+    genBtn.textContent = '🔄 Regenerate';
+
+    showToast(`💳 Payment link generated — $${amt.toFixed(2)} for ${(ALL_RECORDS.find(x=>x.id===recordId)?.fields?.['First Name']||'client')}`);
+
+  } catch (err) {
+    errEl.textContent  = err.message;
+    errEl.style.display = 'block';
+    genBtn.disabled    = false;
+    genBtn.textContent = '⚡ Generate Link';
+  }
+}
+
 function renderClientsShell() {
   const el = document.getElementById('clients-sub');
   if (el) el.textContent = `${ALL_RECORDS.length} case records on file`;

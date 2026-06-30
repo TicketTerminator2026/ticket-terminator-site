@@ -2654,6 +2654,8 @@ body.theme-dark .topbar-btn.danger:hover {
 .lead-btn:hover { background: var(--hover); border-color: var(--blue); }
 .lead-btn-convert { border-color: #16a34a55; }
 .lead-btn-convert:hover { background: #16a34a22; border-color: #16a34a; }
+.lead-btn-stripe { border-color: #6366f155; }
+.lead-btn-stripe:hover { background: #6366f122; border-color: #6366f1; }
 
 /* Quote status badges */
 .qs-badge {
