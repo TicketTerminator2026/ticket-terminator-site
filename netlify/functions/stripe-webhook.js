@@ -226,7 +226,7 @@ async function handleCheckoutSessionCompleted(stripeEvent) {
   // ── No match — log and acknowledge ─────────────────────────────────────────
   if (!record) {
     console.warn(`[stripe-webhook] No case matched — session ${sessionId}`);
-    log(env, {
+    await log(env, {
       staffName: 'Stripe',
       action:    'Payment received — no matching case found',
       category:  'Payment',
@@ -275,49 +275,51 @@ async function handleCheckoutSessionCompleted(stripeEvent) {
 
   console.log(`[stripe-webhook] ✅ Converted ${caseNum} (${recordId}) via ${lookupMethod} | $${amountPaid.toFixed(2)}`);
 
-  // ── Activity Log (4 entries, fire-and-forget) ────────────────────────────────
+  // ── Activity Log (4 entries — awaited so writes complete before function returns) ──
   const logBase = { staffName: 'Stripe', caseNum, caseId: recordId };
 
-  // 1. Payment received
-  log(env, {
-    ...logBase,
-    action:   `Stripe payment received — $${amountPaid.toFixed(2)}`,
-    category: 'Payment',
-    field:    'Client Fee Collected',
-    oldVal:   prevFlds['Client Fee Collected'] || 0,
-    newVal:   amountPaid,
-    notes:    `Session ${sessionId} | Lookup: ${lookupMethod}`,
-  });
+  await Promise.all([
+    // 1. Payment received
+    log(env, {
+      ...logBase,
+      action:   `Stripe payment received — $${amountPaid.toFixed(2)}`,
+      category: 'Payment',
+      field:    'Client Fee Collected',
+      oldVal:   prevFlds['Client Fee Collected'] || 0,
+      newVal:   amountPaid,
+      notes:    `Session ${sessionId} | Lookup: ${lookupMethod}`,
+    }),
 
-  // 2. Status changed
-  log(env, {
-    ...logBase,
-    action:   'Status auto-converted via Stripe payment',
-    category: 'Case',
-    field:    'Status',
-    oldVal:   prevFlds['Status'] || '🔵 Lead',
-    newVal:   'Paid - Needs Attorney',
-  });
+    // 2. Status changed
+    log(env, {
+      ...logBase,
+      action:   'Status auto-converted via Stripe payment',
+      category: 'Case',
+      field:    'Status',
+      oldVal:   prevFlds['Status'] || '🔵 Lead',
+      newVal:   'Paid - Needs Attorney',
+    }),
 
-  // 3. Payment Method set
-  log(env, {
-    ...logBase,
-    action:   'Payment Method set to Stripe',
-    category: 'Payment',
-    field:    'Payment Method',
-    oldVal:   prevFlds['Payment Method'] || '',
-    newVal:   'Stripe',
-  });
+    // 3. Payment Method set
+    log(env, {
+      ...logBase,
+      action:   'Payment Method set to Stripe',
+      category: 'Payment',
+      field:    'Payment Method',
+      oldVal:   prevFlds['Payment Method'] || '',
+      newVal:   'Stripe',
+    }),
 
-  // 4. Payment Status set
-  log(env, {
-    ...logBase,
-    action:   'Payment Status set to Paid',
-    category: 'Payment',
-    field:    'Payment Status',
-    oldVal:   prevFlds['Payment Status'] || '',
-    newVal:   'Paid',
-  });
+    // 4. Payment Status set
+    log(env, {
+      ...logBase,
+      action:   'Payment Status set to Paid',
+      category: 'Payment',
+      field:    'Payment Status',
+      oldVal:   prevFlds['Payment Status'] || '',
+      newVal:   'Paid',
+    }),
+  ]);
 
   return {
     statusCode: 200,

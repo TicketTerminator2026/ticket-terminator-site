@@ -1,5 +1,6 @@
-// Shared activity logger — required by other functions
-// Usage: const { log } = require('./_log');
+// Shared activity logger — imported by other functions
+// Usage: await log(env, { staffName, staffId, action, category, caseNum, caseId, field, oldVal, newVal, notes })
+// Returns the fetch promise so callers can await it (prevents write being killed when function returns).
 
 const ACTIVITY_TABLE = 'tblHAOnm8Qu1d7iKT';
 
@@ -18,12 +19,13 @@ async function log(env, opts) {
     'Staff Record ID': opts.staffId || '',
     'Case Record ID':  opts.caseId || '',
   };
-  // Fire-and-forget — never blocks main response
-  fetch('https://api.airtable.com/v0/' + base + '/' + ACTIVITY_TABLE, {
+  // Return the promise so callers can await it — do NOT fire-and-forget.
+  // Errors are swallowed so logging never throws and breaks the main operation.
+  return fetch(`https://api.airtable.com/v0/${base}/${ACTIVITY_TABLE}`, {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields }),
-  }).catch(() => {});
+  }).catch(() => {}); // swallow errors silently
 }
 
 module.exports = { log };

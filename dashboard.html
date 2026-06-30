@@ -1106,6 +1106,7 @@
 // ═══════════════════════════════════════════════════════
 let ALL_RECORDS    = [];
 let SEARCH_INDEX   = [];          // pre-built search index
+let STRIPE_ENABLED = false;       // set by /.netlify/functions/config on load
 let calYear        = new Date().getFullYear();
 let calMonth       = new Date().getMonth();
 let statusChartInst = null;
@@ -1789,6 +1790,17 @@ async function loadData() {
   loadEl.style.display = 'flex';
   loadEl.innerHTML = '<div class="spinner"></div><span>Loading cases from Airtable…</span>';
   contEl.style.display = 'none';
+
+  // ── Step 0: fetch feature config (non-blocking — default to false on error) ──
+  try {
+    const cfgRes = await fetch('/.netlify/functions/config');
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      STRIPE_ENABLED = cfg.stripeEnabled === true;
+    }
+  } catch(e) {
+    STRIPE_ENABLED = false; // safe default — hide payment button on any error
+  }
 
   // ── Step 1: fetch data ────────────────────────────────────────────────
   let data;
@@ -5039,7 +5051,7 @@ function renderLeadsPage() {
         <button class="lead-btn" onclick="openModal('${r.id}')" title="View case">👁</button>
         ${digits ? `<a class="lead-btn" href="${opHref}" target="_blank" rel="noopener" title="Follow up in OpenPhone">📞</a>` : ''}
         <button class="lead-btn lead-btn-convert" onclick="openConvertLead('${r.id}')" title="Mark as paid / convert">💰</button>
-        <button class="lead-btn lead-btn-stripe" onclick="openStripeLink('${r.id}')" title="Generate Stripe payment link">💳</button>
+        ${STRIPE_ENABLED ? `<button class="lead-btn lead-btn-stripe" onclick="openStripeLink('${r.id}')" title="Generate Stripe payment link">💳</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -5159,6 +5171,8 @@ async function submitConvertLead(recordId) {
 // The staff enters the amount, clicks "Generate Link", and gets a copyable URL.
 
 function openStripeLink(recordId) {
+  if (!STRIPE_ENABLED) return; // guard: button should be hidden, but block direct calls too
+
   // Close any open convert or stripe panels first
   document.getElementById(`lcf-${recordId}`)?.remove();
   document.getElementById(`slf-${recordId}`)?.remove();
