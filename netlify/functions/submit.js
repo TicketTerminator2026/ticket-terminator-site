@@ -168,6 +168,12 @@ exports.handler = async function (event) {
     // Source
     'Heard About Us': data.heardAbout || '',
     'Referred By':    data.referredBy || '',
+
+    // Document tracking (checkbox fields in Airtable)
+    // Set to true only when the upload was actually provided
+    'Ticket Received':         !!(data.ticketPhotoBase64),
+    'Driver License Received': !!(data.idPhotoBase64),
+    'Documents Complete':      !!(data.ticketPhotoBase64) && !!(data.idPhotoBase64),
   };
 
   // Optional dates — Airtable rejects empty strings on date fields
