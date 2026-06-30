@@ -3874,4 +3874,61 @@ body.dark .shell-title { color: #64748b; }
 body.dark .shell-desc  { color: #94a3b8; }
 body.dark .shell-desc strong { color: #64748b; }
 
+/* ── READABILITY PASS — Strengthen all faint text on light bg ──────────── */
+/* Formula bar — was 70% opaque with near-invisible label/op colors */
+body.dark .formula-bar        { opacity: 1; border-top-color: #dde5ef; }
+body.dark .formula-lbl        { color: #64748b; }   /* was #94a3b8 */
+body.dark .formula-op         { color: #94a3b8; }   /* was #cbd5e1 — nearly invisible */
+body.dark .formula-note       { color: #475569; }   /* was #94a3b8 */
+body.dark .formula-note strong { color: #6d28d9; }
+
+/* Section labels — was #94a3b8, too faint on white */
+body.dark .section-label          { color: #64748b; }
+body.dark .section-label::after   { background: #dde5ef; }
+body.dark .section-label-sub      { color: #64748b; }
+body.dark .dash-section-work      { color: #475569 !important; }
+
+/* Sub-labels and group headers */
+body.dark .row-sub-lbl            { color: #64748b; }
+body.dark .exec-group-label       { color: #64748b; }
+
+/* Pipeline labels */
+body.dark .pip-lbl                { color: #475569; }   /* was #64748b — strengthen */
+body.dark .pip-stage              { border-bottom-color: #e2e8f0; }
+body.dark .pip-cnt                { color: #1e293b; }   /* ensure count is always readable */
+
+/* Recent activity */
+body.dark .activity-action        { color: #1e293b; font-weight: 600; }
+body.dark .activity-text          { color: #334155; }   /* was #475569 */
+body.dark .activity-time          { color: #64748b; }   /* was #94a3b8 */
+body.dark .activity-client        { color: #475569; }   /* was #64748b — strengthen */
+
+/* Dates and meta in court/deadline list */
+body.dark .court-meta             { color: #475569; }
+body.dark .court-name             { color: #1e293b; font-weight: 600; }
+
+/* KPI note, empty states */
+body.dark .kpi-note               { color: #64748b; }
+body.dark .dash-empty-msg         { color: #64748b; }
+body.dark .empty-state            { color: #64748b; }
+body.dark .empty-state p          { color: #475569; }
+
+/* Table headers */
+body.dark .cth                    { color: #475569; font-weight: 600; }
+body.dark .pri-th                 { color: #64748b; font-weight: 600; }
+
+/* Card descriptions / muted values */
+body.dark .kpi-label              { color: #475569; }   /* was #64748b */
+body.dark .kpi-sub                { color: #64748b; }
+
+/* Kanban drag-and-drop states */
+.kanban-card.kd-dragging          { opacity: .45; box-shadow: none; }
+.kanban-cards.kd-over             {
+  background: rgba(249,115,22,.06);
+  outline: 2px dashed rgba(249,115,22,.4);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+.kanban-cards                     { min-height: 80px; } /* ensure drop target always exists */
+
 /* ─── END HYBRID THEME ──────────────────────────────────────────────────── */

@@ -393,8 +393,8 @@
           <!-- Pipeline Snapshot -->
           <div class="card">
             <div class="card-head">
-              <div class="card-title">Pipeline</div>
-              <span class="card-action" onclick="showPanel('kanban')">Kanban →</span>
+              <div class="card-title">Pipeline Snapshot</div>
+              <span class="card-action" onclick="showPanel('kanban')">Full Kanban →</span>
             </div>
             <div class="card-body" id="pip-summary-dash">
               <div class="dash-empty-msg">Loading pipeline…</div>
@@ -2825,7 +2825,11 @@ function renderKanban(filter) {
       const courtClass = isUrgent ? 'urgent' : '';
       const prioHtml = prio ? priorityBadge(prio) : '';
 
-      return `<div class="kanban-card" onclick="openModal('${r.id}')">
+      return `<div class="kanban-card"
+        draggable="true"
+        ondragstart="kanbanDragStart(event,'${r.id}')"
+        ondragend="kanbanDragEnd(event)"
+        onclick="openModal('${r.id}')">
         <div class="kanban-card-top">
           <span class="kanban-case-num">${f(r)['Case #']||'—'}</span>
           ${prioHtml}
@@ -2840,7 +2844,12 @@ function renderKanban(filter) {
           ${f(r)['CDL Holder'] ? '<span class="badge badge-high" style="font-size:9px;">CDL</span>' : ''}
         </div>
       </div>`;
-    }).join('') : `<div class="kanban-empty">No cases</div>`;
+    }).join('') : `<div class="kanban-empty">Drop cases here</div>`;
+
+    // Warrant column: no drop (status set via Court Outcome field, not drag)
+    const dropAttrs = key !== 'warrant'
+      ? `ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${key}')"`
+      : '';
 
     return `<div class="kanban-col">
       <div class="kanban-col-head">
@@ -2848,12 +2857,112 @@ function renderKanban(filter) {
         ${label}
         <span class="kanban-count">${cards.length}</span>
       </div>
-      <div class="kanban-cards">${cardsHtml}</div>
+      <div class="kanban-cards" ${dropAttrs}>${cardsHtml}</div>
     </div>`;
   }).join('');
 }
 
 function filterKanban(v) { kanbanSearch = ''; renderKanban(v); }
+
+// ── Kanban drag-and-drop ──────────────────────────────────────────────────
+// Maps kanban column key → the Airtable Status value assigned on drop.
+// Warrant column intentionally excluded — its state comes from Court Outcome.
+const KANBAN_DROP_STATUS = {
+  'lead':    'Lead',
+  'active':  'Open / Active',
+  'pending': 'Paid - Needs Attorney',
+  'closed':  'Closed - Completed',
+};
+
+let _kanbanDragId   = null;
+let _kanbanDragOver = null; // track highlighted column
+
+function kanbanDragStart(e, recordId) {
+  _kanbanDragId = recordId;
+  e.dataTransfer.effectAllowed = 'move';
+  // Briefly mark the card being dragged (it's in the DOM at this moment)
+  e.currentTarget.classList.add('kd-dragging');
+}
+
+function kanbanDragEnd(e) {
+  e.currentTarget.classList.remove('kd-dragging');
+  if (_kanbanDragOver) {
+    _kanbanDragOver.classList.remove('kd-over');
+    _kanbanDragOver = null;
+  }
+}
+
+function kanbanDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if (_kanbanDragOver !== e.currentTarget) {
+    if (_kanbanDragOver) _kanbanDragOver.classList.remove('kd-over');
+    _kanbanDragOver = e.currentTarget;
+    _kanbanDragOver.classList.add('kd-over');
+  }
+}
+
+function kanbanDragLeave(e) {
+  // Only remove if leaving to outside the column (not to a child element)
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('kd-over');
+    if (_kanbanDragOver === e.currentTarget) _kanbanDragOver = null;
+  }
+}
+
+async function kanbanDrop(e, colKey) {
+  e.preventDefault();
+  if (_kanbanDragOver) { _kanbanDragOver.classList.remove('kd-over'); _kanbanDragOver = null; }
+
+  const newStatus = KANBAN_DROP_STATUS[colKey];
+  if (!newStatus || !_kanbanDragId) { _kanbanDragId = null; return; }
+
+  const record = ALL_RECORDS.find(r => r.id === _kanbanDragId);
+  _kanbanDragId = null;
+  if (!record) return;
+
+  const oldStatus = f(record)['Status'] || '';
+  if (oldStatus === newStatus) return; // already in this column
+
+  const prevStatus = oldStatus;
+
+  // Optimistic update — re-render immediately so drag feels instant
+  record.fields['Status'] = newStatus;
+  renderKanban();
+  renderPipelineSummary();
+  updateSidebarBadges();
+
+  try {
+    const res = await fetch('/.netlify/functions/update-case', {
+      method: 'PATCH',
+      headers: staffHeader(),
+      body: JSON.stringify({
+        recordId: record.id,
+        fields: { Status: newStatus },
+        previousFields: { Status: prevStatus },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Update failed');
+    // Sync with server response
+    if (data.record) {
+      const idx = ALL_RECORDS.findIndex(r => r.id === record.id);
+      if (idx !== -1) ALL_RECORDS[idx] = data.record;
+    }
+    renderKanban();
+    renderPipelineSummary();
+    updateSidebarBadges();
+    showToast(`✅ Moved to ${newStatus}`);
+  } catch (err) {
+    // Revert optimistic update
+    record.fields['Status'] = prevStatus;
+    renderKanban();
+    renderPipelineSummary();
+    updateSidebarBadges();
+    showToast('⚠️ Status update failed — please try again', 'error');
+    console.error('kanbanDrop:', err);
+  }
+}
 
 // ═══════════════════════════════════════════════════════
 //  CALENDAR
