@@ -6,15 +6,37 @@
 (async function() {
   const token = sessionStorage.getItem('tt_auth_token');
   if (!token) { window.location.replace('/auth.html'); return; }
+
+  // Detect dev vs production: localhost / 127.0.0.1 = dev
+  const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
   try {
-    // Try new staff-auth first, fall back to legacy auth
-    const res = await fetch('/.netlify/functions/staff-auth?token=' + encodeURIComponent(token));
+    const res  = await fetch('/.netlify/functions/staff-auth?token=' + encodeURIComponent(token));
     const data = await res.json();
-    if (!data.valid) { sessionStorage.removeItem('tt_auth_token'); window.location.replace('/auth.html'); return; }
-    // Store staff info for use in the app
+    if (!data.valid) {
+      sessionStorage.removeItem('tt_auth_token');
+      window.location.replace('/auth.html');
+      return;
+    }
     if (data.staff) sessionStorage.setItem('tt_staff', JSON.stringify(data.staff));
   } catch(e) {
-    // Network error — allow through
+    // Network / function error
+    if (isDev) {
+      // Dev: show a non-blocking warning in the console; allow through so
+      // local testing without a live function endpoint still works.
+      console.warn('[Auth] Could not reach staff-auth function (dev mode — allowing through):', e.message);
+    } else {
+      // Production: never silently grant access on a failed auth check.
+      sessionStorage.removeItem('tt_auth_token');
+      document.documentElement.innerHTML =
+        '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f0f4f8;">' +
+        '<div style="text-align:center;padding:40px;">' +
+        '<div style="font-size:48px;margin-bottom:16px;">🔒</div>' +
+        '<p style="font-size:18px;color:#1e293b;font-weight:600;margin:0 0 8px;">Session verification failed</p>' +
+        '<p style="font-size:14px;color:#64748b;margin:0 0 24px;">Could not verify your session. Please log in again.</p>' +
+        '<a href="/auth.html" style="display:inline-block;background:#f97316;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Log In Again</a>' +
+        '</div></body>';
+    }
   }
 })();
 </script>
@@ -24,7 +46,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="/dashboard.css">
 </head>
-<body class="dark">
+<body class="theme-hybrid">
 
 <!-- ═══════════════════ TOP BAR ═══════════════════ -->
 <div class="topbar">
@@ -2775,18 +2797,84 @@ document.head.appendChild(style);
 // ═══════════════════════════════════════════════════════
 //  KANBAN
 // ═══════════════════════════════════════════════════════
-// Kanban buckets — helper-based so both old emoji and new clean statuses land correctly
+// ── Kanban columns — full case lifecycle ──────────────────────────────────
+// Each column maps 1-to-1 with an Airtable Status value (see KANBAN_DROP_STATUS).
+// NOTE: The detailed status options (Paid - Needs Attorney, Attorney Assigned,
+//       Court Pending, Waiting for Attorney Update) must exist in the Airtable
+//       Status field for drag-and-drop writes to work. If they're missing,
+//       add them under Airtable → Cases table → Status field → Edit choices.
 const STATUSES = [
-  { key: 'lead',    label: 'Lead',          dot: 'dot-lead',
-    filter: r => isLeadStatus(r) && !isClosed(r) },
-  { key: 'active',  label: 'Active',        dot: 'dot-open',
-    filter: r => isActive(r) && !(f(r)['Court Outcome']||'').includes('Warrant') },
-  { key: 'pending', label: 'Pending',       dot: 'dot-pending',
-    filter: r => !isLeadStatus(r) && !isActive(r) && !isClosed(r) && !(f(r)['Court Outcome']||'').includes('Warrant') },
-  { key: 'closed',  label: 'Closed',        dot: 'dot-closed',
-    filter: r => isClosed(r) },
-  { key: 'warrant', label: 'Warrant / FTA', dot: 'dot-warrant',
-    filter: r => (f(r)['Court Outcome']||f(r)['Status']||'').includes('Warrant') },
+  {
+    key: 'leads',
+    label: 'New Leads',
+    dot: 'dot-lead',
+    filter: r => isLeadStatus(r) && !isClosed(r),
+  },
+  {
+    key: 'needs-atty',
+    label: 'Paid · Needs Atty',
+    dot: 'dot-pending',
+    filter: r => {
+      if (isClosed(r) || isLeadStatus(r)) return false;
+      const s = f(r)['Status'] || '';
+      // Status-first: if explicitly set to this stage, show here
+      if (s === 'Paid - Needs Attorney' || s === '🟡 Pending') return true;
+      // Fallback: paid but no attorney and not actively in a later stage
+      return needsAttorney(r)
+          && s !== 'Court Pending'
+          && s !== 'Attorney Assigned'
+          && s !== 'Waiting for Attorney Update';
+    },
+  },
+  {
+    key: 'atty-assigned',
+    label: 'Attorney Assigned',
+    dot: 'dot-open',
+    filter: r => {
+      if (isClosed(r) || isLeadStatus(r)) return false;
+      const s  = f(r)['Status'] || '';
+      const co = f(r)['Court Outcome'] || '';
+      if (co.includes('Warrant')) return false;
+      if (s === 'Attorney Assigned') return true;
+      if (s === 'Court Pending' || s === 'Waiting for Attorney Update') return false;
+      if (s === 'Paid - Needs Attorney' || s === '🟡 Pending' || needsAttorney(r)) return false;
+      // Fallback: paid + attorney assigned but no explicit "Court Pending" status
+      return isPaid(r) && hasAttorney(r) && !needsAttorney(r);
+    },
+  },
+  {
+    key: 'court-pending',
+    label: 'Court Pending',
+    dot: 'dot-court',
+    filter: r => {
+      if (isClosed(r)) return false;
+      const s  = f(r)['Status'] || '';
+      const co = f(r)['Court Outcome'] || '';
+      if (co.includes('Warrant')) return false;
+      return s === 'Court Pending';
+    },
+  },
+  {
+    key: 'waiting',
+    label: 'Waiting — Atty Update',
+    dot: 'dot-waiting',
+    filter: r => {
+      if (isClosed(r)) return false;
+      return (f(r)['Status'] || '') === 'Waiting for Attorney Update';
+    },
+  },
+  {
+    key: 'closed',
+    label: 'Completed / Closed',
+    dot: 'dot-closed',
+    filter: r => isClosed(r),
+  },
+  {
+    key: 'warrant',
+    label: 'Warrant / FTA',
+    dot: 'dot-warrant',
+    filter: r => (f(r)['Court Outcome'] || f(r)['Status'] || '').includes('Warrant'),
+  },
 ];
 
 let kanbanSearch = '';
@@ -2864,14 +2952,25 @@ function renderKanban(filter) {
 
 function filterKanban(v) { kanbanSearch = ''; renderKanban(v); }
 
-// ── Kanban drag-and-drop ──────────────────────────────────────────────────
-// Maps kanban column key → the Airtable Status value assigned on drop.
-// Warrant column intentionally excluded — its state comes from Court Outcome.
+// ── Kanban drag-and-drop status map ──────────────────────────────────────
+// Maps column key → the exact Airtable Status value set when a card is dropped.
+// Warrant column excluded — its status comes from the Court Outcome field, not drag.
+//
+// ⚠️  AIRTABLE SETUP REQUIRED: The following values must exist as choices in
+//     the Cases → Status (singleSelect) field before drag-drop will work:
+//       • Paid - Needs Attorney
+//       • Attorney Assigned
+//       • Court Pending
+//       • Waiting for Attorney Update
+//     (🔵 Lead and ✅ Closed already exist.)
 const KANBAN_DROP_STATUS = {
-  'lead':    '🔵 Lead',
-  'active':  '🟢 Open / Active',
-  'pending': '🟡 Pending',
-  'closed':  '✅ Closed',
+  'leads':         '🔵 Lead',
+  'needs-atty':    'Paid - Needs Attorney',
+  'atty-assigned': 'Attorney Assigned',
+  'court-pending': 'Court Pending',
+  'waiting':       'Waiting for Attorney Update',
+  'closed':        '✅ Closed',
+  // 'warrant' intentionally absent — set via Court Outcome field only
 };
 
 let _kanbanDragId   = null;
