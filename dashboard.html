@@ -2868,10 +2868,10 @@ function filterKanban(v) { kanbanSearch = ''; renderKanban(v); }
 // Maps kanban column key → the Airtable Status value assigned on drop.
 // Warrant column intentionally excluded — its state comes from Court Outcome.
 const KANBAN_DROP_STATUS = {
-  'lead':    'Lead',
-  'active':  'Open / Active',
-  'pending': 'Paid - Needs Attorney',
-  'closed':  'Closed - Completed',
+  'lead':    '🔵 Lead',
+  'active':  '🟢 Open / Active',
+  'pending': '🟡 Pending',
+  'closed':  '✅ Closed',
 };
 
 let _kanbanDragId   = null;
