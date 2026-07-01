@@ -517,8 +517,11 @@
           <div class="page-title">🗂️ Kanban Board</div>
           <div class="page-sub">Drag cards to update status (in Airtable)</div>
         </div>
-        <div class="page-actions">
-          <input class="search-input" style="width:220px;" placeholder="Search cases…" oninput="filterKanbanSearch(this.value)">
+        <div class="page-actions" style="gap:6px;flex-wrap:wrap;align-items:center;">
+          <button class="filter-btn kf-btn" id="kf-urgent" onclick="filterKanban('🔴 Urgent')">🔴 Urgent</button>
+          <button class="filter-btn kf-btn" id="kf-week" onclick="filterKanban('court-week')">📅 Court This Week</button>
+          <button class="filter-btn" id="kf-clear" onclick="filterKanban(null)" style="display:none;">✕ All Cases</button>
+          <input class="search-input" id="kanban-search-input" style="width:190px;" placeholder="Search cases…" oninput="filterKanbanSearch(this.value)">
         </div>
       </div>
       <div class="kanban-wrap" id="kanban-wrap">
@@ -2890,9 +2893,22 @@ const STATUSES = [
 ];
 
 let kanbanSearch = '';
+let kanbanFilter = null;
+
 function filterKanbanSearch(v) { kanbanSearch = v.toLowerCase(); renderKanban(); }
 
-function renderKanban(filter) {
+function filterKanban(v) {
+  kanbanFilter = v;
+  // Sync button active states
+  document.querySelectorAll('.kf-btn').forEach(b => b.classList.remove('active'));
+  if (v === '🔴 Urgent') document.getElementById('kf-urgent')?.classList.add('active');
+  if (v === 'court-week')  document.getElementById('kf-week')?.classList.add('active');
+  const clearBtn = document.getElementById('kf-clear');
+  if (clearBtn) clearBtn.style.display = v ? '' : 'none';
+  renderKanban();
+}
+
+function renderKanban() {
   const wrap = document.getElementById('kanban-wrap');
   let records = ALL_RECORDS;
   if (kanbanSearch) {
@@ -2901,9 +2917,9 @@ function renderKanban(filter) {
       return s.includes(kanbanSearch);
     });
   }
-  if (filter === '🔴 Urgent') {
+  if (kanbanFilter === '🔴 Urgent') {
     records = records.filter(r => (f(r)['Priority'] || '').includes('High') || (f(r)['Priority'] || '').includes('🔴'));
-  } else if (filter === 'court-week') {
+  } else if (kanbanFilter === 'court-week') {
     records = records.filter(r => {
       const d = daysUntil(f(r)['Court Date']);
       return d !== null && d >= 0 && d <= 7;
@@ -2961,8 +2977,6 @@ function renderKanban(filter) {
     </div>`;
   }).join('');
 }
-
-function filterKanban(v) { kanbanSearch = ''; renderKanban(v); }
 
 // ── Kanban drag-and-drop status map ──────────────────────────────────────
 // Maps column key → the exact Airtable Status value set when a card is dropped.
