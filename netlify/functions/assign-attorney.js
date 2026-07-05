@@ -91,7 +91,7 @@ exports.handler = async function (event) {
   }
 
   // ── 8. Build PATCH payload ────────────────────────────────────────────────
-  const linkedIds   = isAssigning ? [{ id: attorneyIds[0] }] : [];
+  const linkedIds   = isAssigning ? [attorneyIds[0]] : [];
   const patchFields = { Attorney: linkedIds };
 
   // Only set Status when assigning — never roll it back on removal
