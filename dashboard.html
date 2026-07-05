@@ -3939,7 +3939,7 @@ function _tabCourt(r) {
   })() : '';
 
   const attyOpts = ALL_ATTORNEYS.length > 0
-    ? buildAttorneyOptions(currentAttyIds)
+    ? buildAttorneyOptions(currentAttyIds, fd)
     : '<option value="">⚠ No attorneys loaded yet</option>';
 
   return `
@@ -4009,13 +4009,14 @@ function _tabDocuments(r) {
       </div>`).join('');
   };
 
-  const boolRow = (label, fieldKey) => {
+  // Editable checkbox rows — values are read by saveCase() via element IDs
+  const editCheck = (label, fieldKey, inputId, trueLabel, falseLabel) => {
     const ok = !!fd[fieldKey];
-    return `<div class="doc-check-row">
-      <span>${ok ? '✅' : '⬜'}</span>
+    return `<label class="doc-check-row" style="cursor:pointer;user-select:none;">
+      <input type="checkbox" id="${inputId}" ${ok ? 'checked' : ''} style="width:15px;height:15px;flex-shrink:0;accent-color:var(--green,#22c55e);">
       <span style="flex:1;">${label}</span>
-      <span style="font-size:12px;color:${ok?'var(--green,#22c55e)':'var(--gray-text,#64748b)'};">${ok?'Received':'Pending'}</span>
-    </div>`;
+      <span style="font-size:12px;color:${ok ? 'var(--green,#22c55e)' : 'var(--gray-text,#64748b)'};">${ok ? trueLabel : falseLabel}</span>
+    </label>`;
   };
 
   return `
@@ -4024,13 +4025,13 @@ function _tabDocuments(r) {
     ${photoRow('ID / License Photo', 'ID Upload')}
 
     <div class="modal-section">Document Checklist</div>
-    ${boolRow('Traffic Ticket Received', 'Ticket Received')}
-    ${boolRow('Driver License Received', 'Driver License Received')}
-    <div class="doc-check-row">
-      <span>${fd['Documents Complete']?'✅':'⬜'}</span>
-      <span style="flex:1;font-weight:600;">All Documents Complete</span>
-      <span style="font-size:12px;color:${fd['Documents Complete']?'var(--green,#22c55e)':'var(--gray-text,#64748b)'};">${fd['Documents Complete']?'Complete':'Incomplete'}</span>
-    </div>
+    ${editCheck('Traffic Ticket Received',  'Ticket Received',          'ef-doc-ticket',       'Received', 'Pending')}
+    ${editCheck('Driver License Received',  'Driver License Received',  'ef-doc-dl',           'Received', 'Pending')}
+    ${editCheck('Court Notice Received',    'Court Notice Received',    'ef-doc-court-notice', 'Received', 'Pending')}
+    ${editCheck('All Documents Complete',   'Documents Complete',       'ef-doc-complete',     'Complete', 'Incomplete')}
+
+    <div class="modal-section">Attorney Handoff</div>
+    ${editCheck('Packet Sent to Attorney',  'Packet Sent to Attorney',  'ef-doc-packet-sent',  'Sent',     'Not Sent')}
 
     <div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--gray-border,#e2e8f0);">
       <button class="btn" onclick="closeModal();showPanel('documents')">📂 Open Full Documents Panel ↗</button>
@@ -4287,6 +4288,18 @@ async function saveCase(id) {
   if (!isNaN(fee))     fields['Client Fee Collected'] = fee;
   if (!isNaN(attyFee)) fields['Attorney Service Fee'] = attyFee;
 
+  // Document checklist (Tab 5) — only included when those inputs are rendered
+  const _docTicket  = document.getElementById('ef-doc-ticket');
+  const _docDL      = document.getElementById('ef-doc-dl');
+  const _docCourt   = document.getElementById('ef-doc-court-notice');
+  const _docComp    = document.getElementById('ef-doc-complete');
+  const _docPacket  = document.getElementById('ef-doc-packet-sent');
+  if (_docTicket)  fields['Ticket Received']          = _docTicket.checked;
+  if (_docDL)      fields['Driver License Received']   = _docDL.checked;
+  if (_docCourt)   fields['Court Notice Received']     = _docCourt.checked;
+  if (_docComp)    fields['Documents Complete']         = _docComp.checked;
+  if (_docPacket)  fields['Packet Sent to Attorney']   = _docPacket.checked;
+
   // Auto-set Outcome Received Date when Court Outcome is first logged
   if (fields['Court Outcome'] && !fd['Outcome Received Date'] && !fields['Outcome Received Date']) {
     fields['Outcome Received Date'] = new Date().toISOString().split('T')[0];
@@ -4319,27 +4332,30 @@ async function saveCase(id) {
     const idx = ALL_RECORDS.findIndex(x => x.id === id);
     if (idx !== -1) ALL_RECORDS[idx] = data.record;
 
-    // Attorney assignment — handled by assign-attorney.js so it logs correctly
+    // Attorney assignment — routed through assign-attorney.js for validation,
+    // Status transition (Attorney Assigned), and Activity Log write.
     const attySelect = document.getElementById('ef-attorney-select');
     if (attySelect) {
-      const newAttyId     = attySelect.value;
-      const curAttyIds    = Array.isArray(fd['Attorney'])
+      const newAttyId  = attySelect.value;
+      const curAttyIds = Array.isArray(fd['Attorney'])
         ? fd['Attorney'].map(a => typeof a === 'object' ? a.id : a) : [];
       if (newAttyId !== (curAttyIds[0] || '')) {
-        const newAtty  = ALL_ATTORNEYS.find(a => a.id === newAttyId);
         const prevAtty = ALL_ATTORNEYS.find(a => a.id === curAttyIds[0]);
-        await fetch('/.netlify/functions/assign-attorney', {
+        const attyRes  = await fetch('/.netlify/functions/assign-attorney', {
           method: 'PATCH', headers: staffHeader(),
           body: JSON.stringify({
-            caseId: id, attorneyIds: newAttyId ? [newAttyId] : [],
+            caseId: id,
+            attorneyIds: newAttyId ? [newAttyId] : [],
             caseNum: fd['Case #'] || '',
+            // Server resolves new attorney name from Airtable — we only send the previous
             previousAttorneyName: prevAtty?.fields?.['Attorney Name'] || '',
-            newAttorneyName:      newAtty?.fields?.['Attorney Name']  || '',
           }),
         });
-        // Patch local record optimistically
+        const attyData = await attyRes.json();
+        if (!attyRes.ok) throw new Error(attyData.error || 'Attorney assignment failed');
+        // Update local record from server response (includes Status = "Attorney Assigned" if assigning)
         const fi = ALL_RECORDS.findIndex(x => x.id === id);
-        if (fi !== -1) ALL_RECORDS[fi].fields['Attorney'] = newAttyId ? [{ id: newAttyId }] : [];
+        if (fi !== -1 && attyData.record) ALL_RECORDS[fi] = attyData.record;
       }
     }
 
@@ -6346,15 +6362,16 @@ function openTaskResolve(taskType, caseId) {
   }
 
   else if (taskType === 'assign-attorney') {
-    const opts = ALL_ATTORNEYS
-      .filter(a => a.fields['Active'])
-      .map(a => `<option value="${a.id}">${_esc(a.fields['Attorney Name'] || a.id)}</option>`)
-      .join('');
+    // Use buildAttorneyOptions for jurisdiction-sorted, active-only list
+    const curAttyIds = Array.isArray(fd['Attorney'])
+      ? fd['Attorney'].map(a => typeof a === 'object' ? a.id : a) : [];
+    // buildAttorneyOptions first option is "— No attorney assigned —"; replace label for task context
+    const opts = buildAttorneyOptions(curAttyIds, fd)
+      .replace('— No attorney assigned —', '— Select attorney —');
     formHtml = `
       <div class="doc-form-group">
         <label class="doc-form-label">Select Attorney *</label>
         <select class="doc-form-select" id="tr-attorney">
-          <option value="">— Select —</option>
           ${opts}
         </select>
       </div>
@@ -6532,15 +6549,36 @@ async function _resolveAssignAttorney(caseId) {
   errEl.style.display = 'none';
   const attyId = document.getElementById('tr-attorney')?.value;
   if (!attyId) { errEl.textContent = 'Please select an attorney.'; errEl.style.display='block'; return; }
-  const atty   = ALL_ATTORNEYS.find(a => a.id === attyId);
-  const attyName = atty?.fields['Attorney Name'] || attyId;
-  const rec    = ALL_RECORDS.find(r => r.id === caseId);
-  const prevAtty = f(rec)['Attorney'] || [];
-  f(rec)['Attorney'] = [{ id: attyId }];
-  await _patchCase(caseId, { 'Attorney': [{ id: attyId }] }, `Attorney assigned: ${attyName}`, 'Case',
-    { 'Attorney': prevAtty.map(a => a.id).join(', ') || 'None' });
-  closeTaskResolve(); renderTasksPage(); renderAll();
-  showToast(`✅ Attorney assigned: ${attyName}`);
+
+  const rec       = ALL_RECORDS.find(r => r.id === caseId);
+  const fd        = f(rec);
+  const prevAttyIds = Array.isArray(fd['Attorney'])
+    ? fd['Attorney'].map(a => typeof a === 'object' ? a.id : a) : [];
+  const prevAtty  = ALL_ATTORNEYS.find(a => a.id === prevAttyIds[0]);
+
+  try {
+    // Route through assign-attorney.js for validation, Status transition, and Activity Log
+    const res  = await fetch('/.netlify/functions/assign-attorney', {
+      method: 'PATCH', headers: staffHeader(),
+      body: JSON.stringify({
+        caseId,
+        attorneyIds: [attyId],
+        caseNum: fd['Case #'] || '',
+        previousAttorneyName: prevAtty?.fields?.['Attorney Name'] || '',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Assignment failed.'; errEl.style.display='block'; return; }
+
+    // Update local record from server response (includes Status = "Attorney Assigned")
+    const idx = ALL_RECORDS.findIndex(r => r.id === caseId);
+    if (idx !== -1 && data.record) ALL_RECORDS[idx] = data.record;
+
+    closeTaskResolve(); renderTasksPage(); renderAll();
+    showToast(`✅ Attorney assigned: ${data.attorneyName || attyId}`);
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display='block';
+  }
 }
 
 async function _resolveMissingDocs(caseId) {
@@ -6925,12 +6963,44 @@ async function saveStaffMember() {
 // ═══════════════════════════════════════════════════════
 //  POPULATE ATTORNEY DROPDOWN IN EDIT CASE MODAL
 // ═══════════════════════════════════════════════════════
-function buildAttorneyOptions(currentAttyIds) {
-  return '<option value="">— No attorney —</option>' +
-    ALL_ATTORNEYS.map(a => {
-      const name = a.fields?.['Attorney Name'] || '';
+// caseFields is optional — when provided, attorneys are sorted by jurisdiction match.
+// Active = false attorneys are always excluded.
+// Tier 0: state + county match  →  ✅ Covers area
+// Tier 1: state match only      →  ⚠️ Check county
+// Tier 2: no jurisdiction match →  (no badge)
+function buildAttorneyOptions(currentAttyIds, caseFields) {
+  const caseState  = ((caseFields?.['Court State'] || '')).trim().toUpperCase();
+  const caseCounty = ((caseFields?.['County']      || '')).trim().toLowerCase();
+
+  // Active attorneys only
+  const active = ALL_ATTORNEYS.filter(a => a.fields?.['Active'] !== false);
+
+  // Tier each attorney by jurisdiction match
+  const tiered = active.map(a => {
+    const af         = a.fields || {};
+    const attyState  = (af['State'] || '').trim().toUpperCase();
+    const counties   = (af['Counties Covered'] || []).map(c =>
+      (typeof c === 'object' ? c.name : c).toLowerCase()
+    );
+    const stateMatch  = !!caseState  && attyState  === caseState;
+    const countyMatch = !!caseCounty && counties.includes(caseCounty);
+    const tier = (stateMatch && countyMatch) ? 0
+               : stateMatch                  ? 1
+               :                               2;
+    return { a, tier };
+  }).sort((x, y) =>
+    x.tier - y.tier ||
+    (x.a.fields?.['Attorney Name'] || '').localeCompare(y.a.fields?.['Attorney Name'] || '')
+  );
+
+  return '<option value="">— No attorney assigned —</option>' +
+    tiered.map(({ a, tier }) => {
+      const name     = a.fields?.['Attorney Name'] || '';
       const selected = Array.isArray(currentAttyIds) && currentAttyIds.some(x => (x?.id||x) === a.id);
-      return `<option value="${a.id}"${selected?' selected':''}>${esc(name)}</option>`;
+      const badge    = tier === 0 ? ' ✅ Covers area'
+                     : tier === 1 ? ' ⚠️ Check county'
+                     :              '';
+      return `<option value="${a.id}"${selected?' selected':''}>${esc(name)}${badge}</option>`;
     }).join('');
 }
 
