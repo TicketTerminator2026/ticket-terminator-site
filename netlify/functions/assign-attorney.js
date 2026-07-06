@@ -81,7 +81,7 @@ exports.handler = async function (event) {
         body: JSON.stringify({ error: `Failed to fetch attorney: ${err.message}` }) };
     }
 
-    if (attyData.fields?.Active === false) {
+    if (attyData.fields?.Active !== true) {
       return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: 'Cannot assign an inactive attorney.' }) };
     }
