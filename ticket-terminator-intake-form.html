@@ -998,7 +998,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
             <div class="uz-title" id="uzTicketTitle" data-i18n="uzTicketTitle">Drop your ticket here</div>
             <div class="uz-sub" data-i18n-html="uzSub">or <span>browse to upload</span> · JPG, PNG, PDF</div>
           </div>
-          <div class="up-row" id="trow"><span>📎<span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz','trow','ti','📄')">✕</span></div>
+          <div class="up-row" id="trow"><span>📎</span><span id="tn"></span><span class="rm" onclick="clearUp(event,'tf','tz','trow','ti','📄')">✕</span></div>
         </div>
         <div class="field">
           <label class="flabel"><span data-i18n="lblIdUp">Upload Your Driver's License or ID</span> <span style="font-size:10px;color:var(--g3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;"> — optional</span></label>
@@ -1051,7 +1051,8 @@ The details that feel small to you can be the ones that win your case. Don't lea
           <label class="cb-wrap" id="tcpaWrap" onclick="toggleTCPA()">
             <input type="checkbox" id="tcpa"/>
             <div class="cb-box"><span class="cb-check">✓</span></div>
-            <span class="cb-text" id="tcpaText" data-i18n-html="tcpaText">I agree to receive SMS text messages from Ticket Terminator HQ regarding my case at the phone number provided above. Message &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span></span>
+            <span class="cb-text" id="tcpaText" data-i18n-html="tcpaText">I consent to receive text messages from Ticket Terminator HQ about my ticket review, case intake, attorney referral, documents, payment status, and related updates. Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to opt out or <strong>HELP</strong> for help. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span></span>
+            <span style="display:block;font-size:11px;color:var(--g3);margin-top:6px;line-height:1.5;">Ticket Terminator primarily communicates by text message so we can respond faster and keep a written record of your case updates.</span>
           </label>
           <div class="cb-req-note" id="tcpaNote" data-i18n="tcpaNote">⚠ Please check this box to continue.</div>
         </div>
@@ -1077,7 +1078,7 @@ The details that feel small to you can be the ones that win your case. Don't lea
     </div>
   </div><!-- /card -->
 
-  <p class="legal-note" data-i18n-html="legalNote">🔒 Encrypted &amp; 100% confidential · Ticket Terminator HQ'· <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></p>
+  <p class="legal-note" data-i18n-html="legalNote">🔒 Encrypted &amp; 100% confidential · Ticket Terminator HQ · <a href="mailto:info@ticketterminatorhq.com">info@ticketterminatorhq.com</a></p>
 </div>
 
 <div class="page-footer" data-i18n-html="pageFooter">
@@ -2284,6 +2285,10 @@ async function submit(){
     ticketPhotoName:    ticketFile ? ticketFile.name : undefined,
     idPhotoBase64:      idFile     ? idFile.data     : undefined,
     idPhotoName:        idFile     ? idFile.name     : undefined,
+    // Consent & language metadata
+    smsConsent:         true,
+    consentTimestamp:   new Date().toISOString(),
+    lang:               currentLang,
   };
 
   // Store for retry
@@ -2433,7 +2438,7 @@ const TRANSLATIONS={
     hearGoogle:'🔍 Google Search',hearSocial:'📱 Social Media',hearFriend:'👥 Friend / Family',
     hearRepeat:'🔁 Repeat Client',hearYelp:'⭐ Yelp / Reviews',hearOther:'💬 Other',
     lblRef:'Who referred you?',phRef:'Name or contact info of the person who sent you',
-    tcpaText:'I agree to receive SMS text messages from Ticket Terminator HQ regarding my case at the phone number provided above. Message &amp; data rates may apply. Reply <strong>STOP</strong> to opt out at any time. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span>',
+    tcpaText:'I consent to receive text messages from Ticket Terminator HQ about my ticket review, case intake, attorney referral, documents, payment status, and related updates. Message and data rates may apply. Message frequency varies. Reply <strong>STOP</strong> to opt out or <strong>HELP</strong> for help. View our <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Privacy Policy</a>. <span style="color:var(--orange);font-weight:700;">*</span><span style="display:block;font-size:11px;color:var(--g3);margin-top:6px;line-height:1.5;">Ticket Terminator primarily communicates by text message so we can respond faster and keep a written record of your case updates.</span>',
     tcpaNote:'⚠ Please check this box to continue.',
     s5ibox:'By submitting, a Ticket Terminator specialist may contact you to discuss your case. This does not create an attorney-client relationship.',
     btnBack:'← Back',btnNextDefault:'Continue →',btnNextFinal:'Submit My Case ✓',btnSubmitting:'Submitting…',
@@ -2504,7 +2509,7 @@ const TRANSLATIONS={
     hearGoogle:'🔍 Búsqueda en Google',hearSocial:'📱 Redes Sociales',hearFriend:'👥 Amigo / Familia',
     hearRepeat:'🔁 Cliente Habitual',hearYelp:'⭐ Yelp / Reseñas',hearOther:'💬 Otro',
     lblRef:'¿Quién te refirió?',phRef:'Nombre o información de contacto de quien te envió',
-    tcpaText:'Acepto recibir mensajes de texto SMS de Ticket Terminator HQ sobre mi caso al número de teléfono indicado. Se pueden aplicar tarifas. Responde <strong>STOP</strong> para cancelar en cualquier momento. Ve nuestra <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Política de Privacidad</a>. <span style="color:var(--orange);font-weight:700;">*</span>',
+    tcpaText:'Doy mi consentimiento para recibir mensajes de texto de Ticket Terminator HQ sobre la revisión de mi caso, ingreso al caso, referencia a abogados, documentos, estado de pago y actualizaciones relacionadas. Se pueden aplicar tarifas de mensajes y datos. La frecuencia de mensajes varía. Responde <strong>STOP</strong> para cancelar o <strong>HELP</strong> para obtener ayuda. Ve nuestra <a href="ticket-terminator-privacy-policy.html" target="_blank" onclick="event.stopPropagation()">Política de Privacidad</a>. <span style="color:var(--orange);font-weight:700;">*</span><span style="display:block;font-size:11px;color:var(--g3);margin-top:6px;line-height:1.5;">Ticket Terminator se comunica principalmente por mensaje de texto para responder más rápido y mantener un registro escrito de las actualizaciones de su caso.</span>',
     tcpaNote:'⚠ Por favor marca esta casilla para continuar.',
     s5ibox:'Al enviar, un especialista de Ticket Terminator puede contactarte para hablar sobre tu caso. Esto no crea una relación abogado-cliente.',
     btnBack:'← Atrás',btnNextDefault:'Continuar →',btnNextFinal:'Enviar Mi Caso ✓',btnSubmitting:'Enviando…',
