@@ -3329,7 +3329,13 @@ function _renderFinTable() {
     if (FIN_TAB === 'all')     return !st.startsWith('🔵');
     if (FIN_TAB === 'unpaid')  return (Number(f(r)['Client Balance Remaining'])||0) > 0;
     if (FIN_TAB === 'atty')    return (Number(f(r)['Attorney Balance Remaining'])||0) > 0 || f(r)['Payout Due?'];
-    if (FIN_TAB === 'waiting') return (st.includes('Pending')||st.includes('Active')) && !f(r)['Attorney Payment Confirmed'] && (Number(f(r)['Client Fee Collected'])||0) > 0;
+    if (FIN_TAB === 'waiting') {
+      if (isClosed(r)) return false;
+      if ((Number(f(r)['Client Fee Collected'])||0) <= 0) return false;
+      if (st === 'Paid - Needs Attorney') return true;
+      const noAtty = !f(r)['Attorney']?.length;
+      return noAtty && !f(r)['Attorney Payment Confirmed'];
+    }
     if (FIN_TAB === 'paid')    return (Number(f(r)['Client Fee Collected'])||0) > 0 && (Number(f(r)['Client Balance Remaining'])||0) === 0 && f(r)['Attorney Payment Confirmed'];
     return false;
   });
@@ -3478,7 +3484,7 @@ async function openBulkAssignAttorney() {
       ALL_ATTORNEYS = d.records || [];
     } catch(e) { alert('Could not load attorneys. Try again.'); return; }
   }
-  const active = ALL_ATTORNEYS.filter(a => a.fields?.['Active'] !== false);
+  const active = ALL_ATTORNEYS.filter(a => a.fields?.['Active'] === true);
   if (!active.length) { alert('No active attorneys found. Add one in the Attorneys tab first.'); return; }
   const sel = document.getElementById('fin-atty-select');
   sel.innerHTML = active.map(a =>
@@ -3500,16 +3506,20 @@ async function confirmBulkAssignAttorney() {
     const r = ALL_RECORDS.find(x => x.id === rid);
     if (!r) continue;
     try {
-      await fetch('/.netlify/functions/update-case', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+      const aRes = await fetch('/.netlify/functions/assign-attorney', {
+        method: 'PATCH', headers: staffHeader(),
         body: JSON.stringify({
-          recordId: rid,
-          previousFields: f(r),
-          fields: { 'Attorney': [{ id: attyId }] },
-          staffName: getStaffName()
+          caseId: rid,
+          attorneyIds: [attyId],
+          caseNum: f(r)['Case #'] || '',
+          previousAttorneyName: ''
         })
       });
-      f(r)['Attorney'] = [{ id: attyId }];
+      const aData = await aRes.json();
+      if (aRes.ok && aData.record) {
+        const fi = ALL_RECORDS.findIndex(x => x.id === rid);
+        if (fi !== -1) ALL_RECORDS[fi] = aData.record;
+      }
     } catch(e) { console.error('bulkAssignAttorney error:', e); }
   }
   clearFinBulk(); renderAll(); renderFinancialsPage();
@@ -6972,8 +6982,8 @@ function buildAttorneyOptions(currentAttyIds, caseFields) {
   const caseState  = ((caseFields?.['Court State'] || '')).trim().toUpperCase();
   const caseCounty = ((caseFields?.['County']      || '')).trim().toLowerCase();
 
-  // Active attorneys only
-  const active = ALL_ATTORNEYS.filter(a => a.fields?.['Active'] !== false);
+  // Active attorneys only (Airtable omits unchecked checkboxes, so must check === true)
+  const active = ALL_ATTORNEYS.filter(a => a.fields?.['Active'] === true);
 
   // Tier each attorney by jurisdiction match
   const tiered = active.map(a => {
