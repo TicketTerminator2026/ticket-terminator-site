@@ -174,6 +174,13 @@ exports.handler = async function (event) {
     'Ticket Received':         !!(data.ticketPhotoBase64),
     'Driver License Received': !!(data.idPhotoBase64),
     'Documents Complete':      !!(data.ticketPhotoBase64) && !!(data.idPhotoBase64),
+
+    // SMS consent record
+    'SMS Consent':           data.smsConsent === true,
+    'SMS Consent Timestamp': data.consentTimestamp || new Date().toISOString(),
+
+    // Preferred language
+    'Preferred Language':    data.lang === 'es' ? 'Spanish' : 'English',
   };
 
   // Optional dates — Airtable rejects empty strings on date fields
