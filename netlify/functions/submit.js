@@ -5,7 +5,7 @@
 'use strict';
 
 const { randomUUID, createHash } = require('crypto');
-const { getStore }               = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const CORS_HEADERS = {
@@ -194,6 +194,10 @@ exports.handler = async function (event) {
   // ═══════════════════════════════════════════════════════════════════
   // IDEMPOTENCY — Netlify Blobs atomic claim
   // ═══════════════════════════════════════════════════════════════════
+  // For Functions v1 (exports.handler), the Blobs client context is passed
+  // through the Lambda event object. connectLambda() must be called before
+  // getStore() to initialise the siteID/token/edgeURL from event.blobs.
+  try { connectLambda(event); } catch (_) { /* no-op if already initialised */ }
   const store   = getStore('tt-submissions');
   const ownerId = randomUUID();
   const nowMs   = Date.now();
