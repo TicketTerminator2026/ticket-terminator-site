@@ -19,8 +19,10 @@ exports.handler = async function (event) {
     return { statusCode: 405, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // ── Request body size guard (Netlify limit is 6MB, base64 photos can be large)
-  const bodyLen = event.body ? event.body.length : 0;
+  // ── Request body size guard (Netlify limit is 20 MB; our function limit is 5 MB)
+  // Buffer.byteLength correctly counts multi-byte UTF-8 characters; JS .length
+  // counts UTF-16 code units and under-counts characters above U+FFFF.
+  const bodyLen = Buffer.byteLength(event.body || '', 'utf8');
   if (bodyLen > 5 * 1024 * 1024) {
     return {
       statusCode: 413,
@@ -134,6 +136,10 @@ exports.handler = async function (event) {
   const clientStatement = clientStatementParts.join('\n\n');
 
   // ── Build Cases fields object ────────────────────────────────────────────
+  // Document receipt checkboxes (Ticket Received, Driver License Received,
+  // Documents Complete) are intentionally omitted here. They will be set via
+  // a PATCH after attachment uploads complete, so they reflect actual upload
+  // outcomes rather than client-side intent.
   const caseFields = {
     'Case #':            caseNum,
     'Status':            '🔵 Lead',
@@ -168,12 +174,6 @@ exports.handler = async function (event) {
     // Source
     'Heard About Us': data.heardAbout || '',
     'Referred By':    data.referredBy || '',
-
-    // Document tracking (checkbox fields in Airtable)
-    // Set to true only when the upload was actually provided
-    'Ticket Received':         !!(data.ticketPhotoBase64),
-    'Driver License Received': !!(data.idPhotoBase64),
-    'Documents Complete':      !!(data.ticketPhotoBase64) && !!(data.idPhotoBase64),
 
     // SMS consent record
     'SMS Consent':           data.smsConsent === true,
@@ -291,109 +291,139 @@ exports.handler = async function (event) {
     };
   }
 
-  // ── Step 3: Upload attachments ────────────────────────────────────────────
+  // ── Step 3: Upload attachments in parallel ────────────────────────────────
+  // Both uploads run concurrently via Promise.allSettled; neither blocks the
+  // other. A failure in one upload does not prevent the other from completing.
   const attachmentFields = [
     { dataKey: 'ticketPhotoBase64', fileName: data.ticketPhotoName || 'ticket-photo.jpg', fieldName: 'Ticket Upload' },
     { dataKey: 'idPhotoBase64',     fileName: data.idPhotoName     || 'id-photo.jpg',     fieldName: 'ID Upload'     },
   ];
-  const uploadErrors = [];
 
-  for (const { dataKey, fileName, fieldName } of attachmentFields) {
-    const base64 = data[dataKey];
-    if (!base64) continue;
-
-    const fileData    = base64.includes(',') ? base64.split(',')[1] : base64;
-    const contentType = base64.includes('data:')
-      ? base64.split(';')[0].replace('data:', '')
-      : 'application/octet-stream';
-
-    try {
-      const uploadRes = await fetch(
-        `https://content.airtable.com/v0/${BASE_ID}/${recordId}` +
-        `/${encodeURIComponent(fieldName)}/uploadAttachment`,
-        {
-          method: 'POST',
-          headers: atHeaders,
-          body: JSON.stringify({ contentType, filename: fileName, file: fileData }),
+  const uploadTasks = attachmentFields
+    .filter(({ dataKey }) => !!data[dataKey])
+    .map(({ dataKey, fileName, fieldName }) =>
+      (async () => {
+        const base64 = data[dataKey];
+        const fileData    = base64.includes(',') ? base64.split(',')[1] : base64;
+        const contentType = base64.includes('data:')
+          ? base64.split(';')[0].replace('data:', '')
+          : 'application/octet-stream';
+        try {
+          const uploadRes = await fetch(
+            `https://content.airtable.com/v0/${BASE_ID}/${recordId}` +
+            `/${encodeURIComponent(fieldName)}/uploadAttachment`,
+            {
+              method: 'POST',
+              headers: atHeaders,
+              body: JSON.stringify({ contentType, filename: fileName, file: fileData }),
+            }
+          );
+          if (!uploadRes.ok) {
+            const errBody = await uploadRes.text();
+            console.error(`Attachment upload failed for ${fieldName}:`, errBody);
+            throw new Error(fieldName);
+          }
+        } catch (err) {
+          // Tag all errors with fieldName so Promise.allSettled callers can identify
+          // which field failed without inspecting error message text from upstream.
+          if (err.message !== fieldName) {
+            console.error(`Attachment upload error for ${fieldName}:`, err.message);
+          }
+          throw new Error(fieldName);
         }
-      );
-      if (!uploadRes.ok) {
-        const errBody = await uploadRes.text();
-        console.error(`Attachment upload failed for ${fieldName}:`, errBody);
-        uploadErrors.push(fieldName);
+      })()
+    );
+
+  const uploadResults = await Promise.allSettled(uploadTasks);
+  const uploadErrors  = uploadResults
+    .filter(r => r.status === 'rejected')
+    .map(r => (r.reason && r.reason.message) || String(r.reason));
+
+  // ── Step 3b: PATCH Case with actual document receipt status ──────────────
+  // Now that upload outcomes are known, PATCH the Case to set the receipt
+  // checkboxes correctly. Retry once on failure; if both attempts fail, the
+  // Case still exists — surface a statusUpdateWarning without failing the
+  // response. Do not log PII or Airtable response bodies in warnings.
+  const hasTicket = !!(data.ticketPhotoBase64) && !uploadErrors.includes('Ticket Upload');
+  const hasId     = !!(data.idPhotoBase64)     && !uploadErrors.includes('ID Upload');
+
+  const patchFields = {
+    'Ticket Received':         hasTicket,
+    'Driver License Received': hasId,
+    'Documents Complete':      hasTicket && hasId,
+  };
+
+  async function patchDocStatus() {
+    const patchRes = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/${CASES_TABLE}/${recordId}`,
+      {
+        method: 'PATCH',
+        headers: atHeaders,
+        body: JSON.stringify({ fields: patchFields }),
       }
-    } catch (err) {
-      console.error(`Attachment upload error for ${fieldName}:`, err.message);
-      uploadErrors.push(fieldName);
+    );
+    return patchRes.ok;
+  }
+
+  let statusUpdateWarning;
+  try {
+    const patchOk = await patchDocStatus();
+    if (!patchOk) {
+      // Retry once after a short bounded delay
+      await new Promise(r => setTimeout(r, 500));
+      const retryOk = await patchDocStatus();
+      if (!retryOk) {
+        // Both attempts failed — case exists, checkboxes not yet updated.
+        console.warn('Document status PATCH failed after retry for case', caseNum);
+        statusUpdateWarning = 'Document status could not be updated on the case record — please verify manually.';
+      }
     }
+  } catch (patchErr) {
+    console.warn('Document status PATCH error for case', caseNum, '—', patchErr.message);
+    statusUpdateWarning = 'Document status could not be updated on the case record — please verify manually.';
   }
 
   // ── Step 4: Create "Missing Documents" task if either doc is absent ──────
   // Non-fatal: a failure here must never block the success response.
-  //
-  // hasTicket / hasId reflect actual upload outcomes, not just Base64 presence.
-  // If a client submits a photo but the Airtable upload fails, the doc is NOT
-  // considered received and a Missing Documents task must still be created.
-  const ticketSubmitted = !!(data.ticketPhotoBase64);
-  const idSubmitted     = !!(data.idPhotoBase64);
-  const hasTicket = ticketSubmitted && !uploadErrors.includes('Ticket Upload');
-  const hasId     = idSubmitted     && !uploadErrors.includes('ID Upload');
-
+  // This is a freshly created Case — no dedup GET is needed since it cannot
+  // already have a Missing Documents task.
   if (!hasTicket || !hasId) {
     const tasksTable = process.env.AIRTABLE_TASKS_TABLE_ID;
 
     if (tasksTable) {
       try {
-        // Dedup: skip only if an Open or In-Progress "Missing Documents" task
-        // already exists for this case. Other task types and Done/Cancelled
-        // Missing Documents tasks must not prevent a new one from being created.
-        const dedupFilter = encodeURIComponent(
-          `AND(FIND("Missing Documents",{Task})>0,OR({Status}="Open",{Status}="In Progress"),{Case Record ID}="${recordId}")`
-        );
-        const dedupRes  = await fetch(
-          `https://api.airtable.com/v0/${BASE_ID}/${tasksTable}` +
-          `?filterByFormula=${dedupFilter}&maxRecords=1&fields[]=Case Record ID`,
-          { headers: atHeaders }
-        );
-        const dedupData = await dedupRes.json();
-        const alreadyExists = dedupData.records && dedupData.records.length > 0;
+        const missing = [];
+        if (!hasTicket) missing.push('Traffic Ticket');
+        if (!hasId)     missing.push('Driver License');
 
-        if (!alreadyExists) {
-          const missing = [];
-          if (!hasTicket) missing.push('Traffic Ticket');
-          if (!hasId)     missing.push('Driver License');
+        const todayStr = new Date().toISOString().split('T')[0];
 
-          const todayStr = new Date().toISOString().split('T')[0];
+        const taskFields = {
+          'Task':           `📄 Missing Documents — ${caseNum}`,
+          'Status':         'Open',
+          'Priority':       priority,   // '🔴 High' | '🟡 Medium' | '🟢 Low' — already computed
+          'Case #':         caseNum,
+          'Case Record ID': recordId,
+          'Notes':          `Missing: ${missing.join(' & ')}. Request from client before processing.`,
+          'Created By':     'System (Intake Form)',
+          'Created Date':   todayStr,
+        };
+        // Due Date intentionally omitted — no defined business rule for this task type.
+        // Add it here when a rule is confirmed (e.g. "use court date as due date").
 
-          const taskFields = {
-            'Task':           `📄 Missing Documents — ${caseNum}`,
-            'Status':         'Open',
-            'Priority':       priority,   // '🔴 High' | '🟡 Medium' | '🟢 Low' — already computed
-            'Case #':         caseNum,
-            'Case Record ID': recordId,
-            'Notes':          `Missing: ${missing.join(' & ')}. Request from client before processing.`,
-            'Created By':     'System (Intake Form)',
-            'Created Date':   todayStr,
-          };
-          // Due Date intentionally omitted — no defined business rule for this task type.
-          // Add it here when a rule is confirmed (e.g. "use court date as due date").
-
-          const taskRes = await fetch(
-            `https://api.airtable.com/v0/${BASE_ID}/${tasksTable}`,
-            {
-              method: 'POST',
-              headers: atHeaders,
-              body: JSON.stringify({ fields: taskFields }),
-            }
-          );
-          if (!taskRes.ok) {
-            const errBody = await taskRes.text();
-            console.error('Missing Documents task create failed:', errBody);
-          } else {
-            console.log('Missing Documents task created for', caseNum);
+        const taskRes = await fetch(
+          `https://api.airtable.com/v0/${BASE_ID}/${tasksTable}`,
+          {
+            method: 'POST',
+            headers: atHeaders,
+            body: JSON.stringify({ fields: taskFields }),
           }
+        );
+        if (!taskRes.ok) {
+          const errBody = await taskRes.text();
+          console.error('Missing Documents task create failed:', errBody);
         } else {
-          console.log('Missing Documents task (open) already exists for', caseNum, '— skipped');
+          console.log('Missing Documents task created for', caseNum);
         }
       } catch (taskErr) {
         // Non-fatal — case was already created successfully
@@ -414,6 +444,9 @@ exports.handler = async function (event) {
       recordId,
       ...(uploadErrors.length
         ? { attachmentWarning: `Could not upload: ${uploadErrors.join(', ')}` }
+        : {}),
+      ...(statusUpdateWarning
+        ? { statusUpdateWarning }
         : {}),
     }),
   };

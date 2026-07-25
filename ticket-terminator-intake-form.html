@@ -517,7 +517,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 .cb-wrap.checked{border-color:rgba(255,122,0,0.45);background:rgba(255,122,0,0.04);}
 .cb-wrap.cb-error{border-color:rgba(255,69,58,0.5);background:rgba(255,69,58,0.03);}
 .cb-wrap input{display:none;}
-.cb-box{width:20px;height:20px;border:2px solid rgba(255,255,255,0.18);border-radius:6px;flex-shrink:0;background:var(--dark2);display:flex;align-items:center;justify-content:center;transition:all 0.2s7margin-top:1px;}
+.cb-box{width:20px;height:20px;border:2px solid rgba(255,255,255,0.18);border-radius:6px;flex-shrink:0;background:var(--dark2);display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px;}
 .cb-wrap.checked .cb-box{background:var(--grad);border-color:var(--orange);}
 .cb-check{display:none;color:#fff;font-size:11px;font-weight:900;line-height:1;}
 .cb-wrap.checked .cb-check{display:block;}
@@ -2151,7 +2151,7 @@ function go(dir){
 function showEl(id){const e=document.getElementById(id);if(e)e.classList.add('show');}
 function hideEl(id){const e=document.getElementById(id);if(e)e.classList.remove('show');}
 /* ── UPLOAD CONSTANTS ── */
-const MAX_PDF_BYTES   = 4.5 * 1024 * 1024;  // 4.5 MB hard block (server limit is 5 MB body)
+const MAX_PDF_BYTES   = 3 * 1024 * 1024;    // 3 MB hard block (keeps PDFs well under 4.5 MB body limit)
 const IMG_MAX_PX      = 2048;                // longest edge after resize
 const IMG_QUALITY     = 0.82;               // JPEG quality (good balance size/clarity)
 
@@ -2418,7 +2418,7 @@ async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
     const body=JSON.stringify(payload);
     /* Pre-flight body-size guard — Netlify function hard limit is 6 MB */
     const bodySizeBytes=new TextEncoder().encode(body).length;
-    if(bodySizeBytes>5*1024*1024){
+    if(bodySizeBytes>4.5*1024*1024){
       if(btn){btn.disabled=false;btn.textContent=origText;}
       const msg=currentLang==='es'
         ?'Los archivos son demasiado grandes. Intenta con imágenes más pequeñas o sin archivos adjuntos.'
