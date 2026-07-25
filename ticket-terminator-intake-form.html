@@ -2436,8 +2436,13 @@ function submitNetlifyFallback(fn, ln, ph, em, st, vt, story, caseNum) {
 
 /* ── PAYLOAD FINGERPRINT ── */
 async function computePayloadFingerprint(payload) {
-  // Hash the canonical payload (sorted keys, submissionId excluded) via SubtleCrypto
-  const { submissionId: _sid, ...hashableData } = payload;
+  // Hash the canonical payload (sorted keys) via SubtleCrypto.
+  // Excluded from hash (volatile / auto-generated — must not affect fingerprint stability):
+  //   submissionId     — generated from the fingerprint; circular if included
+  //   consentTimestamp — changes on every Submit click; would break reload / lost-response retry
+  // Included (material user data whose change should produce a new Case):
+  //   smsConsent, all form fields, Base64 document data, lang
+  const { submissionId: _sid, consentTimestamp: _cts, ...hashableData } = payload;
   const canonical = JSON.stringify(
     Object.fromEntries(Object.keys(hashableData).sort().map(k => [k, hashableData[k]]))
   );

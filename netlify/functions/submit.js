@@ -95,13 +95,15 @@ exports.handler = async function (event) {
   }
 
   // ── Compute request fingerprint ───────────────────────────────────
-  // SHA-256 of the canonical payload (all keys sorted, submissionId excluded).
-  // Stable across retries of the same form data; changes when any material
-  // field changes. Stored in the Blob claim so a reused submissionId with a
-  // different payload is detected and rejected with 409 before any Airtable
-  // mutation. Document contents (Base64) are included in the hash — a new
-  // photo means a new fingerprint.
-  const { submissionId: _sid, ...hashableData } = data;
+  // SHA-256 of the canonical payload (all keys sorted).
+  // Excluded from hash (volatile / auto-generated — must not affect fingerprint stability):
+  //   submissionId     — the key being looked up; circular if included
+  //   consentTimestamp — changes on every Submit click; would break reload / lost-response retry
+  // Included (material user data whose change should produce a new Case):
+  //   smsConsent, all form fields, Base64 document data, lang.
+  // Stored in the Blob claim so a reused submissionId with a different payload
+  // is detected and rejected with 409 before any Airtable mutation.
+  const { submissionId: _sid, consentTimestamp: _cts, ...hashableData } = data;
   const canonicalPayload = JSON.stringify(
     Object.fromEntries(Object.keys(hashableData).sort().map(k => [k, hashableData[k]]))
   );
