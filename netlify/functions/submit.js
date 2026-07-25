@@ -328,6 +328,82 @@ exports.handler = async function (event) {
     }
   }
 
+  // ── Step 4: Create "Missing Documents" task if either doc is absent ──────
+  // Non-fatal: a failure here must never block the success response.
+  //
+  // hasTicket / hasId reflect actual upload outcomes, not just Base64 presence.
+  // If a client submits a photo but the Airtable upload fails, the doc is NOT
+  // considered received and a Missing Documents task must still be created.
+  const ticketSubmitted = !!(data.ticketPhotoBase64);
+  const idSubmitted     = !!(data.idPhotoBase64);
+  const hasTicket = ticketSubmitted && !uploadErrors.includes('Ticket Upload');
+  const hasId     = idSubmitted     && !uploadErrors.includes('ID Upload');
+
+  if (!hasTicket || !hasId) {
+    const tasksTable = process.env.AIRTABLE_TASKS_TABLE_ID;
+
+    if (tasksTable) {
+      try {
+        // Dedup: skip only if an Open or In-Progress "Missing Documents" task
+        // already exists for this case. Other task types and Done/Cancelled
+        // Missing Documents tasks must not prevent a new one from being created.
+        const dedupFilter = encodeURIComponent(
+          `AND(FIND("Missing Documents",{Task})>0,OR({Status}="Open",{Status}="In Progress"),{Case Record ID}="${recordId}")`
+        );
+        const dedupRes  = await fetch(
+          `https://api.airtable.com/v0/${BASE_ID}/${tasksTable}` +
+          `?filterByFormula=${dedupFilter}&maxRecords=1&fields[]=Case Record ID`,
+          { headers: atHeaders }
+        );
+        const dedupData = await dedupRes.json();
+        const alreadyExists = dedupData.records && dedupData.records.length > 0;
+
+        if (!alreadyExists) {
+          const missing = [];
+          if (!hasTicket) missing.push('Traffic Ticket');
+          if (!hasId)     missing.push('Driver License');
+
+          const todayStr = new Date().toISOString().split('T')[0];
+
+          const taskFields = {
+            'Task':           `📄 Missing Documents — ${caseNum}`,
+            'Status':         'Open',
+            'Priority':       priority,   // '🔴 High' | '🟡 Medium' | '🟢 Low' — already computed
+            'Case #':         caseNum,
+            'Case Record ID': recordId,
+            'Notes':          `Missing: ${missing.join(' & ')}. Request from client before processing.`,
+            'Created By':     'System (Intake Form)',
+            'Created Date':   todayStr,
+          };
+          // Due Date intentionally omitted — no defined business rule for this task type.
+          // Add it here when a rule is confirmed (e.g. "use court date as due date").
+
+          const taskRes = await fetch(
+            `https://api.airtable.com/v0/${BASE_ID}/${tasksTable}`,
+            {
+              method: 'POST',
+              headers: atHeaders,
+              body: JSON.stringify({ fields: taskFields }),
+            }
+          );
+          if (!taskRes.ok) {
+            const errBody = await taskRes.text();
+            console.error('Missing Documents task create failed:', errBody);
+          } else {
+            console.log('Missing Documents task created for', caseNum);
+          }
+        } else {
+          console.log('Missing Documents task (open) already exists for', caseNum, '— skipped');
+        }
+      } catch (taskErr) {
+        // Non-fatal — case was already created successfully
+        console.warn('Missing Documents task creation error:', taskErr.message);
+      }
+    } else {
+      console.warn('AIRTABLE_TASKS_TABLE_ID not set — Missing Documents task skipped');
+    }
+  }
+
   // ── Return success ────────────────────────────────────────────────────────
   return {
     statusCode: 200,
