@@ -984,6 +984,8 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
             <span>✓</span>
             <span id="acFillText"></span>
           </div>
+          <!-- Stable county source — set by selectCourt(), persisted in draft. Never read dataset.county for submission. -->
+          <input type="hidden" id="county_hidden">
         </div>
       </div>
 
@@ -1828,6 +1830,9 @@ function initCourtAC(){
     fill.classList.remove('show');
     drop.classList.remove('open');
     drop.innerHTML='';
+    // State change invalidates any previously selected court and county
+    const countyHidden=document.getElementById('county_hidden');
+    if(countyHidden) countyHidden.value='';
     if(activeCourts.length){
       const T2=TRANSLATIONS[currentLang];
       hint.textContent=(currentLang==='es'?'Escribe para buscar '+activeCourts.length+' tribunales en ':'Type to search '+activeCourts.length+' courts in ')+state;
@@ -1843,6 +1848,9 @@ function initCourtAC(){
   inp.addEventListener('input',function(){
     const q=this.value.trim().toLowerCase();
     fill.classList.remove('show');
+    // User is editing the text field — the previously selected county no longer applies
+    const countyHidden=document.getElementById('county_hidden');
+    if(countyHidden) countyHidden.value='';
     if(!q||activeCourts.length===0){drop.classList.remove('open');drop.innerHTML='';return;}
     const matches=activeCourts.filter(c=>
       c.n.toLowerCase().includes(q)||
@@ -1896,9 +1904,11 @@ function initCourtAC(){
     fill.classList.add('show');
     hint.textContent='';
     acIdx=-1;
-    // Store for submit
+    // Store for submit — county_hidden is the stable source of truth (persists across page reloads via draft)
     inp.dataset.city=city;
     inp.dataset.county=county;
+    const countyHidden=document.getElementById('county_hidden');
+    if(countyHidden) countyHidden.value=county;
   }
 }
 initCourtAC();
@@ -2069,7 +2079,9 @@ function saveDraft(){
   try{
     const d={
       fn:V('fn'),ln:V('ln'),ph:V('ph'),em:V('em'),st:V('st'),
-      cdl:R('cdl'),contact:R('contact'),step:step,ts:Date.now()
+      cdl:R('cdl'),contact:R('contact'),step:step,ts:Date.now(),
+      // Court location and county persisted so fingerprint is stable across reload
+      cloc:V('cloc'),county:(document.getElementById('county_hidden')?.value||'')
     };
     localStorage.setItem(DRAFT_KEY,JSON.stringify(d));
     const ind=document.getElementById('draftIndicator');
@@ -2093,6 +2105,9 @@ function restoreDraft(){
     if(d.st)document.getElementById('st').value=d.st;
     if(d.cdl){const r=document.querySelector(`input[name="cdl"][value="${d.cdl}"]`);if(r)r.checked=true;}
     if(d.contact){const r=document.querySelector(`input[name="contact"][value="${d.contact}"]`);if(r)r.checked=true;}
+    // Restore court location and county so fingerprint is stable after reload
+    if(d.cloc){const e=document.getElementById('cloc');if(e)e.value=d.cloc;}
+    if(d.county){const e=document.getElementById('county_hidden');if(e)e.value=d.county;}
   }catch(e){}
 }
 
@@ -2306,7 +2321,8 @@ async function submit(){
   const cdate= cdateEl ? cdateEl.value : '';
   const clocEl=document.getElementById('cloc');
   const cloc = clocEl ? clocEl.value.trim() : '';
-  const county= clocEl ? (clocEl.dataset.county||'') : '';
+  // Read county from the hidden input (stable source of truth), not the transient dataset property
+  const county= (document.getElementById('county_hidden')?.value||'').trim();
   const cdl  = (document.querySelector('input[name="cdl"]:checked')||{}).value||'no';
   const contact=(document.querySelector('input[name="contact"]:checked')||{}).value||'';
   const pd   = (document.querySelector('input[name="pd"]:checked')||{}).value||'';
@@ -2435,20 +2451,119 @@ function submitNetlifyFallback(fn, ln, ph, em, st, vt, story, caseNum) {
 }
 
 /* ── PAYLOAD FINGERPRINT ── */
+// Normalize a single value for hashing:
+//   - Absent optionals (null / undefined / '') collapse to undefined → key skipped
+//   - Strings are trimmed
+//   - Booleans kept as-is
+function _fpNorm(v) {
+  if (v === null || v === undefined || v === '') return undefined;
+  if (typeof v === 'string') return v.trim() === '' ? undefined : v.trim();
+  return v;
+}
+
 async function computePayloadFingerprint(payload) {
   // Hash the canonical payload (sorted keys) via SubtleCrypto.
   // Excluded from hash (volatile / auto-generated — must not affect fingerprint stability):
   //   submissionId     — generated from the fingerprint; circular if included
   //   consentTimestamp — changes on every Submit click; would break reload / lost-response retry
+  // Normalization applied before hashing (must match server):
+  //   - null / undefined / '' treated as absent (key omitted)
+  //   - String values trimmed
+  //   - Booleans kept as-is
   // Included (material user data whose change should produce a new Case):
   //   smsConsent, all form fields, Base64 document data, lang
   const { submissionId: _sid, consentTimestamp: _cts, ...hashableData } = payload;
-  const canonical = JSON.stringify(
-    Object.fromEntries(Object.keys(hashableData).sort().map(k => [k, hashableData[k]]))
-  );
+  const entries = Object.keys(hashableData).sort().reduce((acc, k) => {
+    const v = _fpNorm(hashableData[k]);
+    if (v !== undefined) acc.push([k, v]);
+    return acc;
+  }, []);
+  const canonical = JSON.stringify(Object.fromEntries(entries));
   const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+/* ── DETERMINISTIC FINGERPRINT TESTS ── */
+// Run window.__runFPTests() in console to verify hash stability.
+// All 7 tests must pass for fingerprint-stability guarantees to hold.
+window.__runFPTests = async function() {
+  const pass = [], fail = [];
+  function assert(name, got, expected, extra) {
+    const ok = got === expected;
+    const entry = { name, ok, got, expected, ...(extra||{}) };
+    (ok ? pass : fail).push(entry);
+    console[ok ? 'log' : 'error']('[FP-TEST] ' + (ok ? '✓' : '✗') + ' ' + name, ok ? '' : '\n  got:      ' + got + '\n  expected: ' + expected);
+    return ok;
+  }
+
+  // Helper: compute hash for a plain-JS payload object (no SubtleCrypto ceremony)
+  async function fpOf(obj) {
+    return computePayloadFingerprint(obj);
+  }
+
+  // ── Base payload — represents a fully-filled form with court selected ──────
+  const base = {
+    firstName: 'BT', lastName: 'BT-E2E', phone: '(555) 555-0101',
+    email: 'bt-e2e-lr@bt.invalid', state: 'California', cdl: 'no',
+    citationNum: 'RLE2E-001', violationType: 'Red Light', violationDesc: '',
+    violationDate: '2026-07-01', courtLocation: 'Los Angeles Superior Court',
+    county: 'Los Angeles',
+    preferredContact: 'email', trafficSchool: 'no',
+    story: 'E2E idempotency test. Red light. Cite RLE2E-001.',
+    heardAbout: 'Google', referredBy: '',
+    smsConsent: true, consentTimestamp: '2026-07-01T00:00:00.000Z',
+    lang: 'en', submissionId: 'aaaaaaaa-0000-4000-8000-000000000001',
+  };
+
+  // ── T1: Same payload → same hash (idempotency baseline) ──────────────────
+  const h1a = await fpOf({...base});
+  const h1b = await fpOf({...base});
+  assert('T1: identical payload → same hash', h1a, h1b);
+
+  // ── T2: county='' vs county omitted → same hash (normalization) ──────────
+  const withEmptyCounty    = {...base, county: ''};
+  const withUndefinedCounty = {...base, county: undefined};
+  const h2a = await fpOf(withEmptyCounty);
+  const h2b = await fpOf(withUndefinedCounty);
+  assert('T2: county="" vs county=undefined → same hash', h2a, h2b);
+
+  // ── T3: Different consentTimestamp → same hash (volatile field excluded) ──
+  const h3a = await fpOf({...base, consentTimestamp: '2026-01-01T00:00:00.000Z'});
+  const h3b = await fpOf({...base, consentTimestamp: '2026-12-31T23:59:59.999Z'});
+  assert('T3: different consentTimestamp → same hash', h3a, h3b);
+
+  // ── T4: Different submissionId → same hash (volatile field excluded) ──────
+  const h4a = await fpOf({...base, submissionId: 'aaaaaaaa-0000-4000-8000-000000000001'});
+  const h4b = await fpOf({...base, submissionId: 'bbbbbbbb-0000-4000-8000-000000000002'});
+  assert('T4: different submissionId → same hash', h4a, h4b);
+
+  // ── T5: Changed county → different hash ──────────────────────────────────
+  const h5a = await fpOf({...base, county: 'Los Angeles'});
+  const h5b = await fpOf({...base, county: 'Orange'});
+  const h5diff = h5a !== h5b;
+  (h5diff ? pass : fail).push({ name: 'T5', ok: h5diff });
+  console[h5diff ? 'log' : 'error']('[FP-TEST] ' + (h5diff ? '✓' : '✗') + ' T5: county change → different hash');
+
+  // ── T6: Trimmed whitespace → same hash ───────────────────────────────────
+  const h6a = await fpOf({...base, story: 'E2E idempotency test. Red light. Cite RLE2E-001.'});
+  const h6b = await fpOf({...base, story: '  E2E idempotency test. Red light. Cite RLE2E-001.  '});
+  assert('T6: leading/trailing whitespace trimmed → same hash', h6a, h6b);
+
+  // ── T7: Changed smsConsent → different hash ───────────────────────────────
+  const h7a = await fpOf({...base, smsConsent: true});
+  const h7b = await fpOf({...base, smsConsent: false});
+  const h7diff = h7a !== h7b;
+  (h7diff ? pass : fail).push({ name: 'T7', ok: h7diff });
+  console[h7diff ? 'log' : 'error']('[FP-TEST] ' + (h7diff ? '✓' : '✗') + ' T7: smsConsent change → different hash');
+
+  console.log('\n[FP-TEST] Result: ' + pass.length + '/7 passed, ' + fail.length + ' failed');
+  if (fail.length) {
+    console.error('[FP-TEST] FAILED tests:', fail.map(f => f.name).join(', '));
+  } else {
+    console.log('[FP-TEST] All 7 fingerprint stability tests passed ✓');
+  }
+  return { pass: pass.length, fail: fail.length, failures: fail };
+};
 
 /* ── CROSS-TAB LOCK WRAPPER ── */
 async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {

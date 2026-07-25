@@ -99,14 +99,26 @@ exports.handler = async function (event) {
   // Excluded from hash (volatile / auto-generated — must not affect fingerprint stability):
   //   submissionId     — the key being looked up; circular if included
   //   consentTimestamp — changes on every Submit click; would break reload / lost-response retry
+  // Normalization applied before hashing (must match client):
+  //   - null / undefined / '' treated as absent (key omitted)
+  //   - String values trimmed
+  //   - Booleans kept as-is
   // Included (material user data whose change should produce a new Case):
   //   smsConsent, all form fields, Base64 document data, lang.
   // Stored in the Blob claim so a reused submissionId with a different payload
   // is detected and rejected with 409 before any Airtable mutation.
+  function _fpNorm(v) {
+    if (v === null || v === undefined || v === '') return undefined;
+    if (typeof v === 'string') return v.trim() === '' ? undefined : v.trim();
+    return v;
+  }
   const { submissionId: _sid, consentTimestamp: _cts, ...hashableData } = data;
-  const canonicalPayload = JSON.stringify(
-    Object.fromEntries(Object.keys(hashableData).sort().map(k => [k, hashableData[k]]))
-  );
+  const fpEntries = Object.keys(hashableData).sort().reduce((acc, k) => {
+    const v = _fpNorm(hashableData[k]);
+    if (v !== undefined) acc.push([k, v]);
+    return acc;
+  }, []);
+  const canonicalPayload = JSON.stringify(Object.fromEntries(fpEntries));
   const requestHash = createHash('sha256').update(canonicalPayload).digest('hex');
 
   // ── Environment / Airtable config ────────────────────────────────
