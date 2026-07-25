@@ -2375,6 +2375,28 @@ async function submit(){
     lang:               currentLang,
   };
 
+  /* ── submissionId: bound to payload fingerprint; new ID if payload materially changed ── */
+  // Compute fingerprint first (without submissionId) to decide reuse vs new ID
+  const currentFingerprint = await computePayloadFingerprint(payload);
+  let submissionId;
+  let storedSession = null;
+  try {
+    const raw = sessionStorage.getItem('tt_session');
+    if (raw) storedSession = JSON.parse(raw);
+  } catch(e) { storedSession = null; }
+
+  if (storedSession && storedSession.submissionId && storedSession.fingerprint === currentFingerprint) {
+    // Same payload as before — reuse submissionId (idempotent retry)
+    submissionId = storedSession.submissionId;
+  } else {
+    // New or materially changed payload — generate fresh submissionId
+    submissionId = window.crypto.randomUUID();
+    try {
+      sessionStorage.setItem('tt_session', JSON.stringify({ submissionId, fingerprint: currentFingerprint }));
+    } catch(e) {}
+  }
+  payload.submissionId = submissionId;
+
   // Store for retry
   window._lastPayload = payload;
   window._submitBtn   = btn;
@@ -2412,11 +2434,144 @@ function submitNetlifyFallback(fn, ln, ph, em, st, vt, story, caseNum) {
   } catch (e) { console.warn('Fallback submit failed:', e); }
 }
 
-/* ── CORE SUBMIT FUNCTION ── */
+/* ── PAYLOAD FINGERPRINT ── */
+async function computePayloadFingerprint(payload) {
+  // Hash the canonical payload (sorted keys, submissionId excluded) via SubtleCrypto
+  const { submissionId: _sid, ...hashableData } = payload;
+  const canonical = JSON.stringify(
+    Object.fromEntries(Object.keys(hashableData).sort().map(k => [k, hashableData[k]]))
+  );
+  const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ── CROSS-TAB LOCK WRAPPER ── */
 async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
+  const blockedMsg = currentLang === 'es'
+    ? 'Esta solicitud ya se está enviando en otra pestaña. Espera un momento e inténtalo de nuevo.'
+    : 'This intake is already being submitted in another tab. Please wait a moment and try again.';
+
+  // ── Path A: Web Locks API — full atomic cross-tab exclusion (Chrome, Firefox, Edge)
+  if (typeof navigator !== 'undefined' && navigator.locks &&
+      typeof navigator.locks.request === 'function') {
+    await navigator.locks.request('tt-submission-lock', { ifAvailable: true }, async (lock) => {
+      if (lock === null) {
+        // Another tab holds the lock right now
+        if (btn) { btn.disabled = false; btn.textContent = origText; }
+        showToast(blockedMsg);
+        return;
+      }
+      // Lock held — releases automatically when this async callback resolves/rejects
+      await _doSubmitCore(payload, btn, origText, fn, ln, ph, em, st, vt);
+    });
+    return;
+  }
+
+  // ── Path B: IndexedDB atomic transaction lock (Safari < 15.4, older browsers)
+  // Atomically: read lock record → reject unexpired foreign lock → create/replace expired lock.
+  // ownerToken is unique per tab execution; ensures only the winner proceeds.
+  const IDB_DB_NAME    = 'tt_locks_db';
+  const IDB_STORE_NAME = 'locks';
+  const IDB_LOCK_KEY   = 'active_submission';
+  const IDB_LOCK_TTL   = 120_000; // 120s
+
+  const ownerToken = window.crypto.randomUUID();
+  let idbLockAcquired = false;
+  let lockDb = null;
+
+  // Helper: open (or create) the locks database
+  function openLockDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_DB_NAME, 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
+          db.createObjectStore(IDB_STORE_NAME);
+        }
+      };
+      req.onsuccess  = (e) => resolve(e.target.result);
+      req.onerror    = (e) => reject(e.target.error);
+    });
+  }
+
+  // Helper: atomically acquire the lock via a readwrite transaction
+  function acquireLockTx(db, myOwnerToken, mySubmissionId) {
+    return new Promise((resolve, reject) => {
+      const tx    = db.transaction(IDB_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(IDB_STORE_NAME);
+      const getReq = store.get(IDB_LOCK_KEY);
+      getReq.onsuccess = () => {
+        const existing = getReq.result;
+        const now = Date.now();
+        if (existing && existing.expiresAt > now && existing.ownerToken !== myOwnerToken) {
+          // Unexpired lock owned by another execution — reject
+          tx.abort();
+          resolve(false);
+          return;
+        }
+        // Expired or absent — create/replace atomically inside the same transaction
+        const putReq = store.put({
+          ownerToken:   myOwnerToken,
+          submissionId: mySubmissionId,
+          expiresAt:    now + IDB_LOCK_TTL,
+        }, IDB_LOCK_KEY);
+        putReq.onsuccess = () => resolve(true);
+        putReq.onerror   = () => { tx.abort(); resolve(false); };
+      };
+      getReq.onerror = () => { tx.abort(); resolve(false); };
+      tx.onerror = () => resolve(false);
+    });
+  }
+
+  // Helper: release lock only if ownerToken still matches
+  function releaseLock(db, myOwnerToken) {
+    return new Promise((resolve) => {
+      try {
+        const tx    = db.transaction(IDB_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(IDB_STORE_NAME);
+        const getReq = store.get(IDB_LOCK_KEY);
+        getReq.onsuccess = () => {
+          const existing = getReq.result;
+          if (existing && existing.ownerToken === myOwnerToken) {
+            store.delete(IDB_LOCK_KEY);
+          }
+          resolve();
+        };
+        getReq.onerror = () => resolve();
+        tx.oncomplete = () => resolve();
+        tx.onerror    = () => resolve();
+      } catch(_) { resolve(); }
+    });
+  }
+
+  try {
+    lockDb = await openLockDb();
+    const acquired = await acquireLockTx(lockDb, ownerToken, payload.submissionId);
+    if (!acquired) {
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+      showToast(blockedMsg);
+      return;
+    }
+    idbLockAcquired = true;
+  } catch(e) {
+    // IndexedDB unavailable — proceed without lock (best effort)
+  }
+
+  try {
+    await _doSubmitCore(payload, btn, origText, fn, ln, ph, em, st, vt);
+  } finally {
+    if (idbLockAcquired && lockDb) {
+      await releaseLock(lockDb, ownerToken);
+    }
+    if (lockDb) { try { lockDb.close(); } catch(_) {} }
+  }
+}
+
+/* ── CORE SUBMIT FUNCTION ── */
+async function _doSubmitCore(payload, btn, origText, fn, ln, ph, em, st, vt) {
   try {
     const body=JSON.stringify(payload);
-    /* Pre-flight body-size guard — Netlify function hard limit is 6 MB */
+    /* Pre-flight body-size guard — server enforces 5 MB; browser rejects at 4.5 MB */
     const bodySizeBytes=new TextEncoder().encode(body).length;
     if(bodySizeBytes>4.5*1024*1024){
       if(btn){btn.disabled=false;btn.textContent=origText;}
@@ -2435,12 +2590,24 @@ async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
     let result;
     try { result = await res.json(); } catch(e) { result = {}; }
 
+    // ── 409 IDEMPOTENCY_KEY_REUSED — different payload, same submissionId ──
+    if (res.status === 409 && result.code === 'IDEMPOTENCY_KEY_REUSED') {
+      try { sessionStorage.removeItem('tt_session'); } catch(e) {}
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+      const msg409 = currentLang === 'es'
+        ? 'Este envío no se pudo procesar. Por favor, recarga la página e inténtalo de nuevo.'
+        : 'This submission could not be processed. Please reload and try again.';
+      showToast(msg409);
+      return;
+    }
+
     if(!res.ok || !result.success) {
       throw new Error(result.error || 'Submission failed. Please try again.');
     }
 
-    // Clear draft on success
+    // Clear draft and session on success
     try { localStorage.removeItem('tt_form_draft'); } catch(e){}
+    try { sessionStorage.removeItem('tt_session'); } catch(e){}
 
     const cn = result.caseNum;
 
