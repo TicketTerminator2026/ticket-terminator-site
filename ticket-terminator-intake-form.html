@@ -517,7 +517,7 @@ input.invalid{border-color:rgba(255,69,58,0.45)!important;}
 .cb-wrap.checked{border-color:rgba(255,122,0,0.45);background:rgba(255,122,0,0.04);}
 .cb-wrap.cb-error{border-color:rgba(255,69,58,0.5);background:rgba(255,69,58,0.03);}
 .cb-wrap input{display:none;}
-.cb-box{width:20px;height:20px;border:2px solid rgba(255,255,255,0.18);border-radius:6px;flex-shrink:0;background:var(--dark2);display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px;}
+.cb-box{width:20px;height:20px;border:2px solid rgba(255,255,255,0.18);border-radius:6px;flex-shrink:0;background:var(--dark2);display:flex;align-items:center;justify-content:center;transition:all 0.2s7margin-top:1px;}
 .cb-wrap.checked .cb-box{background:var(--grad);border-color:var(--orange);}
 .cb-check{display:none;color:#fff;font-size:11px;font-weight:900;line-height:1;}
 .cb-wrap.checked .cb-check{display:block;}
@@ -2150,11 +2150,27 @@ function go(dir){
 }
 function showEl(id){const e=document.getElementById(id);if(e)e.classList.add('show');}
 function hideEl(id){const e=document.getElementById(id);if(e)e.classList.remove('show');}
+/* ── UPLOAD CONSTANTS ── */
+const MAX_PDF_BYTES   = 4.5 * 1024 * 1024;  // 4.5 MB hard block (server limit is 5 MB body)
+const IMG_MAX_PX      = 2048;                // longest edge after resize
+const IMG_QUALITY     = 0.82;               // JPEG quality (good balance size/clarity)
+
+function fmtBytes(b){
+  if(b<1024)return b+'B';
+  if(b<1024*1024)return(b/1024).toFixed(1)+'KB';
+  return(b/(1024*1024)).toFixed(2)+'MB';
+}
+
 function handleUp(inp,zid,rid,nid,iid,def){
   if(!inp.files||!inp.files[0])return;
   const f=inp.files[0];
-  if(f.size > 8*1024*1024){
-    alert('File is too large (max 8MB). Please compress the image and try again.');
+  const isPdf=f.type==='application/pdf'||(f.name||'').toLowerCase().endsWith('.pdf');
+  if(isPdf && f.size>MAX_PDF_BYTES){
+    const maxMB=(MAX_PDF_BYTES/(1024*1024)).toFixed(1);
+    const msg=currentLang==='es'
+      ?`El PDF es demasiado grande (${fmtBytes(f.size)}). Máximo ${maxMB} MB.`
+      :`PDF is too large (${fmtBytes(f.size)}). Max allowed is ${maxMB} MB — please reduce the file size and try again.`;
+    alert(msg);
     inp.value='';
     return;
   }
@@ -2163,17 +2179,85 @@ function handleUp(inp,zid,rid,nid,iid,def){
   const z=document.getElementById(zid);z.classList.add('done');
   document.getElementById(iid).textContent='✅';
   z.querySelector('.uz-title').textContent=currentLang==='es'?'¡Archivo adjunto!':'File attached!';
-  z.querySelector('.uz-sub').innerHTML=f.name;
+  const sizeHint=isPdf?fmtBytes(f.size):`${fmtBytes(f.size)} → compressing…`;
+  z.querySelector('.uz-sub').innerHTML=`<span style="font-size:0.78em;opacity:.75">${sizeHint}</span>`;
 }
-function readFileAsBase64(inputId){
+
+/* Compress an image file using Canvas and return a data URL.
+   Falls back to raw base64 if canvas is unavailable. */
+function compressImage(file){
+  return new Promise(resolve=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let {naturalWidth:w,naturalHeight:h}=img;
+      if(w>IMG_MAX_PX||h>IMG_MAX_PX){
+        const ratio=Math.min(IMG_MAX_PX/w,IMG_MAX_PX/h);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
+      }
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      const dataUrl=canvas.toDataURL('image/jpeg',IMG_QUALITY);
+      resolve(dataUrl);
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      // Fallback: read raw
+      const fr=new FileReader();
+      fr.onload=e=>resolve(e.target.result);
+      fr.onerror=()=>resolve(null);
+      fr.readAsDataURL(file);
+    };
+    img.src=url;
+  });
+}
+
+function readAndCompressFile(inputId){
   return new Promise((resolve)=>{
     const inp=document.getElementById(inputId);
     if(!inp||!inp.files||!inp.files[0]){resolve(null);return;}
-    const reader=new FileReader();
-    reader.onload=e=>resolve({data:e.target.result,name:inp.files[0].name});
-    reader.onerror=()=>resolve(null);
-    reader.readAsDataURL(inp.files[0]);
+    const f=inp.files[0];
+    const isPdf=f.type==='application/pdf'||(f.name||'').toLowerCase().endsWith('.pdf');
+    const origSize=f.size;
+    const zid=inputId==='tf'?'tz':'iz';
+
+    if(isPdf){
+      // PDFs: pass through as-is (already size-checked in handleUp)
+      const reader=new FileReader();
+      reader.onload=e=>{
+        const data=e.target.result;
+        const compressedSize=Math.round((data.length-22)*3/4); // approx decoded bytes
+        _updateUploadSizeHint(zid,origSize,compressedSize,false);
+        resolve({data,name:f.name,origSize,compressedSize:origSize});
+      };
+      reader.onerror=()=>resolve(null);
+      reader.readAsDataURL(f);
+    } else {
+      // Images: compress via canvas
+      compressImage(f).then(dataUrl=>{
+        if(!dataUrl){resolve(null);return;}
+        const compressedSize=Math.round((dataUrl.length-dataUrl.indexOf(',')-1)*3/4);
+        _updateUploadSizeHint(zid,origSize,compressedSize,true);
+        resolve({data:dataUrl,name:f.name,origSize,compressedSize});
+      });
+    }
   });
+}
+
+function _updateUploadSizeHint(zid,origSize,compressedSize,isImage){
+  const z=document.getElementById(zid);
+  if(!z)return;
+  const sub=z.querySelector('.uz-sub');
+  if(!sub)return;
+  if(isImage && compressedSize<origSize){
+    const pct=Math.round((1-compressedSize/origSize)*100);
+    sub.innerHTML=`<span style="font-size:0.78em;opacity:.75">${fmtBytes(origSize)} → ${fmtBytes(compressedSize)} <span style="color:#30D158">−${pct}%</span></span>`;
+  } else {
+    sub.innerHTML=`<span style="font-size:0.78em;opacity:.75">${fmtBytes(origSize)}</span>`;
+  }
 }
 function clearUp(e,fid,zid,rid,iid,def){
   e.stopPropagation();
@@ -2247,10 +2331,10 @@ async function submit(){
   const speedAlleged = document.getElementById('speedAlleged') ? document.getElementById('speedAlleged').value.trim() : '';
   const speedLimit   = document.getElementById('speedLimit') ? document.getElementById('speedLimit').value.trim() : '';
 
-  /* Read uploaded files as base64 */
+  /* Read and compress uploaded files */
   const [ticketFile, idFile] = await Promise.all([
-    readFileAsBase64('tf'),
-    readFileAsBase64('idf'),
+    readAndCompressFile('tf'),
+    readAndCompressFile('idf'),
   ]);
 
   const payload = {
@@ -2331,10 +2415,21 @@ function submitNetlifyFallback(fn, ln, ph, em, st, vt, story, caseNum) {
 /* ── CORE SUBMIT FUNCTION ── */
 async function doSubmit(payload, btn, origText, fn, ln, ph, em, st, vt) {
   try {
+    const body=JSON.stringify(payload);
+    /* Pre-flight body-size guard — Netlify function hard limit is 6 MB */
+    const bodySizeBytes=new TextEncoder().encode(body).length;
+    if(bodySizeBytes>5*1024*1024){
+      if(btn){btn.disabled=false;btn.textContent=origText;}
+      const msg=currentLang==='es'
+        ?'Los archivos son demasiado grandes. Intenta con imágenes más pequeñas o sin archivos adjuntos.'
+        :'Attachments are too large to send. Please use smaller images (under 2MB each) or remove attachments and submit, then text us your documents at 877-873-3187.';
+      showToast(msg);
+      return;
+    }
     const res = await fetch('/.netlify/functions/submit',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
+      body,
     });
 
     let result;
