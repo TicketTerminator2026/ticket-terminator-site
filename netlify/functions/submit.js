@@ -229,7 +229,10 @@ exports.handler = async function (event) {
   // throws         → storage unreachable; fail closed (never create Case without protection)
   let claimResult;
   try {
-    claimResult = await store.setJSON(submissionId, initialState, { onlyIfNew: true });
+    // Use set() not setJSON() — setJSON v10 has a bug where it spreads conditions
+    // into makeRequest instead of passing them as a named param, so onlyIfNew/
+    // onlyIfMatch headers are silently dropped and every write appears to succeed.
+    claimResult = await store.set(submissionId, JSON.stringify(initialState), { onlyIfNew: true });
   } catch (blobErr) {
     console.error('Idempotency store unavailable (claim):', blobErr.message);
     return {
@@ -359,7 +362,7 @@ exports.handler = async function (event) {
 
     let takeoverResult;
     try {
-      takeoverResult = await store.setJSON(submissionId, takenEntry, { onlyIfMatch: existingEtag });
+      takeoverResult = await store.set(submissionId, JSON.stringify(takenEntry), { onlyIfMatch: existingEtag });
     } catch (e) {
       console.error('Idempotency store unavailable (takeover):', e.message);
       return {
@@ -405,7 +408,7 @@ exports.handler = async function (event) {
     const newData = { ...currentEntry, ...partial, updatedAt: new Date().toISOString() };
     let result;
     try {
-      result = await store.setJSON(submissionId, newData, { onlyIfMatch: myEtag });
+      result = await store.set(submissionId, JSON.stringify(newData), { onlyIfMatch: myEtag });
     } catch (e) {
       console.error('Blob state transition storage error:', e.message);
       throw e; // storage failure — propagate to top-level catch
@@ -428,7 +431,7 @@ exports.handler = async function (event) {
     };
     let result;
     try {
-      result = await store.setJSON(submissionId, renewed, { onlyIfMatch: myEtag });
+      result = await store.set(submissionId, JSON.stringify(renewed), { onlyIfMatch: myEtag });
     } catch (e) {
       console.error('Lease renewal storage error:', e.message);
       throw e;
