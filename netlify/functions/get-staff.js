@@ -1,26 +1,35 @@
 // Ticket Terminator — List staff members (Admin only)
 // GET → { records }
-// POST { _setup: true, ... } → create first admin (see staff-auth.js)
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token with the Admin role.
+// Password hashes are never returned.
+
+'use strict';
+
+const {
+  requireAuth, jsonResponse, forbidden, serverError, upstreamError, methodNotAllowed,
+} = require('./_verify-token');
 
 const STAFF_TABLE = 'tblFGsQpsOJFF2r2V';
 
-function decodeToken(token) {
-  try { return JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()); } catch { return null; }
-}
-
 exports.handler = async function (event) {
-  const base = process.env.AIRTABLE_BASE_ID;
-  const key  = process.env.AIRTABLE_API_KEY;
+  if (event.httpMethod !== 'GET') return methodNotAllowed();
 
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
-  const staff = decodeToken(tokenHeader) || { role: '' };
+  // ── 1. Authenticate ───────────────────────────────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
 
-  if (staff.role !== 'Admin') {
-    return { statusCode: 403, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Admin only' }) };
+  // ── 2. Owner/Admin only ───────────────────────────────────────────────────
+  if (auth.staff.role !== 'Admin') {
+    return forbidden('Staff administration requires an Admin account.');
   }
 
-  if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
+  const base = process.env.AIRTABLE_BASE_ID;
+  const key  = process.env.AIRTABLE_API_KEY;
+  if (!base || !key) {
+    console.error('[get-staff] Missing Airtable environment configuration.');
+    return serverError();
+  }
 
   try {
     const params = new URLSearchParams();
@@ -30,19 +39,18 @@ exports.handler = async function (event) {
     params.set('fields[]', 'Role');
     params.set('fields[]', 'Active');
     params.set('fields[]', 'Last Login');
-    // Never return Password Hash to frontend
+    // Never return Password Hash to the frontend.
 
     const res  = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${params}`,
       { headers: { 'Authorization': `Bearer ${key}` } });
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 502, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message }) };
+      console.error('[get-staff] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-      body: JSON.stringify({ records: data.records || [] }) };
+    return jsonResponse(200, { records: data.records || [] });
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[get-staff] error:', err.message);
+    return serverError();
   }
 };

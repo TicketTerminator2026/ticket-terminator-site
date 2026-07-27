@@ -1,16 +1,35 @@
 // Ticket Terminator — get-documents.js
-// Returns case documents and/or document templates from Airtable
-// GET /.netlify/functions/get-documents?type=all|case-docs|templates&caseId=recXXX
+// GET ?type=all|case-docs|templates&caseId=recXXX → { caseDocs?, templates? }
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token (any known role).
 
-exports.handler = async function(event) {
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+'use strict';
+
+const {
+  requireAuth, jsonResponse, serverError, upstreamError, methodNotAllowed,
+  escapeFormulaValue,
+} = require('./_verify-token');
+
+const CASE_DOCS_TABLE = 'tblfYr2UCNJSikhjp';
+const TEMPLATES_TABLE = 'tblKlrzPFTVmmGDCa';
+const MAX_RECORDS = 2000; // bound the paginated fetch
+
+exports.handler = async function (event) {
+  if (event.httpMethod !== 'GET') return methodNotAllowed();
+
+  // ── Auth first — before any Airtable contact ──────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const apiKey = process.env.AIRTABLE_API_KEY;
+
+  if (!baseId || !apiKey) {
+    console.error('[get-documents] Missing Airtable environment configuration.');
+    return serverError();
   }
 
-  const baseId  = process.env.AIRTABLE_BASE_ID;
-  const apiKey  = process.env.AIRTABLE_API_KEY;
   const headers = { 'Authorization': `Bearer ${apiKey}` };
-
   const params  = event.queryStringParameters || {};
   const type    = params.type   || 'all';    // 'all' | 'case-docs' | 'templates'
   const caseId  = params.caseId || '';       // optional — filter case docs by case record ID
@@ -26,38 +45,35 @@ exports.handler = async function(event) {
       const res = await fetch(url, { headers });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(`Airtable ${res.status}: ${errData.error?.message || res.statusText}`);
+        console.error('[get-documents] Airtable error:', res.status, errData && errData.error && errData.error.message);
+        throw new Error('UPSTREAM');
       }
       const data = await res.json();
       records.push(...(data.records || []));
       offset = data.offset || '';
-    } while (offset);
+    } while (offset && records.length < MAX_RECORDS);
     return records;
   }
 
   try {
     const result = {};
 
-    // ── Case Documents (tblfYr2UCNJSikhjp) ──
     if (type === 'case-docs' || type === 'all') {
+      // Escaped to prevent Airtable formula injection.
       const filter = caseId
-        ? `FIND("${caseId.replace(/"/g, '')}",ARRAYJOIN({Case})) > 0`
+        ? `FIND("${escapeFormulaValue(caseId)}",ARRAYJOIN({Case})) > 0`
         : '';
-      result.caseDocs = await fetchAll('tblfYr2UCNJSikhjp', filter);
+      result.caseDocs = await fetchAll(CASE_DOCS_TABLE, filter);
     }
 
-    // ── Document Templates (tblKlrzPFTVmmGDCa) ──
     if (type === 'templates' || type === 'all') {
-      result.templates = await fetchAll('tblKlrzPFTVmmGDCa', '');
+      result.templates = await fetchAll(TEMPLATES_TABLE, '');
     }
 
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-      body: JSON.stringify(result),
-    };
-  } catch(e) {
+    return jsonResponse(200, result);
+  } catch (e) {
+    if (e.message === 'UPSTREAM') return upstreamError();
     console.error('[get-documents]', e.message);
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    return serverError();
   }
 };
