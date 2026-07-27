@@ -1,57 +1,79 @@
 // Ticket Terminator — Create or update a Task
 // POST { fields } → create | PATCH { recordId, fields } → update
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token.
+// AUTHORIZATION (Phase 0): Employee, Manager and Admin may write; Read Only is
+// blocked. Explicit positive field allowlist. Created By / Created Date /
+// Completed Date are set server-side and cannot be supplied by the caller.
+
+'use strict';
 
 const { log } = require('./_log');
-const TASKS_TABLE = 'tblvwrl2hPjUjbUkC';
+const {
+  requireAuth, canWrite, parseJsonBody, enforceFields,
+  jsonResponse, forbidden, badRequest, serverError, upstreamError, methodNotAllowed,
+  TASK_FIELDS,
+} = require('./_verify-token');
 
-function decodeToken(token) {
-  try { return JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()); } catch { return null; }
-}
+const TASKS_TABLE = 'tblvwrl2hPjUjbUkC';
 
 exports.handler = async function (event) {
   const isCreate = event.httpMethod === 'POST';
   const isUpdate = event.httpMethod === 'PATCH';
-  if (!isCreate && !isUpdate) return { statusCode: 405, body: 'Method Not Allowed' };
+  if (!isCreate && !isUpdate) return methodNotAllowed();
 
-  const base = process.env.AIRTABLE_BASE_ID;
-  const key  = process.env.AIRTABLE_API_KEY;
-  const env  = { base, key };
+  // ── 1. Authenticate ───────────────────────────────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+  const staff = auth.staff;
 
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
-  const staff = decodeToken(tokenHeader) || { name: 'Unknown', staffId: '', role: '' };
+  // ── 2. Read Only cannot write ─────────────────────────────────────────────
+  if (!canWrite(staff)) return forbidden('Your role does not permit changes.');
 
-  if (staff.role === 'Read Only') {
-    return { statusCode: 403, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Permission denied' }) };
+  // ── 3. Parse body ─────────────────────────────────────────────────────────
+  const parsed = parseJsonBody(event);
+  if (!parsed.ok) return parsed.response;
+
+  const { recordId } = parsed.body;
+  const submitted = parsed.body.fields || {};
+
+  if (isUpdate && (typeof recordId !== 'string' || !recordId.startsWith('rec'))) {
+    return badRequest('A valid task record reference is required.');
   }
 
-  let body;
-  try { body = JSON.parse(event.body); } catch {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
+  // ── 4. Field allowlist — BEFORE any Airtable call ─────────────────────────
+  const gate = enforceFields('save-task', submitted, TASK_FIELDS);
+  if (!gate.ok) return gate.response;
 
-  const { recordId } = body;
-  const fields = { ...(body.fields || {}) };
+  const fields = { ...submitted };
 
+  // Server-controlled metadata.
   if (isCreate) {
     fields['Created By']   = staff.name;
     fields['Created Date'] = new Date().toISOString();
     if (!fields['Status']) fields['Status'] = 'Open';
   }
-
   if (fields['Status'] === 'Done' && !fields['Completed Date']) {
     fields['Completed Date'] = new Date().toISOString();
+  }
+
+  const base = process.env.AIRTABLE_BASE_ID;
+  const key  = process.env.AIRTABLE_API_KEY;
+  const env  = { base, key };
+  if (!base || !key) {
+    console.error('[save-task] Missing Airtable environment configuration.');
+    return serverError();
   }
 
   const clean = {};
   Object.entries(fields).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== '') clean[k] = v;
+    if (v === false || v === 0) clean[k] = v;
   });
 
   const url = isCreate
     ? `https://api.airtable.com/v0/${base}/${TASKS_TABLE}`
-    : `https://api.airtable.com/v0/${base}/${TASKS_TABLE}/${recordId}`;
+    : `https://api.airtable.com/v0/${base}/${TASKS_TABLE}/${encodeURIComponent(recordId)}`;
 
   try {
     const res = await fetch(url, {
@@ -61,23 +83,22 @@ exports.handler = async function (event) {
     });
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message || JSON.stringify(data) }) };
+      console.error('[save-task] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
 
-    log(env, {
+    await log(env, {
       staffName: staff.name, staffId: staff.staffId,
-      action: isCreate ? `Created task: ${clean['Task']}` : `Updated task: ${clean['Task'] || recordId}`,
+      action: isCreate ? `Created task: ${clean['Task'] || ''}` : `Updated task: ${clean['Task'] || recordId}`,
       category: 'Task',
       caseNum: clean['Case #'], caseId: clean['Case Record ID'],
       field: isCreate ? 'Task Created' : 'Task Updated',
       oldVal: '', newVal: clean['Status'] || '',
     });
 
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, record: data }) };
+    return jsonResponse(200, { success: true, record: data });
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[save-task] error:', err.message);
+    return serverError();
   }
 };

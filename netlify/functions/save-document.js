@@ -1,70 +1,105 @@
 // Ticket Terminator — save-document.js
-// Creates or updates a record in Case Documents or Document Templates
+// POST { table: 'case-docs'|'templates', recordId?, fields } → { success, record }
 //
-// POST /.netlify/functions/save-document
-// Body: {
-//   table:    'case-docs' | 'templates'
-//   recordId: string (optional — omit to create, include to update)
-//   fields:   { [fieldName]: value }
-// }
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token.
+//
+// AUTHORIZATION (Phase 0):
+//   Read Only          — blocked from all document writes
+//   Employee           — may create/update ordinary CASE documents only
+//   Manager / Admin    — may manage case documents AND global templates
+// Explicit positive field allowlist per table. File URL values must be http(s)
+// so javascript:/data: URLs can never be stored and later rendered.
+
+'use strict';
+
+const {
+  requireAuth, canWrite, hasMinRole, parseJsonBody, enforceFields,
+  jsonResponse, forbidden, badRequest, serverError, upstreamError, methodNotAllowed,
+  CASE_DOC_FIELDS, TEMPLATE_FIELDS, isSafeHttpUrl,
+} = require('./_verify-token');
 
 const TABLE_IDS = {
   'case-docs': 'tblfYr2UCNJSikhjp',
   'templates': 'tblKlrzPFTVmmGDCa',
 };
 
-exports.handler = async function(event) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
+const FIELD_POLICY = {
+  'case-docs': CASE_DOC_FIELDS,
+  'templates': TEMPLATE_FIELDS,
+};
+
+exports.handler = async function (event) {
+  if (event.httpMethod !== 'POST') return methodNotAllowed();
+
+  // ── 1. Authenticate ───────────────────────────────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+  const staff = auth.staff;
+
+  // ── 2. Read Only cannot write ─────────────────────────────────────────────
+  if (!canWrite(staff)) return forbidden('Your role does not permit changes.');
+
+  // ── 3. Parse body ─────────────────────────────────────────────────────────
+  const parsed = parseJsonBody(event);
+  if (!parsed.ok) return parsed.response;
+
+  const { table, recordId, fields } = parsed.body;
+
+  if (!table || !TABLE_IDS[table]) {
+    return badRequest('Unknown document type.');
+  }
+
+  // ── 4. Template administration is Manager or higher ───────────────────────
+  if (table === 'templates' && !hasMinRole(staff, 'Manager')) {
+    return forbidden('Managing document templates requires a Manager or Admin account.');
+  }
+
+  if (recordId !== undefined && (typeof recordId !== 'string' || !recordId.startsWith('rec'))) {
+    return badRequest('A valid document reference is required.');
+  }
+
+  // ── 5. Field allowlist — BEFORE any Airtable call ─────────────────────────
+  const gate = enforceFields(`save-document[${table}]`, fields, FIELD_POLICY[table]);
+  if (!gate.ok) return gate.response;
+
+  // ── 6. Reject unsafe URL schemes ──────────────────────────────────────────
+  const url = fields['File URL'];
+  if (url !== undefined && url !== null && url !== '' && !isSafeHttpUrl(url)) {
+    return badRequest('File URL must be a valid http or https link.');
   }
 
   const baseId = process.env.AIRTABLE_BASE_ID;
   const apiKey = process.env.AIRTABLE_API_KEY;
-
-  // ── Parse body ──────────────────────────────────────
-  let body;
-  try { body = JSON.parse(event.body || '{}'); }
-  catch { return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON body' }) }; }
-
-  const { table, recordId, fields } = body;
-
-  if (!table || !TABLE_IDS[table]) {
-    return { statusCode: 400, body: JSON.stringify({ error: `Invalid table: "${table}". Use "case-docs" or "templates".` }) };
-  }
-  if (!fields || typeof fields !== 'object') {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing or invalid fields object' }) };
+  if (!baseId || !apiKey) {
+    console.error('[save-document] Missing Airtable environment configuration.');
+    return serverError();
   }
 
   const tableId = TABLE_IDS[table];
-  const url     = recordId
-    ? `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`
+  const target  = recordId
+    ? `https://api.airtable.com/v0/${baseId}/${tableId}/${encodeURIComponent(recordId)}`
     : `https://api.airtable.com/v0/${baseId}/${tableId}`;
   const method  = recordId ? 'PATCH' : 'POST';
 
-  // ── Call Airtable ────────────────────────────────────
   try {
-    const res = await fetch(url, {
+    const res = await fetch(target, {
       method,
       headers: {
-        'Authorization':  `Bearer ${apiKey}`,
-        'Content-Type':   'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type':  'application/json',
       },
       body: JSON.stringify({ fields }),
     });
 
     const data = await res.json();
     if (!res.ok) {
-      console.error('[save-document] Airtable error:', data);
-      return { statusCode: res.status, body: JSON.stringify(data) };
+      console.error('[save-document] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
 
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    };
-  } catch(e) {
+    return jsonResponse(200, { success: true, record: data, ...data });
+  } catch (e) {
     console.error('[save-document]', e.message);
-    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
+    return serverError();
   }
 };
