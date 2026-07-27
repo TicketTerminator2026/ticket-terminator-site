@@ -1620,20 +1620,20 @@ function currency(v) {
 
 function statusBadge(s) {
   if (!s) return '<span class="text-muted">—</span>';
-  return `<span class="badge ${statusBadgeClass(s)}">${s}</span>`;
+  return `<span class="badge ${statusBadgeClass(s)}">${esc(s)}</span>`;
 }
 
 function priorityBadge(p) {
   if (!p) return '';
   const map = { 'Urgent':'badge-urgent', 'High':'badge-high', 'Routine':'badge-routine', 'Low':'badge-routine' };
   const cls = Object.entries(map).find(([k]) => p.includes(k))?.[1] || 'badge-routine';
-  return `<span class="badge ${cls}">${p}</span>`;
+  return `<span class="badge ${cls}">${esc(p)}</span>`;
 }
 
 function typeBadge(t) {
   if (!t) return '—';
-  if (t.includes('DUI')) return `<span class="badge badge-dui">${t}</span>`;
-  return `<span class="badge badge-traffic">${t}</span>`;
+  if (t.includes('DUI')) return `<span class="badge badge-dui">${esc(t)}</span>`;
+  return `<span class="badge badge-traffic">${esc(t)}</span>`;
 }
 
 function quoteStatusBadge(q) {
@@ -1646,7 +1646,7 @@ function quoteStatusBadge(q) {
     'Payment Confirmed':'badge-payment-conf',
   };
   const cls = Object.entries(map).find(([k]) => q.includes(k))?.[1] || 'badge-routine';
-  return `<span class="badge ${cls}">${q}</span>`;
+  return `<span class="badge ${cls}">${esc(q)}</span>`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1740,7 +1740,7 @@ async function submitChangePw() {
   try {
     const res  = await fetch('/.netlify/functions/change-password', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body:    JSON.stringify({ token, currentPassword: current, newPassword: newPw }),
     });
     const data = await res.json();
@@ -1815,7 +1815,7 @@ async function loadData() {
     loadEl.innerHTML = `<div style="color:var(--red);text-align:center;font-size:13px;">
       <div style="font-size:28px;margin-bottom:8px;">⚠</div>
       <strong>Could not reach Airtable</strong><br><br>
-      ${e.message}<br><br>
+      ${esc(e.message)}<br><br>
       <button class="btn" onclick="loadData()">🔄 Retry</button>
     </div>`;
     return;
@@ -1846,7 +1846,7 @@ async function loadData() {
     loadEl.innerHTML = `<div style="color:var(--red);text-align:center;font-size:13px;">
       <div style="font-size:28px;margin-bottom:8px;">⚠</div>
       <strong>Dashboard render error</strong><br><br>
-      ${e.message}<br>
+      ${esc(e.message)}<br>
       <small style="opacity:.6;font-family:monospace;">${(e.stack||'').split('\n').slice(0,2).join(' › ')}</small><br><br>
       <button class="btn" onclick="loadData()">🔄 Retry</button>
     </div>`;
@@ -2353,7 +2353,7 @@ function renderPaidNoAtty() {
     const badgeCls = isUrg ? 'badge-urgent' : '';
     return `<div class="court-item">
       <div class="court-info">
-        <div class="court-name">${clientName(r)} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
+        <div class="court-name">${esc(clientName(r))} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
         <div class="court-meta">${esc(f(r)['Case Type'] || '—')} · ${esc(f(r)['Court Location'] || 'No location')}</div>
       </div>
       ${cd ? `<span class="badge ${badgeCls}" style="font-size:10px;flex-shrink:0;">${dayLabel}</span>` : ''}
@@ -2401,7 +2401,7 @@ function renderOverdueFollowUps() {
     const cls = severity === 'urgent' ? 'badge-urgent' : 'badge-pending';
     return `<div class="court-item">
       <div class="court-info">
-        <div class="court-name">${clientName(r)} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
+        <div class="court-name">${esc(clientName(r))} &mdash; <span class="mono">${esc(f(r)['Case #'] || '—')}</span></div>
         <div class="court-meta">${esc(f(r)['Status'] || '—')} · ${esc(f(r)['Case Type'] || '—')}</div>
       </div>
       <span class="badge ${cls}" style="font-size:10px;flex-shrink:0;">${reason}</span>
@@ -2433,7 +2433,7 @@ function renderAttyQueueDetail() {
   ];
 
   el.innerHTML = `<div class="pipeline-stages">${stages.map(({ label, icon, color, cases }) => {
-    const names  = cases.slice(0, 2).map(r => clientName(r)).join(', ');
+    const names  = cases.slice(0, 2).map(r => esc(clientName(r))).join(', ');
     const more   = cases.length > 2 ? ` +${cases.length - 2}` : '';
     const cntClr = cases.length > 0 ? color : '#484f58';
     return `<div class="pipeline-stage">
@@ -2472,7 +2472,7 @@ function renderPaymentQueueDash() {
     const pct       = total > 0 ? Math.round((collected / total) * 100) : 0;
     return `<div class="pay-queue-item">
       <div style="flex:1;min-width:0;">
-        <div class="court-name" style="font-size:12px;">${clientName(r)} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
+        <div class="court-name" style="font-size:12px;">${esc(clientName(r))} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
         <div class="pay-queue-bar-wrap"><div class="pay-queue-bar" style="width:${pct}%"></div></div>
         <div class="court-meta">${pct}% paid · ${esc(f(r)['Case Type'] || '—')}</div>
       </div>
@@ -2505,7 +2505,7 @@ function renderRecentCasesDash() {
     return `<div class="court-item">
       <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:3px;"></div>
       <div class="court-info">
-        <div class="court-name" style="font-size:12px;">${clientName(r)} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
+        <div class="court-name" style="font-size:12px;">${esc(clientName(r))} <span class="mono" style="font-size:10px;">${esc(f(r)['Case #'] || '')}</span></div>
         <div class="court-meta">${esc(f(r)['Status'] || '—')} · ${formatDateShort(f(r)['Date Submitted'])}</div>
       </div>
       <button class="icon-btn view" onclick="openModal('${r.id}')" title="View case">👁</button>
@@ -2553,8 +2553,8 @@ function renderUpcomingCourts() {
         <div class="day">${day}</div>
       </div>
       <div class="court-info">
-        <div class="court-name">${clientName(r)}</div>
-        <div class="court-meta">${f(r)['Case #'] || '—'} · ${f(r)['Court Location'] || 'Court TBD'}</div>
+        <div class="court-name">${esc(clientName(r))}</div>
+        <div class="court-meta">${esc(f(r)['Case #'] || '—')} · ${esc(f(r)['Court Location'] || 'Court TBD')}</div>
       </div>
       <span class="court-days-left ${daysClass}">${daysLabel}</span>
       <button class="icon-btn view" onclick="openModal('${r.id}')">👁</button>
@@ -2630,10 +2630,10 @@ function renderRecentLeads() {
   }
   tbody.innerHTML = leads.map(r => `
     <tr>
-      <td class="mono no-wrap">${f(r)['Case #'] || '—'}</td>
+      <td class="mono no-wrap">${esc(f(r)['Case #'] || '—')}</td>
       <td><div style="display:flex;align-items:center;gap:8px;">
         <div class="avatar">${(f(r)['First Name']||'?')[0]}${(f(r)['Last Name']||'')[0]||''}</div>
-        ${clientName(r)}
+        ${esc(clientName(r))}
       </div></td>
       <td>${typeBadge(f(r)['Case Type'])}</td>
       <td class="no-wrap" style="color:var(--gray-text);font-size:11px;">${formatDateShort(f(r)['Date Submitted'])}</td>
@@ -2672,7 +2672,7 @@ function renderFlaggedCases() {
     const cls = severity === 'urgent' ? 'badge-urgent' : severity === 'high' ? 'badge-high' : 'badge-pending';
     return `<div class="court-item">
       <div class="court-info">
-        <div class="court-name">${clientName(r)} — <span class="mono" style="font-size:11px;">${f(r)['Case #']||'—'}</span></div>
+        <div class="court-name">${esc(clientName(r))} — <span class="mono" style="font-size:11px;">${esc(f(r)['Case #']||'—')}</span></div>
         <div class="court-meta">${f(r)['Case Type']||'—'} · ${f(r)['Court Location']||'No court'}</div>
       </div>
       <span class="badge ${cls}" style="font-size:10px;">${reason}</span>
@@ -2947,11 +2947,11 @@ function renderKanban() {
         ondragend="kanbanDragEnd(event)"
         onclick="openModal('${r.id}')">
         <div class="kanban-card-top">
-          <span class="kanban-case-num">${f(r)['Case #']||'—'}</span>
+          <span class="kanban-case-num">${esc(f(r)['Case #']||'—')}</span>
           ${prioHtml}
         </div>
-        <div class="kanban-client">${clientName(r)}</div>
-        <div class="kanban-type">${f(r)['Case Type']||'—'} · ${f(r)['Court State']||''}</div>
+        <div class="kanban-client">${esc(clientName(r))}</div>
+        <div class="kanban-type">${esc(f(r)['Case Type']||'—')} · ${esc(f(r)['Court State']||'')}</div>
         <div class="kanban-footer">
           <div class="kanban-court ${courtClass}">
             📅 ${cd ? formatDateShort(cd) : 'No court date'}
@@ -3128,7 +3128,7 @@ function renderCalendar() {
     const evHtml = events.slice(0,3).map(r => {
       const isDUI = (f(r)['Case Type']||'').includes('DUI');
       const cls = isDUI ? 'cal-event dui' : 'cal-event';
-      return `<div class="${cls}" onclick="openModal('${r.id}')" title="${clientName(r)}">${clientName(r)}</div>`;
+      return `<div class="${cls}" onclick="openModal('${r.id}')" title="${esc(clientName(r))}">${esc(clientName(r))}</div>`;
     }).join('');
     const moreHtml = events.length > 3 ? `<div style="font-size:9px;color:var(--gray-muted);padding:2px 4px;">+${events.length-3} more</div>` : '';
     cells += `<div class="cal-cell${isToday?' today':''}">
@@ -3208,11 +3208,11 @@ function renderAttyTable() {
       : '<span class="badge badge-payment-pend">Unpaid</span>';
 
     return `<tr>
-      <td class="mono no-wrap">${f(r)['Case #']||'—'}</td>
-      <td><strong>${clientName(r)}</strong></td>
+      <td class="mono no-wrap">${esc(f(r)['Case #']||'—')}</td>
+      <td><strong>${esc(clientName(r))}</strong></td>
       <td>${typeBadge(f(r)['Case Type'])}</td>
       <td class="no-wrap">${dateHtml}</td>
-      <td>${attyNames || '<span class="text-red">Not assigned</span>'}</td>
+      <td>${attyNames ? esc(attyNames) : '<span class="text-red">Not assigned</span>'}</td>
       <td>${quoteStatusBadge(f(r)['Quote Status'])}</td>
       <td class="currency">${currency(f(r)['Attorney Service Fee'])}</td>
       <td>${paid}</td>
@@ -3378,8 +3378,8 @@ function _renderFinTable() {
 
     return `<div class="fin-row${sel?' fin-row-selected':''}" id="finrow-${rid}">
       <span><input type="checkbox" class="fin-cb" onchange="toggleFinRow('${rid}',this.checked)"${sel?' checked':''}></span>
-      <span class="fin-client-name" onclick="openModal('${rid}')">${name}</span>
-      <span class="fin-case-num">${caseNum}</span>
+      <span class="fin-client-name" onclick="openModal('${rid}')">${esc(name)}</span>
+      <span class="fin-case-num">${esc(caseNum)}</span>
       <span>${statusBadge(status)}</span>
       <span class="fin-money">${collected > 0 ? $fmt(collected) : '<span class="fin-zero">—</span>'}</span>
       <span class="fin-money ${balance > 0 ? 'fin-bal-warn' : ''}">${balance > 0 ? $fmt(balance) : '<span class="fin-zero">$0</span>'}</span>
@@ -3440,7 +3440,7 @@ async function markAttyPaid(recordId) {
   const today = new Date().toISOString().slice(0,10);
   try {
     const res = await fetch('/.netlify/functions/update-case', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: staffHeader(),
       body: JSON.stringify({ recordId, previousFields: f(r), fields: { 'Attorney Payment Confirmed':true, 'Attorney Paid Date':today, 'Attorney Balance Remaining':0, 'Payout Due?':false }, staffName: getStaffName() })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -3462,7 +3462,7 @@ async function bulkMarkAttyPaid() {
     if (!r) continue;
     try {
       await fetch('/.netlify/functions/update-case', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST', headers: staffHeader(),
         body: JSON.stringify({ recordId:rid, previousFields:f(r), fields:{'Attorney Payment Confirmed':true,'Attorney Paid Date':today,'Attorney Balance Remaining':0,'Payout Due?':false}, staffName:getStaffName() })
       });
       f(r)['Attorney Payment Confirmed'] = true;
@@ -3479,7 +3479,7 @@ async function openBulkAssignAttorney() {
   // Fetch attorneys silently if not loaded yet
   if (ALL_ATTORNEYS.length === 0) {
     try {
-      const res = await fetch('/.netlify/functions/get-attorneys');
+      const res = await fetch('/.netlify/functions/get-attorneys', { headers: staffHeader() });
       const d   = await res.json();
       ALL_ATTORNEYS = d.records || [];
     } catch(e) { alert('Could not load attorneys. Try again.'); return; }
@@ -3488,7 +3488,7 @@ async function openBulkAssignAttorney() {
   if (!active.length) { alert('No active attorneys found. Add one in the Attorneys tab first.'); return; }
   const sel = document.getElementById('fin-atty-select');
   sel.innerHTML = active.map(a =>
-    `<option value="${a.id}">${a.fields?.['Attorney Name'] || 'Unknown'}</option>`
+    `<option value="${a.id}">${esc(a.fields?.['Attorney Name'] || 'Unknown')}</option>`
   ).join('');
   document.getElementById('fin-atty-picker').style.display = 'flex';
 }
@@ -3537,7 +3537,7 @@ function openFinPayment(recordId) {
   div.id = `fpf-${recordId}`;
   div.className = 'fin-pay-form';
   div.innerHTML = `<div class="lcf-inner">
-    <div class="lcf-title">Record Payment — ${name}</div>
+    <div class="lcf-title">Record Payment — ${esc(name)}</div>
     <div class="lcf-row">
       <div class="lcf-field">
         <label class="lcf-label">Amount ($) <span style="color:var(--muted)">(balance: $${balance.toLocaleString()})</span></label>
@@ -3570,7 +3570,7 @@ async function submitFinPayment(recordId) {
   const newBal   = Math.max(0, prevBal - amt);
   try {
     const res = await fetch('/.netlify/functions/update-case', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers: staffHeader(),
       body: JSON.stringify({ recordId, previousFields:f(r), fields:{'Client Fee Collected':newColl,'Client Balance Remaining':newBal,'Payment Method':method}, staffName:getStaffName() })
     });
     if (!res.ok) throw new Error(await res.text());
@@ -3594,7 +3594,7 @@ async function bulkMarkPaid() {
     const prevBal  = Number(f(r)['Client Balance Remaining'])||0;
     try {
       await fetch('/.netlify/functions/update-case', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST', headers: staffHeader(),
         body: JSON.stringify({ recordId:rid, previousFields:f(r), fields:{'Client Fee Collected':prevColl+amt,'Client Balance Remaining':Math.max(0,prevBal-amt),'Payment Method':method}, staffName:getStaffName() })
       });
       f(r)['Client Fee Collected']     = prevColl + amt;
@@ -3719,7 +3719,7 @@ function _renderCaseModal(r) {
   // ── Header ─────────────────────────────────────────────
   document.getElementById('modal-head').innerHTML = `
     ${statusBadge(fd['Status'])}
-    <span class="modal-case-num">${fd['Case #'] || 'Case'}</span>
+    <span class="modal-case-num">${esc(fd['Case #'] || 'Case')}</span>
     ${typeBadge(fd['Case Type'])}
     ${priorityBadge(fd['Priority'])}
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -3802,13 +3802,13 @@ function _tabOverview(r) {
     ${courtBanner}
     <div class="modal-section" style="margin-top:0;">Quick Summary</div>
     <div class="modal-info-row">
-      ${infoItem('Client', clientN)}
-      ${infoItem('Attorney', _resolveAttyNames(r))}
+      ${infoItem('Client', esc(clientN))}
+      ${infoItem('Attorney', esc(_resolveAttyNames(r)))}
       ${infoItem('Submitted', formatDate(fd['Date Submitted']))}
     </div>
     <div class="modal-info-row">
       ${infoItem('Court Date', courtDateDisp, courtStyle)}
-      ${infoItem('Location', fd['Court Location'] || '—')}
+      ${infoItem('Location', esc(fd['Court Location'] || '—'))}
       ${fd['Court Outcome'] ? infoItem('Outcome', `<strong>${_esc(fd['Court Outcome'])}</strong>`) : infoItem('Outcome', '—')}
     </div>
     <div class="modal-info-row">
@@ -3845,8 +3845,8 @@ function _tabClient(r) {
     <div class="modal-grid">
       <div class="modal-field"><div class="modal-label">First Name</div><input class="edit-input" id="ef-first" value="${esc(fd['First Name']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Last Name</div><input class="edit-input" id="ef-last" value="${esc(fd['Last Name']||'')}"></div>
-      <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="ef-phone" value="${esc(fd['Phone']||'')}"><a href="tel:${esc(fd['Phone']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Phone']?'block':'none'}">📞 Call</a></div>
-      <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" type="email" id="ef-email" value="${esc(fd['Email']||'')}"><a href="mailto:${esc(fd['Email']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Email']?'block':'none'}">✉ Send email</a></div>
+      <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="ef-phone" value="${esc(fd['Phone']||'')}"><a href="tel:${safeTel(fd['Phone']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Phone']?'block':'none'}">📞 Call</a></div>
+      <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" type="email" id="ef-email" value="${esc(fd['Email']||'')}"><a href="mailto:${safeMail(fd['Email']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Email']?'block':'none'}">✉ Send email</a></div>
     </div>
     <div class="modal-grid tri">
       <div class="modal-field">
@@ -3941,9 +3941,9 @@ function _tabCourt(r) {
         <div class="modal-label" style="margin-bottom:6px;">Current Attorney</div>
         <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;align-items:center;">
           <strong>${_esc(af['Attorney Name']||'—')}</strong>
-          ${af['Phone'] ? `<a href="tel:${af['Phone']}" class="link">📞 ${af['Phone']}</a>` : ''}
-          ${af['Email'] ? `<a href="mailto:${af['Email']}" class="link">✉ ${_esc(af['Email'])}</a>` : ''}
-          ${af['Bar Number'] ? `<span style="opacity:.6;font-size:12px;">Bar #${af['Bar Number']}</span>` : ''}
+          ${af['Phone'] ? `<a href="tel:${safeTel(af['Phone'])}" class="link">📞 ${_esc(af['Phone'])}</a>` : ''}
+          ${af['Email'] ? `<a href="mailto:${safeMail(af['Email'])}" class="link">✉ ${_esc(af['Email'])}</a>` : ''}
+          ${af['Bar Number'] ? `<span style="opacity:.6;font-size:12px;">Bar #${_esc(af['Bar Number'])}</span>` : ''}
         </div>
       </div>`;
   })() : '';
@@ -4014,8 +4014,8 @@ function _tabDocuments(r) {
     return atts.map(a => `
       <div class="doc-check-row">
         <span>📎</span>
-        <span style="flex:1;">${label} — <a href="${a.url}" target="_blank" class="link" rel="noopener">${_esc(a.filename)}</a></span>
-        <a href="${a.url}" target="_blank" rel="noopener" class="btn" style="font-size:11px;padding:3px 9px;text-decoration:none;">View ↗</a>
+        <span style="flex:1;">${label} — <a href="${safeUrl(a.url)}" target="_blank" class="link" rel="noopener">${_esc(a.filename)}</a></span>
+        <a href="${safeUrl(a.url)}" target="_blank" rel="noopener" class="btn" style="font-size:11px;padding:3px 9px;text-decoration:none;">View ↗</a>
       </div>`).join('');
   };
 
@@ -4080,7 +4080,7 @@ function _tabNotes(r) {
 // ── FOOTER ACTION BAR ──────────────────────────────────
 function _modalFooterHTML(r) {
   const closed = isClosed(r);
-  const caseNum = esc(f(r)['Case #'] || '');
+  const caseNum = jsAttr(f(r)['Case #'] || '');
   return `
     <button class="btn" style="color:var(--red,#ef4444);border-color:var(--red,#ef4444);" onclick="archiveCase('${r.id}','${caseNum}')">🗄️ Archive</button>
     ${!closed ? `<button class="btn" onclick="closeCaseFlow('${r.id}')">🔒 Close Case</button>` : ''}
@@ -4102,7 +4102,7 @@ async function _loadActivityLog(caseId) {
     });
     const data = await res.json();
     if (!res.ok) {
-      el.innerHTML = `<div style="color:var(--gray-text);font-size:12px;padding:8px 0;">${data.error || 'Could not load activity log (Manager/Admin only).'}</div>`;
+      el.innerHTML = `<div style="color:var(--gray-text);font-size:12px;padding:8px 0;">${_esc(data.error || 'Could not load activity log.')}</div>`;
       return;
     }
     if (!data.records || data.records.length === 0) {
@@ -4129,7 +4129,7 @@ async function _loadActivityLog(caseId) {
         </div>`;
     }).join('');
   } catch (e) {
-    if (el) el.innerHTML = `<div style="color:var(--gray-text);font-size:12px;padding:8px 0;">Could not load log: ${e.message}</div>`;
+    if (el) el.innerHTML = `<div style="color:var(--gray-text);font-size:12px;padding:8px 0;">Could not load log: ${_esc(e.message)}</div>`;
   }
 }
 
@@ -4242,6 +4242,32 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── Phase 0 security helpers ────────────────────────────────────────────────
+// Escape a value used inside a single-quoted JS string in an inline handler.
+// HTML entities are decoded before the handler is parsed, so the quote must be
+// backslash-escaped (not entity-encoded) to prevent breaking out of the string.
+function jsAttr(s) {
+  return esc(String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"));
+}
+// Only http(s) destinations are rendered — blocks javascript:, data:, vbscript:.
+function safeUrl(v) {
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return '';
+  try {
+    const u = new URL(s, window.location.origin);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
+  } catch { return ''; }
+}
+// tel: destinations — dialling characters only.
+function safeTel(v) {
+  return String(v == null ? '' : v).replace(/[^0-9+()\-. ]/g, '').trim();
+}
+// mailto: destinations — must look like an email address.
+function safeMail(v) {
+  const s = String(v == null ? '' : v).trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s) ? s : '';
+}
+
 async function saveCase(id) {
   const btn   = document.getElementById('ef-save-btn');
   const errEl = document.getElementById('modal-save-error');
@@ -4273,7 +4299,6 @@ async function saveCase(id) {
     'Heard About Us':              (g('ef-heard',      fd['Heard About Us']     ||'') ||'').trim(),
     'Referred By':                 (g('ef-referred',   fd['Referred By']        ||'') ||'').trim(),
     'Status':                      g('ef-status',      fd['Status']             || ''),
-    'Payment Method':              g('ef-pay-method',  fd['Payment Method']     || ''),
     'Case Type':                   g('ef-type',        fd['Case Type']          || ''),
     'Priority':                    g('ef-priority',    fd['Priority']           || ''),
     'Quote Status':                g('ef-quote',       fd['Quote Status']       || 'Not Requested'),
@@ -4292,11 +4317,16 @@ async function saveCase(id) {
     'Resolution Notes':            (g('ef-resolution',     fd['Resolution Notes']     ||'') ||'').trim(),
   };
 
-  // Numeric fields
-  const fee     = parseFloat(g('ef-fee', ''));
-  const attyFee = parseFloat(g('ef-atty-fee', ''));
-  if (!isNaN(fee))     fields['Client Fee Collected'] = fee;
-  if (!isNaN(attyFee)) fields['Attorney Service Fee'] = attyFee;
+  // Financial fields — Manager/Admin only. The server enforces this with a
+  // role-based field allowlist; the client omits them so an Employee's ordinary
+  // save is never rejected wholesale.
+  if (hasPermission('Manager')) {
+    fields['Payment Method'] = g('ef-pay-method', fd['Payment Method'] || '');
+    const fee     = parseFloat(g('ef-fee', ''));
+    const attyFee = parseFloat(g('ef-atty-fee', ''));
+    if (!isNaN(fee))     fields['Client Fee Collected'] = fee;
+    if (!isNaN(attyFee)) fields['Attorney Service Fee'] = attyFee;
+  }
 
   // Document checklist (Tab 5) — only included when those inputs are rendered
   const _docTicket  = document.getElementById('ef-doc-ticket');
@@ -4729,7 +4759,7 @@ async function saveNewCase() {
   try {
     const res  = await fetch('/.netlify/functions/create-case', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body: JSON.stringify({ fields }),
     });
     const data = await res.json();
@@ -4761,7 +4791,7 @@ let _attorneyPrefetchPromise = null;
 // Called from loadData() so attorneys are ready before anyone opens Edit Case.
 async function prefetchAttorneys() {
   try {
-    const res  = await fetch('/.netlify/functions/get-attorneys');
+    const res  = await fetch('/.netlify/functions/get-attorneys', { headers: staffHeader() });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     ALL_ATTORNEYS = data.records || [];
@@ -4790,7 +4820,7 @@ async function loadAttorneys() {
     if (_attorneyPrefetchPromise) {
       await _attorneyPrefetchPromise;
     } else {
-      const res  = await fetch('/.netlify/functions/get-attorneys');
+      const res  = await fetch('/.netlify/functions/get-attorneys', { headers: staffHeader() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
       ALL_ATTORNEYS = data.records || [];
@@ -4800,7 +4830,7 @@ async function loadAttorneys() {
     subEl.textContent = `${ALL_ATTORNEYS.length} attorney${ALL_ATTORNEYS.length!==1?'s':''} in Airtable`;
     renderAttorneyList();
   } catch (e) {
-    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">⚠ ${e.message}<br><br><button class="btn" onclick="loadAttorneys()">🔄 Retry</button></div>`;
+    listEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">⚠ ${esc(e.message)}<br><br><button class="btn" onclick="loadAttorneys()">🔄 Retry</button></div>`;
   }
 }
 
@@ -4831,7 +4861,7 @@ function renderAttorneyList() {
     const state   = fd['State'] || '';
     const active  = fd['Active'] !== false;
     const counties = Array.isArray(fd['Counties Covered']) ? fd['Counties Covered'] : [];
-    const chips   = counties.map(c => `<span class="atty-county-chip">${c}</span>`).join('');
+    const chips   = counties.map(c => `<span class="atty-county-chip">${esc(c)}</span>`).join('');
     const caseCount = Array.isArray(fd['Cases']) ? fd['Cases'].length : 0;
 
     return `<div class="atty-card">
@@ -4840,9 +4870,9 @@ function renderAttorneyList() {
         <span class="${active ? 'badge-active' : 'badge-inactive'}">${active ? 'Active' : 'Inactive'}</span>
       </div>
       <div class="atty-card-meta">
-        ${state ? `<span>📍 ${state}</span>` : ''}
-        ${fd['Phone'] ? `<span>📞 <a href="tel:${fd['Phone']}">${esc(fd['Phone'])}</a></span>` : ''}
-        ${fd['Email'] ? `<span>✉️ <a href="mailto:${fd['Email']}">${esc(fd['Email'])}</a></span>` : ''}
+        ${state ? `<span>📍 ${esc(state)}</span>` : ''}
+        ${fd['Phone'] ? `<span>📞 <a href="tel:${safeTel(fd['Phone'])}">${esc(fd['Phone'])}</a></span>` : ''}
+        ${fd['Email'] ? `<span>✉️ <a href="mailto:${safeMail(fd['Email'])}">${esc(fd['Email'])}</a></span>` : ''}
         ${fd['Bar Number'] ? `<span>🆔 Bar #${esc(fd['Bar Number'])}</span>` : ''}
         ${caseCount > 0 ? `<span>📂 ${caseCount} case${caseCount!==1?'s':''}</span>` : ''}
       </div>
@@ -4934,7 +4964,7 @@ async function saveAttorney() {
   try {
     const res  = await fetch('/.netlify/functions/save-attorney', {
       method: isUpdate ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body: JSON.stringify(body),
     });
     const data = await res.json();
@@ -5075,16 +5105,16 @@ function renderLeadsPage() {
     const digits = phone.replace(/\D/g, '');
     const opHref  = digits ? `https://app.openphone.com/new-conversation?to=%2B1${digits.replace(/^1/, '')}` : '';
     const phoneEl = digits
-      ? `<a class="leads-phone-link" href="${opHref}" target="_blank" rel="noopener">${phone}</a>`
+      ? `<a class="leads-phone-link" href="${opHref}" target="_blank" rel="noopener">${esc(phone)}</a>`
       : '—';
 
     const qsKey = qs.toLowerCase().replace(/\s+/g, '-');
 
     return `<div class="lead-row" data-id="${r.id}">
-      <div class="lead-col lead-name" onclick="openModal('${r.id}')">${name}</div>
+      <div class="lead-col lead-name" onclick="openModal('${r.id}')">${esc(name)}</div>
       <div class="lead-col lead-phone">${phoneEl}</div>
-      <div class="lead-col lead-type">${caseType || '—'}</div>
-      <div class="lead-col lead-qs"><span class="qs-badge qs-${qsKey}">${qs}</span></div>
+      <div class="lead-col lead-type">${esc(caseType || '—')}</div>
+      <div class="lead-col lead-qs"><span class="qs-badge qs-${esc(qsKey)}">${esc(qs)}</span></div>
       <div class="lead-col lead-days ${daysClass}">${daysStr}</div>
       <div class="lead-col lead-court ${courtClass}">${cd ? courtStr + courtWarn : '—'}</div>
       <div class="lead-col lead-actions">
@@ -5125,7 +5155,7 @@ function openConvertLead(recordId) {
   row.insertAdjacentHTML('afterend', `
     <div class="lead-convert-form" id="lcf-${recordId}">
       <div class="lcf-inner">
-        <div class="lcf-title">Convert <strong>${name}</strong> to Active Client</div>
+        <div class="lcf-title">Convert <strong>${esc(name)}</strong> to Active Client</div>
         <div class="lcf-row">
           <div class="lcf-field">
             <label class="lcf-label">Amount Paid ($)</label>
@@ -5229,8 +5259,8 @@ function openStripeLink(recordId) {
     row.insertAdjacentHTML('afterend', `
       <div class="lead-convert-form" id="slf-${recordId}">
         <div class="lcf-inner">
-          <div class="lcf-title" style="color:var(--green);">✅ ${name} already has a recorded Stripe payment.</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Session ID: ${fd['Stripe Session ID'] || '—'}</div>
+          <div class="lcf-title" style="color:var(--green);">✅ ${esc(name)} already has a recorded Stripe payment.</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;">Session ID: ${esc(fd['Stripe Session ID'] || '—')}</div>
           <div class="lcf-btns" style="margin-top:12px;">
             <button class="btn" onclick="cancelStripeLink('${recordId}')">Close</button>
           </div>
@@ -5245,7 +5275,7 @@ function openStripeLink(recordId) {
   row.insertAdjacentHTML('afterend', `
     <div class="lead-convert-form" id="slf-${recordId}">
       <div class="lcf-inner">
-        <div class="lcf-title">💳 Generate Stripe Payment Link — <strong>${name}</strong></div>
+        <div class="lcf-title">💳 Generate Stripe Payment Link — <strong>${esc(name)}</strong></div>
         <div class="lcf-row" style="margin-top:12px;">
           <div class="lcf-field">
             <label class="lcf-label">Amount ($)</label>
@@ -5388,7 +5418,7 @@ async function loadDocuments() {
   document.getElementById('doc-templates-body').innerHTML = '<div class="doc-loading">Loading templates…</div>';
 
   try {
-    const res  = await fetch('/.netlify/functions/get-documents?type=all');
+    const res  = await fetch('/.netlify/functions/get-documents?type=all', { headers: staffHeader() });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to load documents');
 
@@ -5397,7 +5427,7 @@ async function loadDocuments() {
     _docsLoaded   = true;
     _renderDocPage();
   } catch(e) {
-    document.getElementById('doc-cases-body').innerHTML = `<div class="doc-empty"><div class="doc-empty-icon">⚠️</div>${e.message}</div>`;
+    document.getElementById('doc-cases-body').innerHTML = `<div class="doc-empty"><div class="doc-empty-icon">⚠️</div>${_esc(e.message)}</div>`;
     console.error('[loadDocuments]', e);
   } finally {
     _docsLoading = false;
@@ -5470,7 +5500,7 @@ function _populateAttyFilterDropdown() {
 
   const current = sel.value;
   sel.innerHTML = '<option value="">All Attorneys</option>' +
-    attyNames.map(n => `<option${n === current ? ' selected' : ''}>${n}</option>`).join('');
+    attyNames.map(n => `<option${n === current ? ' selected' : ''}>${esc(n)}</option>`).join('');
 }
 
 // ── Case Documents render ─────────────────────────────
@@ -5535,7 +5565,7 @@ function renderCaseDocs() {
     const clientN  = caseRec ? `${caseRec.fields['First Name']||''} ${caseRec.fields['Last Name']||''}`.trim() : '';
     const caseDisp = caseNum ? `#${caseNum}` : '—';
     const caseHtml = caseRec
-      ? `<span class="doc-row-case" onclick='openModal("${caseRec.id}")'>${caseDisp} — ${clientN}</span>`
+      ? `<span class="doc-row-case" onclick='openModal("${caseRec.id}")'>${_esc(caseDisp)} — ${_esc(clientN)}</span>`
       : `<span style="color:var(--gray-text)">—</span>`;
 
     // Signature badge
@@ -5546,7 +5576,7 @@ function renderCaseDocs() {
 
     // Action buttons
     const openBtn   = fileUrl
-      ? `<button class="doc-btn doc-btn-open" onclick="window.open('${fileUrl}','_blank')">🔗 Open</button>`
+      ? `<button class="doc-btn doc-btn-open" onclick="window.open('${jsAttr(safeUrl(fileUrl))}','_blank')">🔗 Open</button>`
       : `<button class="doc-btn" disabled title="No file URL" style="opacity:.4">🔗 Open</button>`;
     const markSignedBtn = (reqSig && !signed)
       ? `<button class="doc-btn doc-btn-signed" onclick="markDocSigned('${d.id}')">✅ Mark Signed</button>`
@@ -5627,7 +5657,7 @@ function renderTemplates() {
     const lastUpd= fd['Last Updated'] ? _fmtDate(fd['Last Updated']) : '—';
 
     const openBtn  = fileUrl
-      ? `<button class="doc-btn doc-btn-open" onclick="window.open('${fileUrl}','_blank')">🔗 Open</button>`
+      ? `<button class="doc-btn doc-btn-open" onclick="window.open('${jsAttr(safeUrl(fileUrl))}','_blank')">🔗 Open</button>`
       : `<button class="doc-btn" disabled style="opacity:.4">🔗 Open</button>`;
 
     const editBtn = `<button class="doc-btn" onclick="openEditTemplateForm('${t.id}')">✏️ Edit</button>`;
@@ -5657,7 +5687,7 @@ async function markDocSigned(recordId) {
     const today = new Date().toISOString().split('T')[0];
     const res = await fetch('/.netlify/functions/save-document', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body: JSON.stringify({
         table:    'case-docs',
         recordId,
@@ -5693,7 +5723,7 @@ function openAddDocForm() {
     .map(r => {
       const name = `${r.fields['First Name']||''} ${r.fields['Last Name']||''}`.trim();
       const num  = r.fields['Case #'] ? `#${r.fields['Case #']} — ` : '';
-      return `<option value="${r.id}">${num}${name}</option>`;
+      return `<option value="${r.id}">${_esc(num)}${_esc(name)}</option>`;
     }).join('');
 
   document.getElementById('doc-form-body').innerHTML = `
@@ -5778,7 +5808,7 @@ async function submitAddDoc() {
   try {
     const res  = await fetch('/.netlify/functions/save-document', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body: JSON.stringify({ table: 'case-docs', fields }),
     });
     const data = await res.json();
@@ -5923,7 +5953,7 @@ async function submitTemplateForm(recordId) {
   try {
     const res = await fetch('/.netlify/functions/save-document', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: staffHeader(),
       body: JSON.stringify({ table: 'templates', recordId: recordId || undefined, fields }),
     });
     const data = await res.json();
@@ -6284,9 +6314,9 @@ function _renderTaskCard(t) {
     <div class="task-card-main">
       <div class="task-card-top">
         <span class="task-type-label">${t.label}</span>
-        <span class="task-status-pill task-status-${statusColor}">${t.status}</span>
+        <span class="task-status-pill task-status-${statusColor}">${_esc(t.status)}</span>
       </div>
-      <div class="task-client">${_esc(t.client)}${t.caseNum ? ` · #${t.caseNum}` : ''}</div>
+      <div class="task-client">${_esc(t.client)}${t.caseNum ? ` · #${_esc(t.caseNum)}` : ''}</div>
       <div class="task-next-action">${t.nextAction}</div>
       ${courtStr}${followStr}
     </div>
@@ -6835,7 +6865,7 @@ async function loadActivityLog() {
       </tr>`;
     }).join('');
   } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red);">⚠ ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--red);">⚠ ${esc(e.message)}</td></tr>`;
   }
 }
 
@@ -6872,7 +6902,7 @@ async function loadStaff() {
           <span class="${active?'badge-active':'badge-inactive'}">${active?'Active':'Inactive'}</span>
         </div>
         <div class="atty-card-meta">
-          <span style="font-weight:700;color:${roleColor[fd.Role]||'#6b7280'}">● ${fd.Role||'—'}</span>
+          <span style="font-weight:700;color:${roleColor[fd.Role]||'#6b7280'}">● ${esc(fd.Role||'—')}</span>
           ${fd.Email ? `<span>✉️ ${esc(fd.Email)}</span>` : ''}
           <span style="opacity:.7;">Last login: ${last}</span>
         </div>
