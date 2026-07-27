@@ -650,8 +650,8 @@
       <!-- Bulk action bar -->
       <div class="fin-bulk-bar" id="fin-bulk-bar" style="display:none">
         <span class="fin-bulk-count" id="fin-bulk-count">0 selected</span>
-        <button class="btn primary" onclick="bulkMarkPaid()">💵 Mark Selected Paid</button>
-        <button class="btn" onclick="bulkMarkAttyPaid()">⚖️ Mark Atty Paid</button>
+        <button class="btn primary" data-role="manager" onclick="bulkMarkPaid()">💵 Mark Selected Paid</button>
+        <button class="btn" data-role="manager" onclick="bulkMarkAttyPaid()">⚖️ Mark Atty Paid</button>
         <button class="btn fin-btn-assign" onclick="openBulkAssignAttorney()">👤 Assign Attorney</button>
         <button class="btn" onclick="clearFinBulk()">✕ Clear</button>
       </div>
@@ -2043,7 +2043,10 @@ function applyRoleVisibility() {
     document.querySelectorAll('[data-role="manager"]').forEach(el => {
       el.style.display = isManager ? '' : 'none';
     });
-  } catch(e) { /* sessionStorage parse fail — show everything */ }
+  } catch (e) {
+    // Fail closed — hide every privileged control if the role cannot be read.
+    document.querySelectorAll('[data-role]').forEach(el => { el.style.display = 'none'; });
+  }
 }
 
 // Run role gate on load
@@ -2632,7 +2635,7 @@ function renderRecentLeads() {
     <tr>
       <td class="mono no-wrap">${esc(f(r)['Case #'] || '—')}</td>
       <td><div style="display:flex;align-items:center;gap:8px;">
-        <div class="avatar">${(f(r)['First Name']||'?')[0]}${(f(r)['Last Name']||'')[0]||''}</div>
+        <div class="avatar">${esc((f(r)['First Name']||'?')[0])}${esc((f(r)['Last Name']||'')[0]||'')}</div>
         ${esc(clientName(r))}
       </div></td>
       <td>${typeBadge(f(r)['Case Type'])}</td>
@@ -2673,7 +2676,7 @@ function renderFlaggedCases() {
     return `<div class="court-item">
       <div class="court-info">
         <div class="court-name">${esc(clientName(r))} — <span class="mono" style="font-size:11px;">${esc(f(r)['Case #']||'—')}</span></div>
-        <div class="court-meta">${f(r)['Case Type']||'—'} · ${f(r)['Court Location']||'No court'}</div>
+        <div class="court-meta">${esc(f(r)['Case Type']||'—')} · ${esc(f(r)['Court Location']||'No court')}</div>
       </div>
       <span class="badge ${cls}" style="font-size:10px;">${reason}</span>
       <button class="icon-btn view" onclick="openModal('${r.id}')">👁</button>
@@ -3373,8 +3376,8 @@ function _renderFinTable() {
     const attyIcon  = attyPaid
       ? '<span class="fin-atty-paid">✓ Paid</span>'
       : (payoutDue ? '<span class="fin-atty-due">⚠ Due</span>' : '<span class="fin-atty-none">—</span>');
-    const digits    = phone.replace(/\D/g,'').replace(/^1/,'');
-    const opHref    = `https://app.openphone.com/new-conversation?to=%2B1${digits}`;
+    const digits    = safeTel(phone);
+    const opHref    = digits ? `https://app.openphone.com/new-conversation?to=%2B1${digits}` : '';
 
     return `<div class="fin-row${sel?' fin-row-selected':''}" id="finrow-${rid}">
       <span><input type="checkbox" class="fin-cb" onchange="toggleFinRow('${rid}',this.checked)"${sel?' checked':''}></span>
@@ -3388,9 +3391,9 @@ function _renderFinTable() {
       <span class="fin-money ${profit > 0 ? 'fin-profit-pos' : profit < 0 ? 'fin-profit-neg' : ''}">${$fmt(profit)}</span>
       <span class="fin-row-actions">
         <button class="fin-btn" title="View case" onclick="openModal('${rid}')">👁</button>${
-        balance > 0 ? `<button class="fin-btn fin-btn-pay" title="Record payment" onclick="openFinPayment('${rid}')">💵</button>` : ''}${
-        (!attyPaid && attyFee > 0) ? `<button class="fin-btn fin-btn-atty" title="Mark attorney paid" onclick="markAttyPaid('${rid}')">⚖️</button>` : ''}${
-        phone ? `<button class="fin-btn" title="Contact via OpenPhone" onclick="window.open('${opHref}','_blank')">📞</button>` : ''}
+        (balance > 0 && canEditFinancials()) ? `<button class="fin-btn fin-btn-pay" title="Record payment" onclick="openFinPayment('${rid}')">💵</button>` : ''}${
+        (!attyPaid && attyFee > 0 && canEditFinancials()) ? `<button class="fin-btn fin-btn-atty" title="Mark attorney paid" onclick="markAttyPaid('${rid}')">⚖️</button>` : ''}${
+        opHref ? `<button class="fin-btn" title="Contact via OpenPhone" onclick="window.open('${opHref}','_blank')">📞</button>` : ''}
       </span>
     </div>`;
   }).join('');
@@ -3433,6 +3436,7 @@ function _updateFinBulkBar() {
 }
 
 async function markAttyPaid(recordId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   const r = ALL_RECORDS.find(x => x.id === recordId);
   if (!r) return;
   const name = `${f(r)['First Name']||''} ${f(r)['Last Name']||''}`.trim();
@@ -3454,6 +3458,7 @@ async function markAttyPaid(recordId) {
 }
 
 async function bulkMarkAttyPaid() {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   if (!finSelected.size) return;
   if (!confirm(`Mark ${finSelected.size} case(s) attorney paid?`)) return;
   const today = new Date().toISOString().slice(0,10);
@@ -3526,6 +3531,7 @@ async function confirmBulkAssignAttorney() {
 }
 
 function openFinPayment(recordId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   document.getElementById(`fpf-${recordId}`)?.remove();
   const row = document.getElementById(`finrow-${recordId}`);
   if (!row) return;
@@ -3583,6 +3589,7 @@ async function submitFinPayment(recordId) {
 }
 
 async function bulkMarkPaid() {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   if (!finSelected.size) return;
   const amt = parseFloat(prompt(`Enter payment amount for each of the ${finSelected.size} selected case(s):`));
   if (!amt || amt <= 0) return;
@@ -3845,8 +3852,8 @@ function _tabClient(r) {
     <div class="modal-grid">
       <div class="modal-field"><div class="modal-label">First Name</div><input class="edit-input" id="ef-first" value="${esc(fd['First Name']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Last Name</div><input class="edit-input" id="ef-last" value="${esc(fd['Last Name']||'')}"></div>
-      <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="ef-phone" value="${esc(fd['Phone']||'')}"><a href="tel:${safeTel(fd['Phone']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Phone']?'block':'none'}">📞 Call</a></div>
-      <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" type="email" id="ef-email" value="${esc(fd['Email']||'')}"><a href="mailto:${safeMail(fd['Email']||'')}" style="font-size:11px;color:var(--navy);margin-top:3px;display:${fd['Email']?'block':'none'}">✉ Send email</a></div>
+      <div class="modal-field"><div class="modal-label">Phone</div><input class="edit-input" id="ef-phone" value="${esc(fd['Phone']||'')}">${telLink(fd['Phone'], { label: '📞 Call', cls: '', style: 'font-size:11px;color:var(--navy);margin-top:3px;display:block', hideWhenInvalid: true })}</div>
+      <div class="modal-field"><div class="modal-label">Email</div><input class="edit-input" type="email" id="ef-email" value="${esc(fd['Email']||'')}">${mailLink(fd['Email'], { label: '✉ Send email', cls: '', style: 'font-size:11px;color:var(--navy);margin-top:3px;display:block', hideWhenInvalid: true })}</div>
     </div>
     <div class="modal-grid tri">
       <div class="modal-field">
@@ -3868,7 +3875,7 @@ function _tabClient(r) {
     <div class="modal-section">Violation</div>
     <div class="modal-grid tri">
       <div class="modal-field"><div class="modal-label">Date Submitted</div><div class="modal-val">${formatDate(fd['Date Submitted'])}</div></div>
-      <div class="modal-field"><div class="modal-label">Date of Violation</div><input class="edit-input" type="date" id="ef-viol-date" value="${fd['Date of Violation']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Date of Violation</div><input class="edit-input" type="date" id="ef-viol-date" value="${esc(fd['Date of Violation']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Citation / Arrest #</div><input class="edit-input" id="ef-citation" value="${esc(fd['Citation / Arrest #']||'')}"></div>
     </div>
     <div class="modal-grid">
@@ -3887,30 +3894,36 @@ function _tabClient(r) {
 function _tabPayment(r) {
   const fd   = f(r);
   const payMethods = ['','Cash','Check','Zelle','Venmo','CashApp','Stripe','Other'];
-  const sel  = (opts, val, id) =>
-    `<select class="edit-input" id="${id}">${opts.map(o => `<option value="${o}"${o===val?' selected':''}>${o||'— Select —'}</option>`).join('')}</select>`;
+  const sel  = (opts, val, id, extra = '') =>
+    `<select class="edit-input" id="${id}"${extra}>${opts.map(o => `<option value="${o}"${o===val?' selected':''}>${o||'— Select —'}</option>`).join('')}</select>`;
+
+  // Financial fields are Manager+ server-side — render them read-only below that.
+  const canFin = canEditFinancials();
+  const finDis = canFin ? '' : ' disabled';
 
   const attyPaidHtml = fd['Attorney Payment Confirmed']
     ? `<div class="modal-val" style="color:var(--green,#22c55e);font-weight:600;">✅ Paid on ${formatDate(fd['Attorney Paid Date'])}</div>`
-    : `<button class="btn" style="margin-top:4px;" onclick="confirmAttyPaidFromEdit('${r.id}')">⚖️ Mark Attorney Paid</button>`;
+    : (canFin
+        ? `<button class="btn" style="margin-top:4px;" onclick="confirmAttyPaidFromEdit('${r.id}')">⚖️ Mark Attorney Paid</button>`
+        : `<div class="modal-val" style="color:var(--gray-text);">—</div>`);
 
   return `
     <div class="modal-section" style="margin-top:0;">Status & Payment Method</div>
     <div class="modal-grid">
       <div class="modal-field"><div class="modal-label">Case Status</div>${sel(CASE_STATUSES, fd['Status']||'', 'ef-status')}</div>
-      <div class="modal-field"><div class="modal-label">Payment Method</div>${sel(payMethods, fd['Payment Method']||'', 'ef-pay-method')}</div>
+      <div class="modal-field"><div class="modal-label">Payment Method</div>${sel(payMethods, fd['Payment Method']||'', 'ef-pay-method', finDis)}</div>
     </div>
 
     <div class="modal-section">Client Fees</div>
     <div class="modal-grid tri">
-      <div class="modal-field"><div class="modal-label">Fee Collected ($)</div><input class="edit-input" type="number" id="ef-fee" value="${fd['Client Fee Collected']||''}" step="0.01" min="0"></div>
+      <div class="modal-field"><div class="modal-label">Fee Collected ($)</div><input class="edit-input" type="number" id="ef-fee" value="${esc(fd['Client Fee Collected']||'')}" step="0.01" min="0"${finDis}></div>
       <div class="modal-field"><div class="modal-label">Balance Remaining</div><div class="modal-val ${(fd['Client Balance Remaining']||0)>0?'neg':''}">${currency(fd['Client Balance Remaining'])}</div></div>
       <div class="modal-field"><div class="modal-label">Net Profit</div><div class="modal-val">${currency(fd['Profit'])}</div></div>
     </div>
 
     <div class="modal-section">Attorney Fees</div>
     <div class="modal-grid">
-      <div class="modal-field"><div class="modal-label">Attorney Service Fee ($)</div><input class="edit-input" type="number" id="ef-atty-fee" value="${fd['Attorney Service Fee']||''}" step="0.01" min="0"></div>
+      <div class="modal-field"><div class="modal-label">Attorney Service Fee ($)</div><input class="edit-input" type="number" id="ef-atty-fee" value="${esc(fd['Attorney Service Fee']||'')}" step="0.01" min="0"${finDis}></div>
       <div class="modal-field"><div class="modal-label">Atty Balance Remaining</div><div class="modal-val">${currency(fd['Attorney Balance Remaining'])}</div></div>
       <div class="modal-field">
         <div class="modal-label">Attorney Payment</div>
@@ -3941,8 +3954,8 @@ function _tabCourt(r) {
         <div class="modal-label" style="margin-bottom:6px;">Current Attorney</div>
         <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;align-items:center;">
           <strong>${_esc(af['Attorney Name']||'—')}</strong>
-          ${af['Phone'] ? `<a href="tel:${safeTel(af['Phone'])}" class="link">📞 ${_esc(af['Phone'])}</a>` : ''}
-          ${af['Email'] ? `<a href="mailto:${safeMail(af['Email'])}" class="link">✉ ${_esc(af['Email'])}</a>` : ''}
+          ${af['Phone'] ? telLink(af['Phone'], { label: '📞 ' + af['Phone'], cls: 'link' }) : ''}
+          ${af['Email'] ? mailLink(af['Email'], { label: '✉ ' + af['Email'], cls: 'link' }) : ''}
           ${af['Bar Number'] ? `<span style="opacity:.6;font-size:12px;">Bar #${_esc(af['Bar Number'])}</span>` : ''}
         </div>
       </div>`;
@@ -3957,7 +3970,7 @@ function _tabCourt(r) {
     <div class="modal-grid">
       <div class="modal-field"><div class="modal-label">Case Type</div>${sel(['🚗 Traffic Citation','🚨 DUI / DWI','🏍️ Other'], fd['Case Type']||'', 'ef-type')}</div>
       <div class="modal-field"><div class="modal-label">Priority</div>${sel(['🟢 Low','🟡 Medium','🔴 High','🔴 Urgent'], fd['Priority']||'', 'ef-priority')}</div>
-      <div class="modal-field"><div class="modal-label">Court Date</div><input class="edit-input" type="date" id="ef-court-date" value="${fd['Court Date']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Court Date</div><input class="edit-input" type="date" id="ef-court-date" value="${esc(fd['Court Date']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Court Location</div><input class="edit-input" id="ef-court-loc" value="${esc(fd['Court Location']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Court State</div><input class="edit-input" id="ef-court-state" value="${esc(fd['Court State']||'')}"></div>
       <div class="modal-field"><div class="modal-label">County</div><input class="edit-input" id="ef-county" value="${esc(fd['County']||'')}"></div>
@@ -3971,9 +3984,9 @@ function _tabCourt(r) {
       <div class="modal-field"><div class="modal-label">Court Outcome</div>
         ${selEmpty(['Dismissed','Reduced','Traffic School Granted','No Points','Fine Due','Case Continued','Warrant / FTA','Other'], fd['Court Outcome']||'', 'ef-court-outcome')}
       </div>
-      <div class="modal-field"><div class="modal-label">Next Court Date</div><input class="edit-input" type="date" id="ef-next-court-date" value="${fd['Next Court Date']||''}"></div>
-      <div class="modal-field"><div class="modal-label">Outcome Received Date</div><input class="edit-input" type="date" id="ef-outcome-date" value="${fd['Outcome Received Date']||''}"></div>
-      <div class="modal-field"><div class="modal-label">Next Follow-Up Date</div><input class="edit-input" type="date" id="ef-followup-date" value="${fd['Next Follow-Up Date']||''}"></div>
+      <div class="modal-field"><div class="modal-label">Next Court Date</div><input class="edit-input" type="date" id="ef-next-court-date" value="${esc(fd['Next Court Date']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Outcome Received Date</div><input class="edit-input" type="date" id="ef-outcome-date" value="${esc(fd['Outcome Received Date']||'')}"></div>
+      <div class="modal-field"><div class="modal-label">Next Follow-Up Date</div><input class="edit-input" type="date" id="ef-followup-date" value="${esc(fd['Next Follow-Up Date']||'')}"></div>
       <div class="modal-field"><div class="modal-label">Closed By</div><input class="edit-input" id="ef-closed-by" value="${esc(fd['Closed By']||'')}"></div>
       <div class="modal-field full">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 0;font-size:13px;">
@@ -4096,6 +4109,12 @@ function _modalFooterHTML(r) {
 async function _loadActivityLog(caseId) {
   const el = document.getElementById('modal-log-list');
   if (!el) return;
+  // Read Only has no activity-log access server-side. Do not issue a request
+  // that would be refused — show a neutral, role-appropriate message instead.
+  if (!hasPermission('Employee')) {
+    el.innerHTML = '<div style="color:var(--gray-text);font-size:12px;padding:8px 0;">Case history isn\u2019t available for your role.</div>';
+    return;
+  }
   try {
     const res  = await fetch(`/.netlify/functions/get-activity-log?caseId=${encodeURIComponent(caseId)}&limit=30`, {
       headers: staffHeader(),
@@ -4160,7 +4179,7 @@ function closeCaseFlow(id) {
       </div>` : '<input type="hidden" id="ccf-outcome" value="">'}
       <div class="modal-field">
         <div class="modal-label">Outcome Received Date <span style="color:var(--red)">*</span></div>
-        <input class="edit-input" type="date" id="ccf-outcome-date" value="${fd['Outcome Received Date']||today}">
+        <input class="edit-input" type="date" id="ccf-outcome-date" value="${esc(fd['Outcome Received Date']||today)}">
       </div>
       <div class="modal-field">
         <div class="modal-label">Closed By <span style="color:var(--red)">*</span></div>
@@ -4258,15 +4277,45 @@ function safeUrl(v) {
     return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
   } catch { return ''; }
 }
-// tel: destinations — dialling characters only.
+// Normalise a phone number to bare digits, dropping a US country code.
+function telDigits(v) {
+  const d = String(v == null ? '' : v).replace(/\D/g, '');
+  return (d.length === 11 && d.charAt(0) === '1') ? d.slice(1) : d;
+}
+// tel: destinations — a link is produced only for a plausible number.
+// Requires a real digit count after normalisation, not just character deletion.
 function safeTel(v) {
-  return String(v == null ? '' : v).replace(/[^0-9+()\-. ]/g, '').trim();
+  const d = telDigits(v);
+  return (d.length >= 10 && d.length <= 15) ? d : '';
 }
 // mailto: destinations — must look like an email address.
 function safeMail(v) {
   const s = String(v == null ? '' : v).trim();
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s) ? s : '';
 }
+// Render a phone as a clickable anchor ONLY when the sanitised destination is
+// valid; otherwise emit escaped plain text (or nothing). href="tel:" is never
+// produced with an empty or malformed destination.
+function telLink(value, opts) {
+  const o = opts || {};
+  const dest = safeTel(value);
+  const text = esc(o.label != null ? o.label : (value == null ? '' : value));
+  if (!dest) return o.hideWhenInvalid ? '' : text;
+  const attrs = (o.cls ? ` class="${o.cls}"` : '') + (o.style ? ` style="${o.style}"` : '');
+  return `<a href="tel:${dest}"${attrs}>${text}</a>`;
+}
+// Same contract for email destinations.
+function mailLink(value, opts) {
+  const o = opts || {};
+  const dest = safeMail(value);
+  const text = esc(o.label != null ? o.label : (value == null ? '' : value));
+  if (!dest) return o.hideWhenInvalid ? '' : text;
+  const attrs = (o.cls ? ` class="${o.cls}"` : '') + (o.style ? ` style="${o.style}"` : '');
+  return `<a href="mailto:${dest}"${attrs}>${text}</a>`;
+}
+// Company-financial writes are Manager+ server-side; mirror that in the UI so
+// users are never shown a control the server will always reject.
+function canEditFinancials() { return hasPermission('Manager'); }
 
 async function saveCase(id) {
   const btn   = document.getElementById('ef-save-btn');
@@ -4411,6 +4460,7 @@ async function saveCase(id) {
 // ─── CONFIRM ATTORNEY PAYMENT (from edit mode) ───────────────────────────────
 // Proper flow: sets Confirmed, Paid Date, zeros Balance, clears Payout Due
 async function confirmAttyPaidFromEdit(caseId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   const rec  = ALL_RECORDS.find(x => x.id === caseId);
   if (!rec) return;
   const fd   = f(rec);
@@ -4871,8 +4921,8 @@ function renderAttorneyList() {
       </div>
       <div class="atty-card-meta">
         ${state ? `<span>📍 ${esc(state)}</span>` : ''}
-        ${fd['Phone'] ? `<span>📞 <a href="tel:${safeTel(fd['Phone'])}">${esc(fd['Phone'])}</a></span>` : ''}
-        ${fd['Email'] ? `<span>✉️ <a href="mailto:${safeMail(fd['Email'])}">${esc(fd['Email'])}</a></span>` : ''}
+        ${fd['Phone'] ? `<span>📞 ${telLink(fd['Phone'])}</span>` : ''}
+        ${fd['Email'] ? `<span>✉️ ${mailLink(fd['Email'])}</span>` : ''}
         ${fd['Bar Number'] ? `<span>🆔 Bar #${esc(fd['Bar Number'])}</span>` : ''}
         ${caseCount > 0 ? `<span>📂 ${caseCount} case${caseCount!==1?'s':''}</span>` : ''}
       </div>
@@ -5102,11 +5152,11 @@ function renderLeadsPage() {
     }
 
     // OpenPhone link
-    const digits = phone.replace(/\D/g, '');
-    const opHref  = digits ? `https://app.openphone.com/new-conversation?to=%2B1${digits.replace(/^1/, '')}` : '';
+    const digits = safeTel(phone);
+    const opHref  = digits ? `https://app.openphone.com/new-conversation?to=%2B1${digits}` : '';
     const phoneEl = digits
       ? `<a class="leads-phone-link" href="${opHref}" target="_blank" rel="noopener">${esc(phone)}</a>`
-      : '—';
+      : (phone ? esc(phone) : '—');
 
     const qsKey = qs.toLowerCase().replace(/\s+/g, '-');
 
@@ -5120,8 +5170,8 @@ function renderLeadsPage() {
       <div class="lead-col lead-actions">
         <button class="lead-btn" onclick="openModal('${r.id}')" title="View case">👁</button>
         ${digits ? `<a class="lead-btn" href="${opHref}" target="_blank" rel="noopener" title="Follow up in OpenPhone">📞</a>` : ''}
-        <button class="lead-btn lead-btn-convert" onclick="openConvertLead('${r.id}')" title="Mark as paid / convert">💰</button>
-        ${STRIPE_ENABLED ? `<button class="lead-btn lead-btn-stripe" onclick="openStripeLink('${r.id}')" title="Generate Stripe payment link">💳</button>` : ''}
+        ${canEditFinancials() ? `<button class="lead-btn lead-btn-convert" onclick="openConvertLead('${r.id}')" title="Mark as paid / convert">💰</button>` : ''}
+        ${STRIPE_ENABLED && hasPermission('Employee') ? `<button class="lead-btn lead-btn-stripe" onclick="openStripeLink('${r.id}')" title="Generate Stripe payment link">💳</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -5141,6 +5191,7 @@ function leadsSearch(val) {
 // ── Convert lead (manual payment) ─────────────────────
 
 function openConvertLead(recordId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   // Remove any existing form first
   document.getElementById(`lcf-${recordId}`)?.remove();
 
@@ -6322,13 +6373,16 @@ function _renderTaskCard(t) {
     </div>
     <div class="task-card-actions">
       <button class="task-btn" onclick='openModal("${t.caseId}")'>View</button>
-      <button class="task-btn task-btn-resolve" onclick='openTaskResolve("${t.type}","${t.caseId}")'>Resolve →</button>
+      ${(t.type === 'collect-balance' || t.type === 'pay-attorney') && !canEditFinancials() ? '' : `<button class="task-btn task-btn-resolve" onclick='openTaskResolve("${t.type}","${t.caseId}")'>Resolve →</button>`}
     </div>
   </div>`;
 }
 
 // ── Resolve overlay ───────────────────────────────────
 function openTaskResolve(taskType, caseId) {
+  if ((taskType === 'collect-balance' || taskType === 'pay-attorney') && !canEditFinancials()) {
+    return showToast('Your role cannot complete financial tasks.', 'error');
+  }
   const rec  = ALL_RECORDS.find(r => r.id === caseId);
   if (!rec) return;
   const fd   = f(rec);
@@ -6655,6 +6709,7 @@ async function _resolveAttyUpdate(caseId) {
 }
 
 async function _resolveCollectBalance(caseId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   const errEl = document.getElementById('tr-error');
   errEl.style.display = 'none';
   const amt    = parseFloat(document.getElementById('tr-amount')?.value) || 0;
@@ -6687,6 +6742,7 @@ async function _resolveCollectBalance(caseId) {
 }
 
 async function _resolvePayAttorney(caseId) {
+  if (!canEditFinancials()) return showToast('Your role cannot change financial records.', 'error');
   const paidDate = document.getElementById('tr-atty-paid-date')?.value || new Date().toISOString().split('T')[0];
   const notes    = document.getElementById('tr-notes')?.value.trim();
   const fields = {
