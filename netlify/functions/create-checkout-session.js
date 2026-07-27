@@ -29,23 +29,9 @@ const CORS = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Staff token verification (mirrors staff-auth.js verifyToken)
+//  Staff token verification — shared verifier (HMAC + expiry + identity + role)
 // ─────────────────────────────────────────────────────────────────────────────
-function verifyToken(token, secret) {
-  if (!token || typeof token !== 'string') return null;
-  const parts = token.split('.');
-  if (parts.length !== 2) return null;
-  const [b64, sig] = parts;
-  const expected   = crypto.createHmac('sha256', secret).update(b64).digest('hex');
-  try {
-    if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expected, 'hex'))) return null;
-  } catch { return null; }
-  try {
-    const payload = JSON.parse(Buffer.from(b64, 'base64url').toString());
-    if (Date.now() > payload.exp) return null;
-    return payload;
-  } catch { return null; }
-}
+const { verifyToken, extractToken } = require('./_verify-token');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Stripe API call (no SDK — direct HTTPS, form-encoded per Stripe spec)
@@ -129,18 +115,23 @@ exports.handler = async function (event) {
   const atKey        = process.env.AIRTABLE_API_KEY;
   const tokenSecret  = process.env.DASHBOARD_TOKEN_SECRET;
 
+  // Configuration problems fail closed with a generic message — environment
+  // variable names are never disclosed to the client.
   if (!stripeKey) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'STRIPE_SECRET_KEY not configured.' }) };
+    console.error('[create-checkout-session] Stripe secret key is not configured.');
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
   }
   if (!base || !atKey) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Airtable env vars not configured.' }) };
+    console.error('[create-checkout-session] Airtable environment is not configured.');
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
   }
   if (!tokenSecret) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'DASHBOARD_TOKEN_SECRET not configured.' }) };
+    console.error('[create-checkout-session] Dashboard token secret is not configured.');
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
   }
 
   // ── Staff auth ───────────────────────────────────────────────────────────────
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
+  const tokenHeader = extractToken(event);
   const staff = verifyToken(tokenHeader, tokenSecret);
   if (!staff) {
     return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized — valid staff token required.' }) };
