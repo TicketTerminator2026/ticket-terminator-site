@@ -1,22 +1,28 @@
 // Ticket Terminator — Fetch All Cases from Airtable
-// Paginates through ALL records (Airtable max 100/page), sorted newest first.
-// Caps at 2,000 records for dashboard performance; returns truncated:true if more exist.
+// GET → { records, total, truncated }
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token (any known role, including
+// Read Only). Paginates through ALL records (Airtable max 100/page), newest
+// first. Caps at 2,000 records for dashboard performance.
+
+'use strict';
+
+const { requireAuth, jsonResponse, serverError, upstreamError, methodNotAllowed } = require('./_verify-token');
 
 exports.handler = async function (event) {
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
+  if (event.httpMethod !== 'GET') return methodNotAllowed();
+
+  // ── Auth first — before any Airtable contact ──────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
 
   const base  = process.env.AIRTABLE_BASE_ID;
   const table = process.env.AIRTABLE_TABLE_ID;
   const key   = process.env.AIRTABLE_API_KEY;
 
   if (!base || !table || !key) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Missing Airtable env vars (AIRTABLE_BASE_ID / AIRTABLE_TABLE_ID / AIRTABLE_API_KEY)' }),
-    };
+    console.error('[get-cases] Missing Airtable environment configuration.');
+    return serverError();
   }
 
   const atHeaders = { 'Authorization': `Bearer ${key}` };
@@ -27,7 +33,6 @@ exports.handler = async function (event) {
 
   try {
     do {
-      // Build query params
       const params = new URLSearchParams();
       params.set('pageSize', '100');
       params.set('sort[0][field]',     'Date Submitted');
@@ -39,12 +44,8 @@ exports.handler = async function (event) {
 
       if (!res.ok) {
         const errText = await res.text();
-        console.error('Airtable fetch error:', errText);
-        return {
-          statusCode: 502,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: 'Airtable fetch failed', detail: errText }),
-        };
+        console.error('[get-cases] Airtable fetch error:', res.status, errText);
+        return upstreamError();
       }
 
       const page = await res.json();
@@ -55,25 +56,14 @@ exports.handler = async function (event) {
 
     const truncated = !!(offset && allRecords.length >= MAX_RECORDS);
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type':  'application/json',
-        'Cache-Control': 'no-cache, no-store',
-      },
-      body: JSON.stringify({
-        records:   allRecords,
-        total:     allRecords.length,
-        truncated, // true when more than 2,000 records exist
-      }),
-    };
+    return jsonResponse(200, {
+      records:   allRecords,
+      total:     allRecords.length,
+      truncated, // true when more than 2,000 records exist
+    });
 
   } catch (err) {
-    console.error('get-cases error:', err.message);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }),
-    };
+    console.error('[get-cases] error:', err.message);
+    return serverError();
   }
 };

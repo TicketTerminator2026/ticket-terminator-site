@@ -140,7 +140,12 @@ async function login() {
   const token = sessionStorage.getItem('tt_auth_token');
   if (!token) return;
   try {
-    const res = await fetch('/.netlify/functions/staff-auth?token=' + encodeURIComponent(token));
+    // Session token travels in a header, never in the URL — a query-string
+    // credential would be written to access logs and browser history.
+    const res = await fetch('/.netlify/functions/staff-auth', {
+      method:  'GET',
+      headers: { 'X-Staff-Token': token },
+    });
     const data = await res.json();
     if (data.valid) window.location.href = '/dashboard.html';
   } catch {}

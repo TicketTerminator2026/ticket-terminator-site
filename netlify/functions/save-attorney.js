@@ -1,53 +1,68 @@
 // Ticket Terminator — Create or update an Attorney
 // POST { fields } → create | PATCH { recordId, fields } → update
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token.
+// AUTHORIZATION (Phase 0): Manager or Admin only (Employee and Read Only are
+// blocked). Explicit positive field allowlist for every role.
+
+'use strict';
 
 const { log } = require('./_log');
-const ATTORNEYS_TABLE = 'tbl7Yj3IYYJIpFOVt';
+const {
+  requireAuth, hasMinRole, parseJsonBody, enforceFields,
+  jsonResponse, forbidden, badRequest, serverError, upstreamError, methodNotAllowed,
+  ATTORNEY_FIELDS,
+} = require('./_verify-token');
 
-function decodeToken(token) {
-  try { return JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()); } catch { return null; }
-}
+const ATTORNEYS_TABLE = 'tbl7Yj3IYYJIpFOVt';
 
 exports.handler = async function (event) {
   const isCreate = event.httpMethod === 'POST';
   const isUpdate = event.httpMethod === 'PATCH';
-  if (!isCreate && !isUpdate) return { statusCode: 405, body: 'Method Not Allowed' };
+  if (!isCreate && !isUpdate) return methodNotAllowed();
+
+  // ── 1. Authenticate ───────────────────────────────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+  const staff = auth.staff;
+
+  // ── 2. Manager or higher ──────────────────────────────────────────────────
+  if (!hasMinRole(staff, 'Manager')) {
+    return forbidden();
+  }
+
+  // ── 3. Parse body ─────────────────────────────────────────────────────────
+  const parsed = parseJsonBody(event);
+  if (!parsed.ok) return parsed.response;
+
+  const fields   = parsed.body.fields || {};
+  const recordId = parsed.body.recordId;
+
+  if (isUpdate && (typeof recordId !== 'string' || !recordId.startsWith('rec'))) {
+    return badRequest('A valid attorney record reference is required.');
+  }
+
+  // ── 4. Field allowlist — BEFORE any Airtable call ─────────────────────────
+  const gate = enforceFields('save-attorney', fields, ATTORNEY_FIELDS, staff.staffId);
+  if (!gate.ok) return gate.response;
 
   const base = process.env.AIRTABLE_BASE_ID;
   const key  = process.env.AIRTABLE_API_KEY;
   const env  = { base, key };
-
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
-  const staff = decodeToken(tokenHeader) || { name: 'Unknown', staffId: '' };
-
-  if (staff.role === 'Read Only' || staff.role === 'Employee') {
-    // Employees can't manage attorneys
-    return { statusCode: 403, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Permission denied — Manager or Admin required' }) };
-  }
-
-  let body;
-  try { body = JSON.parse(event.body); } catch {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
-
-  const fields   = body.fields || {};
-  const recordId = body.recordId;
-  if (isUpdate && !recordId) {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'recordId required for update' }) };
+  if (!base || !key) {
+    console.error('[save-attorney] Missing Airtable environment configuration.');
+    return serverError();
   }
 
   const clean = {};
   Object.entries(fields).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== '') clean[k] = v;
-    if (v === false) clean[k] = v;
+    if (v === false || v === 0) clean[k] = v;
   });
 
   const url = isCreate
     ? `https://api.airtable.com/v0/${base}/${ATTORNEYS_TABLE}`
-    : `https://api.airtable.com/v0/${base}/${ATTORNEYS_TABLE}/${recordId}`;
+    : `https://api.airtable.com/v0/${base}/${ATTORNEYS_TABLE}/${encodeURIComponent(recordId)}`;
 
   try {
     const res = await fetch(url, {
@@ -57,12 +72,12 @@ exports.handler = async function (event) {
     });
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message || JSON.stringify(data) }) };
+      console.error('[save-attorney] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
 
     const attyName = clean['Attorney Name'] || recordId;
-    log(env, {
+    await log(env, {
       staffName: staff.name, staffId: staff.staffId,
       action: isCreate ? `Added attorney ${attyName}` : `Updated attorney ${attyName}`,
       category: 'Attorney',
@@ -70,10 +85,9 @@ exports.handler = async function (event) {
       oldVal: '', newVal: attyName,
     });
 
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, record: data }) };
+    return jsonResponse(200, { success: true, record: data });
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[save-attorney] error:', err.message);
+    return serverError();
   }
 };

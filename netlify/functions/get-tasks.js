@@ -1,23 +1,35 @@
 // Ticket Terminator — Fetch Tasks
-// GET ?caseId=...&staffId=...&status=Open
+// GET ?caseId=...&staffId=...&status=Open → { records }
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token (any known role).
+// NOTE: the pre-existing "Employees see their own tasks" filter is preserved
+// as-is. Phase 0 deliberately does NOT add or broaden record-assignment
+// filtering; proper scoping is a Dashboard V2 design item.
+
+'use strict';
+
+const {
+  requireAuth, jsonResponse, serverError, upstreamError, methodNotAllowed,
+  escapeFormulaValue,
+} = require('./_verify-token');
 
 const TASKS_TABLE = 'tblvwrl2hPjUjbUkC';
 
-function decodeToken(token) {
-  try { return JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()); } catch { return null; }
-}
-
 exports.handler = async function (event) {
-  if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
+  if (event.httpMethod !== 'GET') return methodNotAllowed();
+
+  // ── Auth first — before any Airtable contact ──────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+  const staff = auth.staff;
 
   const base = process.env.AIRTABLE_BASE_ID;
   const key  = process.env.AIRTABLE_API_KEY;
 
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
-  const staff = decodeToken(tokenHeader) || { role: '', staffId: '' };
-
-  if (!staff.role) return { statusCode: 401, headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ error: 'Authentication required' }) };
+  if (!base || !key) {
+    console.error('[get-tasks] Missing Airtable environment configuration.');
+    return serverError();
+  }
 
   const qs = event.queryStringParameters || {};
   const params = new URLSearchParams();
@@ -25,16 +37,19 @@ exports.handler = async function (event) {
   params.set('sort[0][field]', 'Due Date');
   params.set('sort[0][direction]', 'asc');
 
+  // All interpolated values are escaped — prevents Airtable formula injection.
   const filters = [];
-  if (qs.status)  filters.push(`{Status} = "${qs.status}"`);
-  if (qs.caseId)  filters.push(`{Case Record ID} = "${qs.caseId}"`);
-  // Employees only see their own tasks
+  if (qs.status)  filters.push(`{Status} = "${escapeFormulaValue(qs.status)}"`);
+  if (qs.caseId)  filters.push(`{Case Record ID} = "${escapeFormulaValue(qs.caseId)}"`);
+
+  // Pre-existing behaviour retained: Employees default to their own tasks.
+  // staffId now comes from a cryptographically verified token.
   if (staff.role === 'Employee' && !qs.caseId) {
-    filters.push(`{Assigned Staff ID} = "${staff.staffId}"`);
+    filters.push(`{Assigned Staff ID} = "${escapeFormulaValue(staff.staffId)}"`);
   } else if (qs.staffId) {
-    filters.push(`{Assigned Staff ID} = "${qs.staffId}"`);
+    filters.push(`{Assigned Staff ID} = "${escapeFormulaValue(qs.staffId)}"`);
   }
-  // Exclude Cancelled + Done by default unless explicitly requested
+
   if (!qs.status) filters.push(`NOT({Status} = "Cancelled")`);
 
   if (filters.length) params.set('filterByFormula', `AND(${filters.join(',')})`);
@@ -44,13 +59,12 @@ exports.handler = async function (event) {
       { headers: { 'Authorization': `Bearer ${key}` } });
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 502, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message }) };
+      console.error('[get-tasks] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-      body: JSON.stringify({ records: data.records || [] }) };
+    return jsonResponse(200, { records: data.records || [] });
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[get-tasks] error:', err.message);
+    return serverError();
   }
 };

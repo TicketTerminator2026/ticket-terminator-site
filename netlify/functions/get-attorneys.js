@@ -1,14 +1,28 @@
 // Ticket Terminator — Fetch all Attorneys from Airtable
+// GET → { records, total }
+//
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token (any known role).
+
+'use strict';
+
+const { requireAuth, jsonResponse, serverError, upstreamError, methodNotAllowed } = require('./_verify-token');
 
 const ATTORNEYS_TABLE = 'tbl7Yj3IYYJIpFOVt';
 
 exports.handler = async function (event) {
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method Not Allowed' };
-  }
+  if (event.httpMethod !== 'GET') return methodNotAllowed();
+
+  // ── Auth first — before any Airtable contact ──────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
 
   const base = process.env.AIRTABLE_BASE_ID;
   const key  = process.env.AIRTABLE_API_KEY;
+
+  if (!base || !key) {
+    console.error('[get-attorneys] Missing Airtable environment configuration.');
+    return serverError();
+  }
 
   try {
     const params = new URLSearchParams();
@@ -22,16 +36,15 @@ exports.handler = async function (event) {
     );
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 502, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message || 'Airtable error' }) };
+      console.error('[get-attorneys] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
-      body: JSON.stringify({ records: data.records || [], total: (data.records || []).length }),
-    };
+    return jsonResponse(200, {
+      records: data.records || [],
+      total: (data.records || []).length,
+    });
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[get-attorneys] error:', err.message);
+    return serverError();
   }
 };

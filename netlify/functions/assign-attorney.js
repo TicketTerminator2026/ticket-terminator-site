@@ -1,62 +1,69 @@
 // Ticket Terminator — Assign attorney(s) to a case
 // PATCH { caseId, attorneyIds: [id], caseNum, previousAttorneyName } → { success, record, attorneyName }
 //
-// Phase 1 rules:
-//   - Exactly 0 or 1 attorney IDs accepted (Phase 1: single-assignment only)
+// PRIVATE ENDPOINT — requires a valid X-Staff-Token.
+// AUTHORIZATION (Phase 0): Employee, Manager and Admin may assign; Read Only is
+// blocked.
+//
+// Phase 1 rules (unchanged):
+//   - Exactly 0 or 1 attorney IDs accepted (single-assignment only)
 //   - Attorney must exist in Airtable and be Active
 //   - When assigning: sets Attorney + Status = "Attorney Assigned"
 //   - When removing: clears Attorney only — Status NOT automatically changed
 //   - Activity Log written with server-resolved attorney name (never relies on caller)
-//   - Returns full updated Airtable record in response
+
+'use strict';
 
 const { log } = require('./_log');
+const {
+  requireAuth, canWrite, parseJsonBody,
+  jsonResponse, forbidden, badRequest, serverError, upstreamError, methodNotAllowed,
+} = require('./_verify-token');
 
 // Hardcoded to match get-attorneys.js — no separate env var used
 const ATTORNEYS_TABLE = 'tbl7Yj3IYYJIpFOVt';
 
-function decodeToken(token) {
-  try { return JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()); } catch { return null; }
-}
-
 exports.handler = async function (event) {
-  if (event.httpMethod !== 'PATCH') return { statusCode: 405, body: 'Method Not Allowed' };
+  if (event.httpMethod !== 'PATCH') return methodNotAllowed();
+
+  // ── 1. Authenticate (HMAC-verified) ───────────────────────────────────────
+  const auth = requireAuth(event);
+  if (!auth.ok) return auth.response;
+  const staff = auth.staff;
+
+  if (!canWrite(staff)) return forbidden();
 
   const base  = process.env.AIRTABLE_BASE_ID;
   const table = process.env.AIRTABLE_TABLE_ID;
   const key   = process.env.AIRTABLE_API_KEY;
   const env   = { base, key };
 
-  // ── 1. Validate staff token ───────────────────────────────────────────────
-  const tokenHeader = event.headers['x-staff-token'] || event.headers['X-Staff-Token'] || '';
-  const staff = decodeToken(tokenHeader) || { name: 'Unknown', staffId: '' };
-  if (staff.role === 'Read Only') {
-    return { statusCode: 403, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Permission denied' }) };
+  if (!base || !table || !key) {
+    console.error('[assign-attorney] Missing Airtable environment configuration.');
+    return serverError();
   }
 
   // ── 2. Parse body ─────────────────────────────────────────────────────────
-  let body;
-  try { body = JSON.parse(event.body); } catch {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
+  const parsed = parseJsonBody(event);
+  if (!parsed.ok) return parsed.response;
 
-  const { caseId, attorneyIds = [], caseNum = '', previousAttorneyName = '' } = body;
+  const { caseId, attorneyIds = [], caseNum = '', previousAttorneyName = '' } = parsed.body;
 
   // ── 3. Validate caseId ────────────────────────────────────────────────────
-  if (!caseId) {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'caseId required' }) };
+  if (typeof caseId !== 'string' || !caseId.startsWith('rec')) {
+    return badRequest('A valid case reference is required.');
   }
 
-  // ── 4. Validate attorneyIds — Phase 1: exactly 0 or 1 ───────────────────
+  // ── 4. Validate attorneyIds — exactly 0 or 1 ─────────────────────────────
   if (!Array.isArray(attorneyIds)) {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'attorneyIds must be an array' }) };
+    return badRequest('attorneyIds must be an array.');
   }
   if (attorneyIds.length > 1) {
-    return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Only one attorney can be assigned in Phase 1.' }) };
+    return badRequest('Only one attorney can be assigned in Phase 1.');
+  }
+  if (attorneyIds.length === 1 &&
+      (typeof attorneyIds[0] !== 'string' || !attorneyIds[0].startsWith('rec'))) {
+    return badRequest('A valid attorney reference is required.');
   }
 
   const isAssigning = attorneyIds.length === 1;
@@ -68,22 +75,21 @@ exports.handler = async function (event) {
     let attyData;
     try {
       const attyRes = await fetch(
-        `https://api.airtable.com/v0/${base}/${ATTORNEYS_TABLE}/${attyId}`,
+        `https://api.airtable.com/v0/${base}/${ATTORNEYS_TABLE}/${encodeURIComponent(attyId)}`,
         { headers: { Authorization: `Bearer ${key}` } }
       );
       attyData = await attyRes.json();
       if (!attyRes.ok) {
-        return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ error: `Attorney not found: ${attyData.error?.message || attyId}` }) };
+        console.error('[assign-attorney] Attorney lookup failed:', attyRes.status);
+        return badRequest('Attorney not found.');
       }
     } catch (err) {
-      return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: `Failed to fetch attorney: ${err.message}` }) };
+      console.error('[assign-attorney] Attorney lookup error:', err.message);
+      return serverError();
     }
 
     if (attyData.fields?.Active !== true) {
-      return { statusCode: 400, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Cannot assign an inactive attorney.' }) };
+      return badRequest('Cannot assign an inactive attorney.');
     }
 
     // Resolve name server-side so Activity Log is always accurate
@@ -101,7 +107,7 @@ exports.handler = async function (event) {
 
   try {
     const res = await fetch(
-      `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}/${caseId}`,
+      `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}/${encodeURIComponent(caseId)}`,
       {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
@@ -110,11 +116,11 @@ exports.handler = async function (event) {
     );
     const data = await res.json();
     if (!res.ok) {
-      return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: data.error?.message || JSON.stringify(data) }) };
+      console.error('[assign-attorney] Airtable error:', res.status, data && data.error && data.error.message);
+      return upstreamError();
     }
 
-    // ── 9. Write Activity Log (awaited; errors non-fatal) ────────────────
+    // ── 9. Write Activity Log (awaited; identity from verified token) ─────
     await log(env, {
       staffName: staff.name,
       staffId:   staff.staffId,
@@ -127,23 +133,17 @@ exports.handler = async function (event) {
       field:     'Attorney',
       oldVal:    previousAttorneyName,
       newVal:    resolvedAttorneyName,
-    }).catch(logErr =>
-      console.error('[assign-attorney] Activity Log write failed:', logErr.message)
-    );
+    });
 
     // ── 10. Return updated record ─────────────────────────────────────────
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        success:      true,
-        record:       data,
-        attorneyName: resolvedAttorneyName,
-      }),
-    };
+    return jsonResponse(200, {
+      success:      true,
+      record:       data,
+      attorneyName: resolvedAttorneyName,
+    });
 
   } catch (err) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message }) };
+    console.error('[assign-attorney] error:', err.message);
+    return serverError();
   }
 };
