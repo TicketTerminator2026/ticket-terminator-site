@@ -37,7 +37,7 @@ exports.handler = async function (event) {
   const staff = auth.staff;
 
   // ── 2. Read Only cannot write ─────────────────────────────────────────────
-  if (!canWrite(staff)) return forbidden('Your role does not permit changes.');
+  if (!canWrite(staff)) return forbidden();
 
   // ── 3. Parse body ─────────────────────────────────────────────────────────
   const parsed = parseJsonBody(event);
@@ -51,7 +51,7 @@ exports.handler = async function (event) {
 
   // ── 4. Template administration is Manager or higher ───────────────────────
   if (table === 'templates' && !hasMinRole(staff, 'Manager')) {
-    return forbidden('Managing document templates requires a Manager or Admin account.');
+    return forbidden();
   }
 
   if (recordId !== undefined && (typeof recordId !== 'string' || !recordId.startsWith('rec'))) {
@@ -59,7 +59,7 @@ exports.handler = async function (event) {
   }
 
   // ── 5. Field allowlist — BEFORE any Airtable call ─────────────────────────
-  const gate = enforceFields(`save-document[${table}]`, fields, FIELD_POLICY[table]);
+  const gate = enforceFields(`save-document[${table}]`, fields, FIELD_POLICY[table], staff.staffId);
   if (!gate.ok) return gate.response;
 
   // ── 6. Reject unsafe URL schemes ──────────────────────────────────────────

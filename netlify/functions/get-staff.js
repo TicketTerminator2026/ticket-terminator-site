@@ -21,7 +21,7 @@ exports.handler = async function (event) {
 
   // ── 2. Owner/Admin only ───────────────────────────────────────────────────
   if (auth.staff.role !== 'Admin') {
-    return forbidden('Staff administration requires an Admin account.');
+    return forbidden();
   }
 
   const base = process.env.AIRTABLE_BASE_ID;

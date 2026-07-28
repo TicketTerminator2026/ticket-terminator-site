@@ -201,7 +201,7 @@ const BAD_TOKENS = [
   // ── F. Employee blocked from financial fields ────────────────────────────
   const FIN = ['Client Fee Collected','Client Balance Remaining','Attorney Service Fee',
     'Attorney Balance Remaining','Attorney Payment Confirmed','Attorney Paid Date',
-    'Payout Due?','Payment Status','Payment Method','Stripe Session ID','Date Submitted'];
+    'Payout Due?','Payment Method','Quote Status'];
   for (const field of FIN) {
     const rr = await call('update-case.js', { method: 'PATCH', token: TOK.employee,
       body: { recordId: 'recX0000000000000', fields: { [field]: field === 'Payout Due?' ? true : 'x' } } });
@@ -365,6 +365,115 @@ const BAD_TOKENS = [
   r = await call('stripe-webhook.js', { method: 'POST', body: { id: 'evt_test' } });
   check('stripe', 'stripe-webhook rejects unsigned event when enabled', r.status === 400, `got ${r.status}`);
   setEnv();
+
+  // ── F2. Webhook-owned fields: rejected for EVERY role ────────────────────
+  for (const field of ['Payment Status', 'Stripe Session ID']) {
+    for (const [label, tok] of [['Admin', TOK.admin], ['Manager', TOK.manager], ['Employee', TOK.employee]]) {
+      const rr = await call('update-case.js', { method: 'PATCH', token: tok,
+        body: { recordId: 'recX0000000000000', fields: { [field]: 'x' } } });
+      check('webhook-owned', `${label} cannot write '${field}' (webhook-owned)`, rr.status === 403, `got ${rr.status}`);
+      check('webhook-owned', `no Airtable write for ${label}/'${field}'`, rr.airtable === false);
+    }
+    const rc = await call('create-case.js', { method: 'POST', token: TOK.admin,
+      body: { fields: { 'First Name': 'A', [field]: 'x' } } });
+    check('webhook-owned', `create-case rejects '${field}' even for Admin`, rc.status === 403, `got ${rc.status}`);
+  }
+
+  // ── F3. Date Submitted is Admin-only ─────────────────────────────────────
+  for (const [label, tok, want] of [['Admin', TOK.admin, 200], ['Manager', TOK.manager, 403],
+                                    ['Employee', TOK.employee, 403], ['Read Only', TOK.readonly, 403]]) {
+    const rr = await call('update-case.js', { method: 'PATCH', token: tok,
+      body: { recordId: 'recX0000000000000', fields: { 'Date Submitted': '2026-01-01' } } });
+    check('admin-only', `${label} 'Date Submitted' -> ${want}`, rr.status === want, `got ${rr.status}`);
+  }
+
+  // ── F4. Quote Status requires Manager or Admin ───────────────────────────
+  for (const [label, tok, want] of [['Admin', TOK.admin, 200], ['Manager', TOK.manager, 200],
+                                    ['Employee', TOK.employee, 403], ['Read Only', TOK.readonly, 403]]) {
+    const rr = await call('update-case.js', { method: 'PATCH', token: tok,
+      body: { recordId: 'recX0000000000000', fields: { 'Quote Status': 'Sent' } } });
+    check('quote-status', `${label} 'Quote Status' -> ${want}`, rr.status === want, `got ${rr.status}`);
+  }
+
+  // ── F5. Generic 403 bodies — never reveal the required role ──────────────
+  const ROLE_WORDS = /Admin|Manager|Employee|Read Only|role|permission|account|required/i;
+  const denials = [
+    ['get-staff.js',    { method: 'GET' }, TOK.manager],
+    ['save-staff.js',   { method: 'POST', body: { fields: { Name: 'N', Email: 'n@x.co', password: 'password123' } } }, TOK.manager],
+    ['save-attorney.js',{ method: 'POST', body: { fields: { 'Attorney Name': 'A' } } }, TOK.employee],
+    ['save-document.js',{ method: 'POST', body: { table: 'templates', fields: { 'Template Name': 'T' } } }, TOK.employee],
+    ['update-case.js',  { method: 'PATCH', body: { recordId: 'recX0000000000000', fields: { 'Internal Notes': 'x' } } }, TOK.readonly],
+    ['get-activity-log.js', { method: 'GET' }, TOK.readonly],
+    ['create-checkout-session.js', { method: 'POST', body: { recordId: 'recX0000000000000', amount: 100 } }, TOK.readonly],
+  ];
+  for (const [file, opts, tok] of denials) {
+    const rr = await call(file, { ...opts, token: tok });
+    check('generic-403', `${file} returns 403`, rr.status === 403, `got ${rr.status}`);
+    check('generic-403', `${file} 403 body reveals no role`, !ROLE_WORDS.test(rr.raw || ''), rr.raw);
+  }
+  // field rejection carries a machine code but still no role
+  {
+    const rr = await call('update-case.js', { method: 'PATCH', token: TOK.employee,
+      body: { recordId: 'recX0000000000000', fields: { 'Client Fee Collected': 1 } } });
+    check('generic-403', 'field rejection uses FIELD_NOT_PERMITTED code', rr.body && rr.body.code === 'FIELD_NOT_PERMITTED', rr.raw);
+    check('generic-403', 'field rejection body reveals no role or field', !ROLE_WORDS.test(rr.raw || '') && !/Client Fee/.test(rr.raw || ''), rr.raw);
+  }
+
+  // ── F6. Activity-log staffId filter is Manager+ only ─────────────────────
+  CALLS = [];
+  await call('get-activity-log.js', { method: 'GET', token: TOK.employee, qs: { caseId: 'recX0000000000000', staffId: 'recCOLLEAGUE0000' } });
+  const empQ = decodeURIComponent(CALLS.map(c => c.url).join(' ')).replace(/\+/g, ' ');
+  check('activity', 'Employee staffId filter is ignored', !empQ.includes('Staff Record ID'), empQ.slice(0, 180));
+  for (const [label, tok] of [['Manager', TOK.manager], ['Admin', TOK.admin]]) {
+    CALLS = [];
+    await call('get-activity-log.js', { method: 'GET', token: tok, qs: { staffId: 'recCOLLEAGUE0000' } });
+    const q = decodeURIComponent(CALLS.map(c => c.url).join(' ')).replace(/\+/g, ' ');
+    check('activity', `${label} may use the staffId filter`, q.includes('Staff Record ID'), q.slice(0, 180));
+  }
+
+  // ── F7. create-checkout-session: auth BEFORE configuration ───────────────
+  {
+    const savedStripe = process.env.STRIPE_SECRET_KEY, savedBase = process.env.AIRTABLE_BASE_ID;
+    delete process.env.STRIPE_SECRET_KEY; delete process.env.AIRTABLE_BASE_ID;
+    let rr = await call('create-checkout-session.js', { method: 'POST', token: undefined,
+      body: { recordId: 'recX0000000000000', amount: 100 } });
+    check('auth-order', 'unauthenticated request rejected BEFORE config checks (401 not 500)', rr.status === 401, `got ${rr.status}`);
+    check('auth-order', 'config state not disclosed to an unauthenticated caller',
+      !/STRIPE|AIRTABLE|configured|env/i.test(rr.raw || ''), rr.raw);
+    rr = await call('create-checkout-session.js', { method: 'POST', token: TOK.forgedUnsigned,
+      body: { recordId: 'recX0000000000000', amount: 100 } });
+    check('auth-order', 'forged token rejected BEFORE config checks', rr.status === 401, `got ${rr.status}`);
+    process.env.STRIPE_SECRET_KEY = savedStripe; process.env.AIRTABLE_BASE_ID = savedBase;
+    rr = await call('create-checkout-session.js', { method: 'POST', token: TOK.admin,
+      body: { recordId: 'recX0000000000000', amount: 100 } });
+    check('auth-order', 'authenticated caller still reaches the flow', rr.status !== 401 && rr.status !== 403, `got ${rr.status}`);
+  }
+
+  // ── F8. recordId is URL-encoded in the Airtable record URL ───────────────
+  {
+    CALLS = [];
+    await call('create-checkout-session.js', { method: 'POST', token: TOK.admin,
+      body: { recordId: 'rec../../tblOTHER/recEVIL', amount: 100 } });
+    const urls = CALLS.map(c => c.url).join(' ');
+    check('encoding', 'recordId is percent-encoded (no path traversal)',
+      !urls.includes('rec../../tblOTHER') , urls.slice(0, 200));
+  }
+
+  // ── F9. Generic upstream errors from create-checkout-session ─────────────
+  {
+    const orig = global.fetch;
+    global.fetch = async (url, opts = {}) => {
+      CALLS.push({ url: String(url), method: opts.method || 'GET' });
+      return { ok: false, status: 422,
+        json: async () => ({ error: { type: 'AIRTABLE_INTERNAL', message: 'Secret Internal Column blew up' } }),
+        text: async () => 'raw tbledZDHFKbsBiwMf failure' };
+    };
+    const rr = await call('create-checkout-session.js', { method: 'POST', token: TOK.admin,
+      body: { recordId: 'recX0000000000000', amount: 100 } });
+    check('errors', 'create-checkout-session returns a generic upstream error',
+      !/AIRTABLE_INTERNAL|Secret Internal Column|tbledZDHFKbsBiwMf/.test(rr.raw || ''), (rr.raw || '').slice(0, 120));
+    global.fetch = orig;
+  }
 
   // ── P. Method guards ─────────────────────────────────────────────────────
   r = await call('get-cases.js', { method: 'POST', token: TOK.admin });

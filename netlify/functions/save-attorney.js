@@ -28,7 +28,7 @@ exports.handler = async function (event) {
 
   // ── 2. Manager or higher ──────────────────────────────────────────────────
   if (!hasMinRole(staff, 'Manager')) {
-    return forbidden('Attorney administration requires a Manager or Admin account.');
+    return forbidden();
   }
 
   // ── 3. Parse body ─────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ exports.handler = async function (event) {
   }
 
   // ── 4. Field allowlist — BEFORE any Airtable call ─────────────────────────
-  const gate = enforceFields('save-attorney', fields, ATTORNEY_FIELDS);
+  const gate = enforceFields('save-attorney', fields, ATTORNEY_FIELDS, staff.staffId);
   if (!gate.ok) return gate.response;
 
   const base = process.env.AIRTABLE_BASE_ID;

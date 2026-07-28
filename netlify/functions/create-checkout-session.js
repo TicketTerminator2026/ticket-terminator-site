@@ -109,14 +109,32 @@ exports.handler = async function (event) {
     return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // ── Env var checks ───────────────────────────────────────────────────────────
-  const stripeKey    = process.env.STRIPE_SECRET_KEY;
-  const base         = process.env.AIRTABLE_BASE_ID;
-  const atKey        = process.env.AIRTABLE_API_KEY;
-  const tokenSecret  = process.env.DASHBOARD_TOKEN_SECRET;
+  // ── Staff auth FIRST ─────────────────────────────────────────────────────────
+  // Authentication must precede every configuration check. Returning a distinct
+  // 500 for a missing STRIPE_SECRET_KEY before verifying the caller would let an
+  // unauthenticated probe map which server configuration exists.
+  const tokenSecret = process.env.DASHBOARD_TOKEN_SECRET;
+  if (!tokenSecret) {
+    console.error('[create-checkout-session] Dashboard token secret is not configured.');
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
+  }
 
-  // Configuration problems fail closed with a generic message — environment
-  // variable names are never disclosed to the client.
+  const tokenHeader = extractToken(event);
+  const staff = verifyToken(tokenHeader, tokenSecret);
+  if (!staff) {
+    return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Authentication required.' }) };
+  }
+  // Generic 403 — never names the role that would be accepted.
+  if (staff.role === 'Read Only') {
+    return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: 'Forbidden' }) };
+  }
+
+  // ── Env var checks (authenticated callers only) ──────────────────────────────
+  // Generic message; environment variable names are never disclosed.
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const base      = process.env.AIRTABLE_BASE_ID;
+  const atKey     = process.env.AIRTABLE_API_KEY;
+
   if (!stripeKey) {
     console.error('[create-checkout-session] Stripe secret key is not configured.');
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
@@ -124,20 +142,6 @@ exports.handler = async function (event) {
   if (!base || !atKey) {
     console.error('[create-checkout-session] Airtable environment is not configured.');
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
-  }
-  if (!tokenSecret) {
-    console.error('[create-checkout-session] Dashboard token secret is not configured.');
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Server error. Please try again.' }) };
-  }
-
-  // ── Staff auth ───────────────────────────────────────────────────────────────
-  const tokenHeader = extractToken(event);
-  const staff = verifyToken(tokenHeader, tokenSecret);
-  if (!staff) {
-    return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized — valid staff token required.' }) };
-  }
-  if (staff.role === 'Read Only') {
-    return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: 'Permission denied — Read Only role cannot generate payment links.' }) };
   }
 
   // ── Parse body ───────────────────────────────────────────────────────────────
@@ -158,7 +162,7 @@ exports.handler = async function (event) {
   const amountCents = Math.round(amountDollars * 100);
 
   // ── Fetch case from Airtable ─────────────────────────────────────────────────
-  const caseUrl = `https://api.airtable.com/v0/${base}/${encodeURIComponent(CASES_TABLE)}/${recordId}`;
+  const caseUrl = `https://api.airtable.com/v0/${base}/${encodeURIComponent(CASES_TABLE)}/${encodeURIComponent(recordId)}`;
   const atHdrs  = { 'Authorization': `Bearer ${atKey}`, 'Content-Type': 'application/json' };
 
   let caseRecord;
@@ -174,7 +178,7 @@ exports.handler = async function (event) {
     caseRecord = await res.json();
   } catch (err) {
     console.error('[create-checkout-session] Airtable fetch error:', err.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: `Failed to fetch case: ${err.message}` }) };
+    return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Unable to complete the request. Please try again.' }) };
   }
 
   const fd      = caseRecord.fields || {};
@@ -189,7 +193,7 @@ exports.handler = async function (event) {
       statusCode: 409,
       headers: CORS,
       body: JSON.stringify({
-        error:   `Case ${caseNum} already has a recorded payment (Payment Status: ${fd['Payment Status'] || 'set'}).`,
+        error:   `Case ${caseNum} already has a recorded payment.`,
         alreadyPaid: true,
         stripeSessionId: fd['Stripe Session ID'] || null,
       }),
@@ -207,7 +211,7 @@ exports.handler = async function (event) {
     }));
   } catch (err) {
     console.error('[create-checkout-session] Stripe error:', err.message);
-    return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: err.message }) };
+    return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'Unable to complete the request. Please try again.' }) };
   }
 
   console.log(`[create-checkout-session] ✅ Created session ${sessionId} for ${caseNum} | $${amountDollars.toFixed(2)} | staff: ${staff.name}`);

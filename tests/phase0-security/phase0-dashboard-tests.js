@@ -19,7 +19,15 @@ function grab(name, kw) {
 }
 global.window = { location: { origin: 'https://example.org' } };
 const ctx = {};
-const helperSrc = ['esc', '_esc', 'jsAttr', 'safeUrl', 'telDigits', 'safeTel', 'safeMail', 'telLink', 'mailLink'].map(n => grab(n)).join('\n');
+function grabConst(name) {
+  // line-based: the value contains ';' inside a character class
+  const m = src.match(new RegExp('^const ' + name + ' = .*$', 'm'));
+  if (!m) throw new Error('const not found: ' + name);
+  return m[0];
+}
+const helperSrc = [grabConst('MAIL_FORBIDDEN_CHARS')]
+  .concat(['esc', '_esc', 'jsAttr', 'safeUrl', 'telDigits', 'safeTel', 'safeMail', 'telLink', 'mailLink'].map(n => grab(n)))
+  .join('\n');
 new Function('g', helperSrc + ';g.esc=esc;g._esc=_esc;g.jsAttr=jsAttr;g.safeUrl=safeUrl;g.safeTel=safeTel;g.safeMail=safeMail;g.telLink=telLink;g.mailLink=mailLink;g.telDigits=telDigits;')(ctx);
 
 // ══ 1. Output encoding ═════════════════════════════════════════════════════
@@ -69,6 +77,47 @@ for (const bad of ['javascript:alert(1)', 'notanemail', 'a@b', '', null, 'a@b.co
   check('email', `safeMail rejects ${JSON.stringify(bad)}`, ctx.safeMail(bad) === '');
 check('email', 'safeMail accepts a valid address', ctx.safeMail('staff@example.com') === 'staff@example.com');
 
+// ── Stored-XSS regression: WHITESPACE-FREE attribute injection ─────────────
+// The exact payload from the pre-merge report. Every one of these passes a
+// naive /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/ check because it contains no space.
+const MAIL_INJECTIONS = [
+  'a"onmouseover=alert(1)@b.co',          // the reported payload
+  'a"onfocus=alert(1)autofocus="@b.co',
+  "a'onmouseover=alert(1)@b.co",          // apostrophe variant
+  'a`onmouseover=alert(1)`@b.co',         // backtick variant
+  'a<script>alert(1)</script>@b.co',      // angle brackets
+  'a;alert(1)@b.co',                      // semicolon
+  'a,alert(1)@b.co',                      // comma
+  'a\\alert(1)@b.co',                     // backslash
+  'a(1)@b.co',                            // parentheses
+  'a[1]@b.co',                            // brackets
+];
+for (const p of MAIL_INJECTIONS) {
+  check('xss-mail', `safeMail rejects injection ${JSON.stringify(p).slice(0, 42)}`, ctx.safeMail(p) === '', JSON.stringify(ctx.safeMail(p)));
+  const out = ctx.mailLink(p);
+  check('xss-mail', `mailLink renders no anchor for ${JSON.stringify(p).slice(0, 34)}`, out.indexOf('<a') === -1, out.slice(0, 90));
+  check('xss-mail', `mailLink emits no href for ${JSON.stringify(p).slice(0, 34)}`, out.indexOf('href') === -1, out.slice(0, 90));
+  // The decisive assertion: no attribute may survive outside the quoted href.
+  check('xss-mail', `mailLink cannot break the href attribute for ${JSON.stringify(p).slice(0, 26)}`,
+    !/href="[^"]*"[^>]*on[a-z]+\s*=/i.test(out) && !/<[a-z]+\s[^>]*on[a-z]+\s*=/i.test(out), out.slice(0, 110));
+}
+// A quote must never reach the rendered href even if a future regex lets it through.
+check('xss-mail', 'mailLink output never contains a raw quote inside href',
+  !/href="mailto:[^"]*"[^>]*=/.test(ctx.mailLink('a"onmouseover=alert(1)@b.co')));
+// tel: equivalent — digits only, plus explicit escaping
+for (const p of ['1234567890"onmouseover=alert(1)', "1234567890'onmouseover=alert(1)", '1234567890`x`']) {
+  const out = ctx.telLink(p);
+  check('xss-tel', `telLink cannot break the href attribute for ${JSON.stringify(p).slice(0, 30)}`,
+    !/href="[^"]*"[^>]*on[a-z]+\s*=/i.test(out) && !/<[a-z]+\s[^>]*on[a-z]+\s*=/i.test(out), out.slice(0, 110));
+}
+// Valid destinations must still work after the tightening.
+check('xss-mail', 'valid address still produces a working mailto link',
+  ctx.mailLink('staff@example.com') === '<a href="mailto:staff@example.com">staff@example.com</a>', ctx.mailLink('staff@example.com'));
+check('xss-tel', 'valid number still produces a working tel link',
+  ctx.telLink('(212) 555-0142').indexOf('<a href="tel:2125550142"') === 0, ctx.telLink('(212) 555-0142'));
+check('xss-mail', 'plus-addressing and dots still accepted', ctx.safeMail('first.last+tag@sub.example.co.uk') !== '');
+check('xss-mail', 'safeMail rejects an over-long address', ctx.safeMail('a'.repeat(250) + '@b.co') === '');
+
 // telLink / mailLink contracts
 check('link', 'telLink emits an anchor for a valid number', /^<a href="tel:2125550142"/.test(ctx.telLink('(212) 555-0142')));
 check('link', 'telLink emits NO anchor for an invalid number', ctx.telLink('555-1234').indexOf('<a') === -1);
@@ -86,7 +135,7 @@ check('link', 'telLink turns a javascript: value into inert text, not a link',
 
 // every rendering location routed through the helpers
 // exclude the two sanctioned builders inside telLink()/mailLink() themselves
-const rawLinks = src.split('\n').filter(l => /href="(tel|mailto):\$\{/.test(l) && !/\$\{dest\}/.test(l));
+const rawLinks = src.split('\n').filter(l => /href="(tel|mailto):\$\{/.test(l) && !/\$\{esc\(dest\)\}/.test(l));
 check('link', 'no hand-built tel:/mailto: hrefs remain anywhere', rawLinks.length === 0, rawLinks.join(' | ').slice(0, 200));
 for (const site of [
   ["case modal phone", "telLink(fd['Phone'], { label: '📞 Call'"],
@@ -179,6 +228,25 @@ lines.forEach((l, i) => {
 check('headers', 'zero private dashboard requests missing X-Staff-Token', missing.length === 0, missing.join(', '));
 check('headers', 'staffHeader() call count matches the audited total', (src.match(/staffHeader\(\)/g) || []).length === 27);
 check('legacy', 'dashboard does not call the retired auth.js endpoint', !/\/\.netlify\/functions\/auth(?![a-z-])/.test(src));
+
+// ── Error rendering ───────────────────────────────────────────────────────
+check('errors', 'staff-list catch escapes the error before innerHTML',
+  /listEl\.innerHTML = '<div[^']*'\s*\+\s*esc\(e\.message\)/.test(src));
+{
+  const lines = src.split('\n'); const unescaped = [];
+  lines.forEach((l, i) => {
+    const m = l.match(/\$\{([^}]*\b(?:e|err|error)\.message[^}]*)\}/);
+    if (m && !/\b(esc|_esc)\s*\(/.test(m[1])) unescaped.push(`${i + 1}:${m[1]}`);
+    const c = l.match(/innerHTML\s*=\s*[^;]*?\+\s*[A-Za-z_$][\w$.]*\.message/);
+    if (c && !/esc\(/.test(l)) unescaped.push(`${i + 1}:concat`);
+  });
+  check('errors', 'no error message reaches innerHTML unescaped anywhere', unescaped.length === 0, unescaped.join(', '));
+}
+// ── Quote Status is Manager+ ─────────────────────────────────────────────
+check('fin-ui', 'saveCase sends Quote Status only for Manager+',
+  src.includes("fields['Quote Status']   = g('ef-quote'") && !/'Quote Status':\s+g\('ef-quote'/.test(src));
+check('fin-ui', 'Quote Status select is disabled below Manager',
+  src.includes("const quoteDis = canEditFinancials() ? '' : ' disabled';") && src.includes("'<select' + quoteDis + ' '"));
 
 // ══ 10. Protected files byte-identical ═══════════════════════════════════
 const PROTECTED = ['ticket-terminator-intake-form.html', 'netlify/functions/submit.js',

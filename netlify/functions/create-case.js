@@ -29,7 +29,7 @@ exports.handler = async function (event) {
   const staff = auth.staff;
 
   // ── 2. Read Only cannot write ─────────────────────────────────────────────
-  if (!canWrite(staff)) return forbidden('Your role does not permit changes.');
+  if (!canWrite(staff)) return forbidden();
 
   // ── 3. Parse body ─────────────────────────────────────────────────────────
   const parsed = parseJsonBody(event);
@@ -39,7 +39,7 @@ exports.handler = async function (event) {
 
   // ── 4. Field allowlist — BEFORE any Airtable call ─────────────────────────
   const allowlist = CASE_FIELDS_BY_ROLE[staff.role] || [];
-  const gate = enforceFields(`create-case[${staff.role}]`, submitted, allowlist);
+  const gate = enforceFields(`create-case[${staff.role}]`, submitted, allowlist, staff.staffId);
   if (!gate.ok) return gate.response;
 
   const base  = process.env.AIRTABLE_BASE_ID;

@@ -37,9 +37,11 @@ function jsonResponse(statusCode, payload) {
 }
 
 // Generic, non-revealing client-facing messages.
+// A 403 never states which role is required, and never hints at the hierarchy —
+// an attacker must not be able to map the permission model by probing.
 const MSG = Object.freeze({
   AUTH: 'Authentication required.',
-  FORBIDDEN: 'You do not have permission to perform this action.',
+  FORBIDDEN: 'Forbidden',
   SERVER: 'Server error. Please try again.',
   UPSTREAM: 'Unable to complete the request. Please try again.',
   BAD_REQUEST: 'Invalid request.',
@@ -47,7 +49,8 @@ const MSG = Object.freeze({
 });
 
 const unauthorized = () => jsonResponse(401, { error: MSG.AUTH });
-const forbidden = (msg) => jsonResponse(403, { error: msg || MSG.FORBIDDEN });
+// `code` is an optional machine-readable discriminator; it never names a role.
+const forbidden = (code) => jsonResponse(403, code ? { error: MSG.FORBIDDEN, code } : { error: MSG.FORBIDDEN });
 const serverError = () => jsonResponse(500, { error: MSG.SERVER });
 const upstreamError = () => jsonResponse(502, { error: MSG.UPSTREAM });
 const badRequest = (msg) => jsonResponse(400, { error: msg || MSG.BAD_REQUEST });
@@ -206,7 +209,7 @@ const CASE_FIELDS_OPERATIONAL = Object.freeze([
   'CDL Holder', 'Traffic School Past 18 Months?',
   'Date of Violation', 'Citation / Arrest #', 'Violation Description', 'Client Statement',
   'Heard About Us', 'Referred By',
-  'Status', 'Case Type', 'Priority', 'Quote Status',
+  'Status', 'Case Type', 'Priority',
   'Court Date', 'Court Location', 'Court State', 'County',
   'Court Date Status', 'Court Outcome', 'Next Court Date',
   'Outcome Received Date', 'Next Follow-Up Date',
@@ -218,23 +221,40 @@ const CASE_FIELDS_OPERATIONAL = Object.freeze([
   'Preferred Contact', 'Past Due / Collections', 'Ticket Already Paid',
 ]);
 
-// Cases — financial fields. Manager and Admin only (Owner decision, Phase 0 §5).
+// Cases — financial fields. Manager and Admin only.
+// 'Quote Status' sits here because moving a case through the quote lifecycle is
+// a commercial decision, not routine case admin.
 const CASE_FIELDS_FINANCIAL = Object.freeze([
   'Client Fee Collected', 'Client Balance Remaining',
   'Attorney Service Fee', 'Attorney Balance Remaining',
   'Attorney Payment Confirmed', 'Attorney Paid Date',
-  'Payout Due?', 'Payment Status', 'Payment Method',
-  'Stripe Session ID', 'Date Submitted',
+  'Payout Due?', 'Payment Method',
+  'Quote Status',
 ]);
 
-// Never writable through the dashboard by any role:
+// Cases — Admin only. 'Date Submitted' rewrites the record's position in every
+// period report, so it is deliberately the narrowest grant.
+const CASE_FIELDS_ADMIN_ONLY = Object.freeze([
+  'Date Submitted',
+]);
+
+// WEBHOOK-OWNED — never writable through the dashboard by ANY role.
+// 'Payment Status' and 'Stripe Session ID' are set exclusively by
+// stripe-webhook.js when Stripe confirms a real payment. Allowing a human to
+// set them would let a case be marked Paid with no money movement, and would
+// corrupt the webhook's own idempotency key.
+const CASE_FIELDS_WEBHOOK_OWNED = Object.freeze([
+  'Payment Status', 'Stripe Session ID',
+]);
+
+// Also never writable through the dashboard by any role:
 //   Case #, Client, Attorney, Payments, Documents, Profit (formula),
 //   Ticket Upload, ID Upload, SMS Consent, SMS Consent Timestamp,
 //   Intake Submission ID, Preferred Language.
 // (Attorney links are handled exclusively by assign-attorney.js.)
 
 const CASE_FIELDS_BY_ROLE = Object.freeze({
-  'Admin': Object.freeze([...CASE_FIELDS_OPERATIONAL, ...CASE_FIELDS_FINANCIAL]),
+  'Admin': Object.freeze([...CASE_FIELDS_OPERATIONAL, ...CASE_FIELDS_FINANCIAL, ...CASE_FIELDS_ADMIN_ONLY]),
   'Manager': Object.freeze([...CASE_FIELDS_OPERATIONAL, ...CASE_FIELDS_FINANCIAL]),
   'Employee': CASE_FIELDS_OPERATIONAL,
   'Read Only': Object.freeze([]),
@@ -287,15 +307,16 @@ function checkFields(fields, allowlist) {
  * Enforce a field allowlist, returning a ready 403 when anything is not
  * approved. The whole request is rejected — nothing is partially written.
  */
-function enforceFields(context, fields, allowlist) {
+function enforceFields(context, fields, allowlist, staffId) {
   const result = checkFields(fields, allowlist);
   if (!result.ok) {
-    // Field NAMES only — never values.
-    console.warn(`[authz] ${context}: rejected disallowed field name(s): ${result.rejected.join(', ')}`);
-    return {
-      ok: false,
-      response: forbidden('One or more submitted fields are not permitted for your role.'),
-    };
+    // Field NAMES only — never values. staffId included for the audit trail.
+    console.warn(
+      `[authz] ${context}${staffId ? ` staffId=${staffId}` : ''}: ` +
+      `rejected disallowed field name(s): ${result.rejected.join(', ')}`
+    );
+    // Generic body — the response never says which field or which role.
+    return { ok: false, response: forbidden('FIELD_NOT_PERMITTED') };
   }
   return { ok: true, fields: result.fields };
 }
@@ -346,6 +367,8 @@ module.exports = {
   // field policy
   CASE_FIELDS_OPERATIONAL,
   CASE_FIELDS_FINANCIAL,
+  CASE_FIELDS_ADMIN_ONLY,
+  CASE_FIELDS_WEBHOOK_OWNED,
   CASE_FIELDS_BY_ROLE,
   TASK_FIELDS,
   ATTORNEY_FIELDS,

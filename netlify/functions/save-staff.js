@@ -43,7 +43,7 @@ exports.handler = async function (event) {
 
   // ── 2. Owner/Admin only ───────────────────────────────────────────────────
   if (staff.role !== 'Admin') {
-    return forbidden('Staff administration requires an Admin account.');
+    return forbidden();
   }
 
   // ── 3. Parse body ─────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ exports.handler = async function (event) {
   }
 
   // ── 4. Field allowlist — BEFORE any Airtable call ─────────────────────────
-  const gate = enforceFields('save-staff', rest, STAFF_FIELDS);
+  const gate = enforceFields('save-staff', rest, STAFF_FIELDS, staff.staffId);
   if (!gate.ok) return gate.response;
 
   // ── 5. Role value must be a known role ────────────────────────────────────

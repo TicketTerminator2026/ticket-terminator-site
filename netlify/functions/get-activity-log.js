@@ -18,7 +18,7 @@
 'use strict';
 
 const {
-  requireAuth, jsonResponse, forbidden, serverError, upstreamError, methodNotAllowed,
+  requireAuth, hasMinRole, jsonResponse, forbidden, serverError, upstreamError, methodNotAllowed,
   escapeFormulaValue,
 } = require('./_verify-token');
 
@@ -39,7 +39,7 @@ exports.handler = async function (event) {
 
   // ── Role gate ─────────────────────────────────────────────────────────────
   if (role === 'Read Only') {
-    return forbidden('Activity log access is not available for your role.');
+    return forbidden();
   }
 
   const qs = event.queryStringParameters || {};
@@ -48,7 +48,7 @@ exports.handler = async function (event) {
 
   // Employees may only request a specific case timeline.
   if (role === 'Employee' && !caseId && !caseNum) {
-    return forbidden('A case must be specified to view activity.');
+    return forbidden();
   }
 
   // Categories this caller may never see.
@@ -58,7 +58,7 @@ exports.handler = async function (event) {
 
   // Explicitly requesting a forbidden category is rejected outright.
   if (qs.category && blockedCategories.includes(qs.category)) {
-    return forbidden('You do not have permission to view that activity category.');
+    return forbidden();
   }
 
   // ── Build query ───────────────────────────────────────────────────────────
@@ -72,10 +72,14 @@ exports.handler = async function (event) {
   params.set('sort[0][field]', 'Timestamp');
   params.set('sort[0][direction]', 'desc');
 
+  // Only Manager and Admin may filter by another staff member — Employees must
+  // not be able to enumerate a colleague's actions, even within their own case.
+  const effectiveStaffId = hasMinRole(staff, 'Manager') ? (qs.staffId || '') : '';
+
   // All interpolated values escaped — prevents Airtable formula injection.
   const filters = [];
-  if (qs.category) filters.push(`{Category} = "${escapeFormulaValue(qs.category)}"`);
-  if (qs.staffId)  filters.push(`{Staff Record ID} = "${escapeFormulaValue(qs.staffId)}"`);
+  if (qs.category)      filters.push(`{Category} = "${escapeFormulaValue(qs.category)}"`);
+  if (effectiveStaffId) filters.push(`{Staff Record ID} = "${escapeFormulaValue(effectiveStaffId)}"`);
   if (caseId)      filters.push(`{Case Record ID} = "${escapeFormulaValue(caseId)}"`);
   if (caseNum)     filters.push(`{Case #} = "${escapeFormulaValue(caseNum)}"`);
 

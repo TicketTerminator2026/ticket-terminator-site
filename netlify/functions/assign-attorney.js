@@ -31,7 +31,7 @@ exports.handler = async function (event) {
   if (!auth.ok) return auth.response;
   const staff = auth.staff;
 
-  if (!canWrite(staff)) return forbidden('Your role does not permit changes.');
+  if (!canWrite(staff)) return forbidden();
 
   const base  = process.env.AIRTABLE_BASE_ID;
   const table = process.env.AIRTABLE_TABLE_ID;

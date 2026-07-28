@@ -3937,6 +3937,8 @@ function _tabPayment(r) {
 // ── TAB 4: COURT & ATTORNEY ────────────────────────────
 function _tabCourt(r) {
   const fd   = f(r);
+  // Quote Status is a Manager+ field server-side — render it read-only below that.
+  const quoteDis = canEditFinancials() ? '' : ' disabled';
   const sel  = (opts, val, id) =>
     `<select class="edit-input" id="${id}">${opts.map(o => `<option value="${o}"${o===val?' selected':''}>${o||'—'}</option>`).join('')}</select>`;
   const selEmpty = (opts, val, id) =>
@@ -3999,7 +4001,7 @@ function _tabCourt(r) {
     <div class="modal-section">Attorney Assignment</div>
     <div class="modal-grid">
       <div class="modal-field"><div class="modal-label">Quote Status</div>
-        ${sel(['Not Requested','Requested','Received','Accepted','Declined'], fd['Quote Status']||'Not Requested', 'ef-quote')}
+        ${sel(['Not Requested','Requested','Received','Accepted','Declined'], fd['Quote Status']||'Not Requested', 'ef-quote').replace('<select ', '<select' + quoteDis + ' ')}
       </div>
       <div class="modal-field full"><div class="modal-label">Assign Attorney</div>
         <select class="edit-input" id="ef-attorney-select">
@@ -4288,9 +4290,18 @@ function safeTel(v) {
   const d = telDigits(v);
   return (d.length >= 10 && d.length <= 15) ? d : '';
 }
-// mailto: destinations — must look like an email address.
+// mailto: destinations — must look like an email address AND contain none of
+// the characters that could break out of an HTML attribute or a JS string.
+// The permissive form (whitespace + @ only) accepted values such as
+// a"onmouseover=alert(1)@b.co, which terminated the href early and injected a
+// live event handler. Quotes, apostrophes, angle brackets, semicolons, commas,
+// backticks and backslashes are all rejected outright.
+const MAIL_FORBIDDEN_CHARS = /["'`<>;,\\()\[\]{}]/;
 function safeMail(v) {
   const s = String(v == null ? '' : v).trim();
+  if (!s || s.length > 254) return '';
+  if (MAIL_FORBIDDEN_CHARS.test(s)) return '';
+  if (/\s/.test(s)) return '';
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s) ? s : '';
 }
 // Render a phone as a clickable anchor ONLY when the sanitised destination is
@@ -4301,8 +4312,10 @@ function telLink(value, opts) {
   const dest = safeTel(value);
   const text = esc(o.label != null ? o.label : (value == null ? '' : value));
   if (!dest) return o.hideWhenInvalid ? '' : text;
-  const attrs = (o.cls ? ` class="${o.cls}"` : '') + (o.style ? ` style="${o.style}"` : '');
-  return `<a href="tel:${dest}"${attrs}>${text}</a>`;
+  // dest is digits-only by construction, but escape it anyway — defence in depth
+  // so a future change to safeTel can never reopen an attribute-breakout hole.
+  const attrs = (o.cls ? ` class="${esc(o.cls)}"` : '') + (o.style ? ` style="${esc(o.style)}"` : '');
+  return `<a href="tel:${esc(dest)}"${attrs}>${text}</a>`;
 }
 // Same contract for email destinations.
 function mailLink(value, opts) {
@@ -4310,8 +4323,10 @@ function mailLink(value, opts) {
   const dest = safeMail(value);
   const text = esc(o.label != null ? o.label : (value == null ? '' : value));
   if (!dest) return o.hideWhenInvalid ? '' : text;
-  const attrs = (o.cls ? ` class="${o.cls}"` : '') + (o.style ? ` style="${o.style}"` : '');
-  return `<a href="mailto:${dest}"${attrs}>${text}</a>`;
+  // Escaping dest is what stops an address containing a quote from terminating
+  // the href and injecting an event handler.
+  const attrs = (o.cls ? ` class="${esc(o.cls)}"` : '') + (o.style ? ` style="${esc(o.style)}"` : '');
+  return `<a href="mailto:${esc(dest)}"${attrs}>${text}</a>`;
 }
 // Company-financial writes are Manager+ server-side; mirror that in the UI so
 // users are never shown a control the server will always reject.
@@ -4350,7 +4365,6 @@ async function saveCase(id) {
     'Status':                      g('ef-status',      fd['Status']             || ''),
     'Case Type':                   g('ef-type',        fd['Case Type']          || ''),
     'Priority':                    g('ef-priority',    fd['Priority']           || ''),
-    'Quote Status':                g('ef-quote',       fd['Quote Status']       || 'Not Requested'),
     'Court Date':                  g('ef-court-date',  fd['Court Date']         || null),
     'Court Location':              (g('ef-court-loc',  fd['Court Location']     ||'') ||'').trim(),
     'Court State':                 (g('ef-court-state',fd['Court State']        ||'') ||'').trim(),
@@ -4371,6 +4385,7 @@ async function saveCase(id) {
   // save is never rejected wholesale.
   if (hasPermission('Manager')) {
     fields['Payment Method'] = g('ef-pay-method', fd['Payment Method'] || '');
+    fields['Quote Status']   = g('ef-quote', fd['Quote Status'] || 'Not Requested');
     const fee     = parseFloat(g('ef-fee', ''));
     const attyFee = parseFloat(g('ef-atty-fee', ''));
     if (!isNaN(fee))     fields['Client Fee Collected'] = fee;
@@ -6970,7 +6985,7 @@ async function loadStaff() {
       </div>`;
     }).join('');
   } catch(e) {
-    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">⚠ ' + e.message + '</div>';
+    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--red);">⚠ ' + esc(e.message) + '</div>';
   }
 }
 
