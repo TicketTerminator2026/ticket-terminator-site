@@ -248,6 +248,70 @@ check('fin-ui', 'saveCase sends Quote Status only for Manager+',
 check('fin-ui', 'Quote Status select is disabled below Manager',
   src.includes("const quoteDis = canEditFinancials() ? '' : ' disabled';") && src.includes("'<select' + quoteDis + ' '"));
 
+
+// ══ 11. Session tokens must never appear in a URL (pre-merge correction) ═══
+{
+  const authSrc = fs.readFileSync(REPO + '/auth.html', 'utf8');
+  const strip   = s => s.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const dashCode = strip(src);
+  const authCode = strip(authSrc);
+
+  for (const [label, code] of [['dashboard.html', dashCode], ['auth.html', authCode]]) {
+    // No verification URL may carry the credential.
+    check('token-url', `${label} contains no staff-auth?token= verification URL`,
+      !/staff-auth\?token=/.test(code));
+    check('token-url', `${label} builds no URL with a token query parameter`,
+      !/[?&]token=/.test(code));
+    check('token-url', `${label} never concatenates the token onto a fetch URL`,
+      !/fetch\(\s*['"`][^'"`]*['"`]\s*\+\s*encodeURIComponent\(\s*token/.test(code));
+    // The token must never enter navigation, history or a redirect.
+    check('token-url', `${label} never places a token in location.href`,
+      !/location\.href\s*=\s*[^;\n]*\btoken\b/.test(code));
+    check('token-url', `${label} never places a token in location.replace()`,
+      !/location\.replace\(\s*[^)]*\btoken\b/.test(code));
+    check('token-url', `${label} never pushes a token into history`,
+      !/history\.(pushState|replaceState)\([^)]*\btoken\b/i.test(code));
+    check('token-url', `${label} never logs a token value to the console`,
+      ![...code.matchAll(/console\.(?:log|warn|error)\(([\s\S]*?)\);/g)]
+        .some(m => /\$\{[^}]*token[^}]*\}|[,+]\s*token\b/i.test(m[1])));
+    check('token-url', `${label} never renders a token into an error message`,
+      !/(errEl|textContent|innerHTML)\s*=\s*[^;\n]*\btoken\b/.test(code));
+  }
+
+  // Both pages must verify using the header.
+  const sendsHeader = code => /['"]X-Staff-Token['"]\s*:\s*token/.test(code);
+  check('token-url', 'dashboard.html verifies the session with an X-Staff-Token header',
+    sendsHeader(dashCode));
+  check('token-url', 'auth.html verifies the session with an X-Staff-Token header',
+    sendsHeader(authCode));
+  check('token-url', 'dashboard.html still calls the staff-auth verification endpoint',
+    /fetch\(\s*['"]\/\.netlify\/functions\/staff-auth['"]/.test(dashCode));
+  check('token-url', 'auth.html still calls the staff-auth verification endpoint',
+    /fetch\(\s*['"]\/\.netlify\/functions\/staff-auth['"]/.test(authCode));
+
+  // Login POST and logout behaviour must be untouched.
+  check('token-url', 'auth.html still POSTs credentials as a JSON body',
+    /method:\s*['"]POST['"]/.test(authCode) && /JSON\.stringify\(\{\s*email/.test(authCode));
+  check('token-url', 'auth.html stores the token in sessionStorage only',
+    /sessionStorage\.setItem\(\s*['"]tt_auth_token['"]/.test(authCode) &&
+    !/localStorage\.setItem\(\s*['"]tt_auth_token['"]/.test(authCode));
+  check('token-url', 'dashboard.html keeps the token in sessionStorage only',
+    !/localStorage\.(set|get)Item\(\s*['"]tt_auth_token['"]/.test(dashCode));
+  check('token-url', 'signOut clears both session keys and redirects',
+    /sessionStorage\.removeItem\(\s*['"]tt_auth_token['"]\s*\)/.test(dashCode) &&
+    /sessionStorage\.removeItem\(\s*['"]tt_staff['"]\s*\)/.test(dashCode) &&
+    /location\.replace\(\s*['"]\/auth\.html['"]\s*\)/.test(dashCode));
+  check('token-url', 'every private dashboard fetch still sends X-Staff-Token',
+    (dashCode.match(/X-Staff-Token/g) || []).length >= 2,
+    `${(dashCode.match(/X-Staff-Token/g) || []).length} occurrences`);
+
+  // Repo-wide sweep across every shipped HTML page.
+  const htmlFiles = fs.readdirSync(REPO).filter(f => f.endsWith('.html'));
+  const offenders = htmlFiles.filter(f => /[?&]token=/.test(strip(fs.readFileSync(REPO + '/' + f, 'utf8'))));
+  check('token-url', 'no shipped HTML page builds a URL containing a token',
+    offenders.length === 0, offenders.join(', '));
+}
+
 // ══ 10. Protected files byte-identical ═══════════════════════════════════
 const PROTECTED = ['ticket-terminator-intake-form.html', 'netlify/functions/submit.js',
   'netlify/functions/stripe-webhook.js', 'netlify.toml', '_redirects', '.github/workflows/deploy.yml'];

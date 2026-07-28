@@ -8,6 +8,7 @@
    No production credentials. No Stripe calls. No emails. No real records.
    ─────────────────────────────────────────────────────────────────────────── */
 const crypto = require('crypto');
+const fs = require('fs');
 const nodePath = require('path');
 
 // Functions under test, resolved relative to this file (repo-portable).
@@ -37,8 +38,13 @@ function setEnv({ secret = MOCK.SECRET, stripeEnabled = 'false' } = {}) {
 
 // ── fetch stub ──────────────────────────────────────────────────────────────
 let CALLS = [];
+// Never reset — used for the end-of-run assertion that no real production
+// endpoint was contacted and that no outbound URL ever carried a token.
+const ALL_CALLS = [];
+global.__record = (url, method) => ALL_CALLS.push({ url: String(url), method: method || 'GET' });
 global.fetch = async (url, opts = {}) => {
   const u = String(url);
+  global.__record(u, opts.method);
   CALLS.push({ url: u, method: opts.method || 'GET' });
   if (u.includes(PROD_BASE)) throw new Error('FATAL: production Airtable base contacted');
   return {
@@ -349,9 +355,10 @@ const BAD_TOKENS = [
   check('public', 'config.js leaks no secret material',
     !/sk_|whsec_|Bearer|app[A-Za-z0-9]{14}|SECRET|KEY/.test(r.raw || ''), r.raw);
 
-  r = await call('staff-auth.js', { method: 'GET', qs: { token: '' } });
+  r = await call('staff-auth.js', { method: 'GET', token: '' });
   check('public', 'staff-auth.js still serves login/verify (not 410)', r.status !== 410 && r.status !== 405, `got ${r.status}`);
-  r = await call('staff-auth.js', { method: 'GET', qs: { token: TOK.admin } });
+  // Verification is header-based now — a query-string token is no longer honoured.
+  r = await call('staff-auth.js', { method: 'GET', token: TOK.admin });
   check('public', 'staff-auth.js validates a good token', r.status === 200 && r.body && r.body.valid === true, `got ${r.status}`);
 
   r = await call('submit.js', { method: 'OPTIONS' });
@@ -463,6 +470,7 @@ const BAD_TOKENS = [
   {
     const orig = global.fetch;
     global.fetch = async (url, opts = {}) => {
+      global.__record(url, opts.method);
       CALLS.push({ url: String(url), method: opts.method || 'GET' });
       return { ok: false, status: 422,
         json: async () => ({ error: { type: 'AIRTABLE_INTERNAL', message: 'Secret Internal Column blew up' } }),
@@ -480,6 +488,294 @@ const BAD_TOKENS = [
   check('method', 'get-cases rejects POST', r.status === 405, `got ${r.status}`);
   r = await call('update-case.js', { method: 'POST', token: TOK.admin, body: { recordId: 'recX', fields: {} } });
   check('method', 'update-case rejects POST (PATCH only)', r.status === 405, `got ${r.status}`);
+
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  PRE-MERGE CORRECTION #1 — SESSION TOKENS MUST NEVER APPEAR IN A URL
+  // ═══════════════════════════════════════════════════════════════════════════
+  setEnv();
+  {
+    // Valid token supplied in the X-Staff-Token header → accepted.
+    let r = await call('staff-auth.js', { method: 'GET', token: TOK.admin });
+    check('token-url', 'staff-auth GET accepts a valid X-Staff-Token header',
+      r.status === 200 && r.body && r.body.valid === true, `got ${r.status} ${r.raw}`);
+    check('token-url', 'staff-auth GET returns the staff identity from the header token',
+      r.body && r.body.staff && r.body.staff.role === 'Admin', JSON.stringify(r.body));
+
+    // The SAME valid token supplied only as ?token= → rejected.
+    r = await call('staff-auth.js', { method: 'GET', qs: { token: TOK.admin } });
+    check('token-url', 'staff-auth GET REJECTS a valid token supplied in the query string',
+      r.status === 401 && r.body && r.body.valid === false, `got ${r.status} ${r.raw}`);
+    check('token-url', 'query-string rejection does not echo the token value',
+      !(r.raw || '').includes(TOK.admin), (r.raw || '').slice(0, 120));
+
+    // No compatibility fallback: query token present alongside an empty header.
+    r = await call('staff-auth.js', { method: 'GET', token: '', qs: { token: TOK.admin } });
+    check('token-url', 'empty header + query token is still rejected (no fallback)',
+      r.status === 401, `got ${r.status}`);
+
+    // Tokenless.
+    r = await call('staff-auth.js', { method: 'GET' });
+    check('token-url', 'staff-auth GET rejects a request with no token at all',
+      r.status === 401 && r.body.valid === false, `got ${r.status}`);
+
+    // Every bad-token shape stays rejected through the header path.
+    const REJECT = [
+      ['forged (unsigned)',  TOK.forgedUnsigned],
+      ['forged (hex sig)',   TOK.forgedHex],
+      ['tampered payload',   TOK.tampered],
+      ['wrong secret',       TOK.wrongSecret],
+      ['expired',            TOK.expired],
+      ['malformed garbage',  'not-a-token'],
+      ['empty string',       ''],
+      ['dots only',          '..'],
+    ];
+    for (const [label, tok] of REJECT) {
+      r = await call('staff-auth.js', { method: 'GET', token: tok });
+      check('token-url', `staff-auth GET rejects ${label} in the header`,
+        r.status === 401 && r.body && r.body.valid === false, `got ${r.status}`);
+    }
+
+    // Bearer fallback on the Authorization header (still not a URL).
+    {
+      const modPath = nodePath.join(FUNCTIONS_DIR, 'staff-auth.js');
+      delete require.cache[require.resolve(modPath)];
+      const res = await require(modPath).handler({
+        httpMethod: 'GET',
+        headers: { authorization: 'Bearer ' + TOK.admin },
+        queryStringParameters: {}, body: null,
+      });
+      check('token-url', 'staff-auth GET accepts a Bearer Authorization header',
+        res.statusCode === 200 && JSON.parse(res.body).valid === true, `got ${res.statusCode}`);
+    }
+
+    // Header name must be advertised for CORS so browsers may send it.
+    const authSrc = fs.readFileSync(nodePath.join(FUNCTIONS_DIR, 'staff-auth.js'), 'utf8');
+    check('token-url', 'staff-auth advertises X-Staff-Token in Access-Control-Allow-Headers',
+      /Access-Control-Allow-Headers[^\n]*X-Staff-Token/.test(authSrc));
+    check('token-url', 'staff-auth source no longer reads queryStringParameters.token',
+      !/queryStringParameters\s*(\?\.|\[|\.)\s*\[?['"]?token/.test(authSrc.replace(/\/\/[^\n]*/g, '')));
+    check('token-url', 'staff-auth never builds a URL containing token=',
+      !/[?&]token=/.test(authSrc.replace(/\/\/[^\n]*/g, '')));
+
+    // Login POST still works and returns the token in the BODY only.
+    {
+      const orig = global.fetch;
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hash = crypto.pbkdf2Sync('correct-horse-battery', salt, 100000, 32, 'sha256').toString('hex');
+      global.fetch = async (url, opts = {}) => {
+        global.__record(url, opts.method);
+      CALLS.push({ url: String(url), method: opts.method || 'GET' });
+        return { ok: true, status: 200, json: async () => ({ records: [{
+          id: 'recSTAFF000000000',
+          fields: { Name: 'Test', Email: 't@example.com', Role: 'Admin', Active: true, 'Password Hash': salt + ':' + hash },
+        }] }), text: async () => '{}' };
+      };
+      let rr = await call('staff-auth.js', { method: 'POST', body: { email: 't@example.com', password: 'correct-horse-battery' } });
+      check('token-url', 'login POST still succeeds and issues a token',
+        rr.status === 200 && typeof rr.body.token === 'string' && rr.body.token.includes('.'), `got ${rr.status}`);
+      check('token-url', 'login POST returns no Location/redirect header carrying a credential',
+        !/location/i.test(JSON.stringify(rr.raw || '')), 'body only');
+      check('token-url', 'login POST does not echo the password',
+        !(rr.raw || '').includes('correct-horse-battery'));
+      check('token-url', 'login POST does not echo the stored hash',
+        !(rr.raw || '').includes(hash));
+      // Wrong password still rejected.
+      rr = await call('staff-auth.js', { method: 'POST', body: { email: 't@example.com', password: 'wrong-password' } });
+      check('token-url', 'login POST rejects a wrong password',
+        rr.status === 401 && rr.body.error === 'Invalid email or password', `got ${rr.status}`);
+      global.fetch = orig;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  PRE-MERGE CORRECTION #2 — get-staff must request EVERY field via append()
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const EXPECTED = ['Name', 'Email', 'Role', 'Active', 'Last Login', 'Notes'];
+    const r = await call('get-staff.js', { method: 'GET', token: TOK.admin });
+    check('get-staff', 'get-staff returns 200 for Admin', r.status === 200, `got ${r.status}`);
+
+    const atCall = CALLS.find(c => /api\.airtable\.com/.test(c.url)) || { url: '' };
+    const decoded = decodeURIComponent(atCall.url).replace(/\+/g, ' ');
+    for (const f of EXPECTED) {
+      check('get-staff', `Airtable request includes fields[]=${f}`,
+        decoded.includes(`fields[]=${f}`), decoded.slice(0, 200));
+    }
+    const fieldCount = (decoded.match(/fields\[\]=/g) || []).length;
+    check('get-staff', 'all six fields[] survive (append, not set)',
+      fieldCount === EXPECTED.length, `found ${fieldCount} fields[] params`);
+    check('get-staff', 'Password Hash is NEVER requested from Airtable',
+      !/Password\s*Hash/i.test(decoded), decoded.slice(0, 200));
+    check('get-staff', 'response body contains no Password Hash',
+      !/Password\s*Hash/i.test(r.raw || ''));
+
+    const gsSrc  = fs.readFileSync(nodePath.join(FUNCTIONS_DIR, 'get-staff.js'), 'utf8');
+    // Strip comments — prose that names the field must not fail the assertion.
+    const gsCode = gsSrc.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    check('get-staff', "get-staff no longer uses set('fields[]')",
+      !/\.set\(\s*['"]fields\[\]['"]/.test(gsCode));
+    check('get-staff', "get-staff uses append('fields[]')",
+      /\.append\(\s*['"]fields\[\]['"]/.test(gsCode));
+    check('get-staff', 'Password Hash absent from the get-staff allowlist',
+      !/['"]Password Hash['"]/.test(gsCode));
+
+    // Non-Admin still blocked.
+    for (const [label, tok] of [['Manager', TOK.manager], ['Employee', TOK.employee], ['Read Only', TOK.readonly]]) {
+      const rr = await call('get-staff.js', { method: 'GET', token: tok });
+      check('get-staff', `get-staff still forbids ${label}`, rr.status === 403, `got ${rr.status}`);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  PRE-MERGE CORRECTION #3 — staff-auth must never leak configuration detail
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const FORBIDDEN = [
+      'DASHBOARD_TOKEN_SECRET', 'AIRTABLE_API_KEY', 'AIRTABLE_BASE_ID', 'AIRTABLE_TABLE_ID',
+      'ADMIN_SETUP_KEY', 'tblFGsQpsOJFF2r2V', 'app7IaHcv4nClafca', MOCK.KEY, MOCK.SECRET,
+      MOCK.BASE, 'Password Hash', 'admin key', 'Bootstrap', 'at ', 'node:internal',
+    ];
+    const clean = (label, raw) => {
+      for (const bad of FORBIDDEN) {
+        if (bad === 'at ' && !/\bat\s+\S+:\d+/.test(raw || '')) continue;   // stack-frame shape only
+        check('leak', `${label} does not disclose "${bad}"`,
+          bad === 'at ' ? !/\bat\s+\S+:\d+/.test(raw || '') : !(raw || '').includes(bad),
+          (raw || '').slice(0, 120));
+      }
+    };
+
+    // Missing signing secret → generic 500.
+    setEnv({ secret: null });
+    let r = await call('staff-auth.js', { method: 'GET', token: TOK.admin });
+    check('leak', 'missing signing secret returns 500', r.status === 500, `got ${r.status}`);
+    check('leak', 'missing signing secret returns the generic message',
+      r.body && r.body.error === 'Authentication service unavailable', r.raw);
+    clean('missing-secret response', r.raw);
+    setEnv();
+
+    // Bootstrap with a wrong setup key → generic 403.
+    r = await call('staff-auth.js', { method: 'POST', body: { _setup: true, adminKey: 'wrong', name: 'X', email: 'x@y.co', password: 'p' } });
+    check('leak', 'bootstrap with a wrong setup key returns 403', r.status === 403, `got ${r.status}`);
+    check('leak', 'bootstrap refusal is generic', r.body && r.body.error === 'Forbidden', r.raw);
+    clean('bootstrap-bad-key response', r.raw);
+
+    // Bootstrap when an Admin already exists → generic 403, no "already exists" hint.
+    {
+      const orig = global.fetch;
+      global.fetch = async (url, opts = {}) => {
+        global.__record(url, opts.method);
+      CALLS.push({ url: String(url), method: opts.method || 'GET' });
+        return { ok: true, status: 200, json: async () => ({ records: [{ id: 'recA', fields: { Role: 'Admin' } }] }), text: async () => '{}' };
+      };
+      r = await call('staff-auth.js', { method: 'POST', body: { _setup: true, adminKey: 'mock_setup_key', name: 'X', email: 'x@y.co', password: 'p' } });
+      check('leak', 'bootstrap when already provisioned returns 403', r.status === 403, `got ${r.status}`);
+      check('leak', 'bootstrap-already-provisioned message is generic',
+        r.body && r.body.error === 'Forbidden', r.raw);
+      clean('bootstrap-exists response', r.raw);
+      global.fetch = orig;
+    }
+
+    // Upstream datastore failure on login → generic 500, no raw payload.
+    {
+      const orig = global.fetch;
+      global.fetch = async (url, opts = {}) => {
+        global.__record(url, opts.method);
+      CALLS.push({ url: String(url), method: opts.method || 'GET' });
+        return { ok: false, status: 422,
+          json: async () => ({ error: { type: 'TABLE_NOT_FOUND', message: 'tblFGsQpsOJFF2r2V is missing AIRTABLE_API_KEY' } }),
+          text: async () => 'raw app7IaHcv4nClafca failure' };
+      };
+      r = await call('staff-auth.js', { method: 'POST', body: { email: 'a@b.co', password: 'x' } });
+      check('leak', 'upstream login failure returns 500', r.status === 500, `got ${r.status}`);
+      check('leak', 'upstream login failure is generic',
+        r.body && r.body.error === 'Authentication service unavailable', r.raw);
+      check('leak', 'upstream payload is not echoed',
+        !/TABLE_NOT_FOUND|is missing/.test(r.raw || ''), (r.raw || '').slice(0, 120));
+      clean('upstream-failure response', r.raw);
+      global.fetch = orig;
+    }
+
+    // Missing credentials → generic 400.
+    r = await call('staff-auth.js', { method: 'POST', body: {} });
+    check('leak', 'missing credentials returns 400', r.status === 400, `got ${r.status}`);
+    clean('missing-credentials response', r.raw);
+
+    // Unsupported method → generic 405 JSON.
+    r = await call('staff-auth.js', { method: 'PUT' });
+    check('leak', 'unsupported method returns 405', r.status === 405, `got ${r.status}`);
+    check('leak', '405 body is JSON, not a bare string',
+      r.body && r.body.error === 'Method Not Allowed', r.raw);
+
+    // OPTIONS preflight still works.
+    r = await call('staff-auth.js', { method: 'OPTIONS' });
+    check('leak', 'OPTIONS preflight returns 204', r.status === 204, `got ${r.status}`);
+
+    // Source-level guarantees.
+    const authSrc = fs.readFileSync(nodePath.join(FUNCTIONS_DIR, 'staff-auth.js'), 'utf8');
+    const code = authSrc.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    check('leak', 'no env-var name appears in a returned error string',
+      !/error['"]?\s*:\s*['"][^'"]*(DASHBOARD_TOKEN_SECRET|AIRTABLE_API_KEY|AIRTABLE_BASE_ID|ADMIN_SETUP_KEY)/.test(code));
+    check('leak', 'no raw upstream message is forwarded to the client',
+      !/error['"]?\s*:\s*[^,}\n]*(data|err)\s*[?.]/.test(code), 'error: data?.… pattern');
+    // A literal string may contain the WORD "token" (e.g. "token signing").
+    // What must never happen is a sensitive VALUE being interpolated or
+    // concatenated into a log argument.
+    const consoleArgs = [...code.matchAll(/console\.(?:log|warn|error)\(([\s\S]*?)\);/g)].map(m => m[1]);
+    const SENSITIVE = /(password|storedHash|\bhash\b|secret|adminKey|\btoken\b|\bemail\b)/i;
+    const interpolated = consoleArgs.filter(a =>
+      [...a.matchAll(/\$\{([^}]*)\}/g)].some(m => SENSITIVE.test(m[1])) ||   // `${password}`
+      /[,+]\s*(password|storedHash|hash|secret|adminKey|token|email)\b/i.test(a)  // , password  /  + token
+    );
+    check('leak', 'no console log records a password, hash, secret or full token value',
+      interpolated.length === 0, interpolated.join(' | ').slice(0, 160));
+    check('leak', 'no console log records the submitted email value',
+      !consoleArgs.some(a => /\$\{[^}]*email[^}]*\}|[,+]\s*email\b/i.test(a)));
+    check('leak', 'staff-auth emits at least one safe technical log category',
+      consoleArgs.some(a => /\[staff-auth\]/.test(a)), 'expected categorised logging');
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  GLOBAL — no outbound URL built anywhere in this run carried a token
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const srcFiles = fs.readdirSync(FUNCTIONS_DIR).filter(f => f.endsWith('.js'));
+    let offenders = [];
+    for (const f of srcFiles) {
+      const s = fs.readFileSync(nodePath.join(FUNCTIONS_DIR, f), 'utf8')
+        .replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      if (/[?&](token|staffToken|session)=/.test(s)) offenders.push(f);
+    }
+    check('token-url', 'no serverless function builds a URL containing a session token',
+      offenders.length === 0, offenders.join(', '));
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  END-OF-RUN SAFETY ASSERTIONS — nothing real was contacted, nothing leaked
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const urls = ALL_CALLS.map(c => c.url);
+    check('safety', 'no request was made to the production Airtable base',
+      !urls.some(u => u.includes(PROD_BASE)), urls.filter(u => u.includes(PROD_BASE)).join(', '));
+    // create-checkout-session is exercised, so a Stripe URL IS constructed --
+    // but only ever inside the stub. Assert that no real egress was possible:
+    // global.fetch is never the native implementation during the run, and any
+    // Stripe URL built used the mock test key, never a live key.
+    check('safety', 'global.fetch is stubbed for the whole run (no real egress)',
+      typeof global.fetch === 'function' && !/\[native code\]/.test(Function.prototype.toString.call(global.fetch)));
+    check('safety', 'no live Stripe key was ever used',
+      process.env.STRIPE_SECRET_KEY === 'sk_test_MOCK_not_real' &&
+      !urls.some(u => /sk_live_/.test(u)), process.env.STRIPE_SECRET_KEY);
+    check('safety', 'every Stripe URL contacted went through the stub only',
+      urls.filter(u => /api\.stripe\.com/.test(u)).every(u => u.startsWith('https://api.stripe.com/v1/checkout/sessions')),
+      urls.filter(u => /api\.stripe\.com/.test(u)).join(', '));
+    check('safety', 'no outbound URL in the entire run carried a token parameter',
+      !urls.some(u => /[?&]token=/.test(u)), urls.filter(u => /[?&]token=/.test(u)).join(', '));
+    check('safety', 'no outbound URL carried the signing secret or API key',
+      !urls.some(u => u.includes(MOCK.SECRET) || u.includes(MOCK.KEY)));
+    check('safety', 'the run did make mocked upstream calls (stub is wired)',
+      ALL_CALLS.length > 0, `${ALL_CALLS.length} recorded`);
+  }
 
   // ── Output ───────────────────────────────────────────────────────────────
   console.log(RESULTS.join('\n'));

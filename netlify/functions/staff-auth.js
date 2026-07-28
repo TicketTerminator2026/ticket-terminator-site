@@ -1,9 +1,22 @@
 // Ticket Terminator — Staff Authentication
-// POST { email, password } → { token, staff: { name, email, role, staffId } }
-// GET  ?token=...          → { valid, staff: { name, email, role, staffId } }
+// POST { email, password }        → { token, staff: { name, email, role, staffId } }
+// GET  X-Staff-Token: <token>     → { valid, staff: { name, email, role, staffId } }
 //
 // Passwords stored as PBKDF2-SHA256 hash+salt in Airtable Staff table.
 // Token: base64url(JSON.stringify({exp, staffId, name, email, role})).HMAC-SHA256
+//
+// SESSION TOKENS ARE NEVER ACCEPTED IN A URL.
+// The GET verification route reads the token from the X-Staff-Token request
+// header only. A credential placed in a query string is recorded by the CDN
+// access log, the browser's history, the Referer header and every intermediate
+// proxy, so the previous `?token=` route has been removed outright — there is
+// deliberately no compatibility fallback.
+//
+// CLIENT-FACING ERRORS ARE GENERIC.
+// No response ever names an environment variable, configuration key, Airtable
+// table ID or field, and no raw upstream payload or stack trace is echoed.
+// Server-side logs record a short technical category only — never a secret, a
+// password, a submitted credential, or a token value.
 
 const crypto = require('crypto');
 const STAFF_TABLE = 'tblFGsQpsOJFF2r2V';
@@ -57,9 +70,46 @@ function checkPassword(password, stored) {
 const cors = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Staff-Token',
   'Content-Type': 'application/json',
 };
+
+// Generic client-facing messages. These are the ONLY strings this function
+// returns in an `error` field — none of them reveal configuration detail.
+const MSG = Object.freeze({
+  UNAVAILABLE:  'Authentication service unavailable',
+  CREDENTIALS:  'Invalid email or password',
+  MISSING:      'Email and password required',
+  INACTIVE:     'Account is inactive. Contact your admin.',
+  FORBIDDEN:    'Forbidden',
+  METHOD:       'Method Not Allowed',
+});
+
+const json = (statusCode, obj) => ({ statusCode, headers: cors, body: JSON.stringify(obj) });
+
+// Case-insensitive header read — Netlify lower-cases, but local harnesses and
+// some proxies do not.
+function getHeader(event, name) {
+  const headers = (event && event.headers) || {};
+  const target  = String(name).toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === target) return headers[key];
+  }
+  return '';
+}
+
+// Reads the session token from the X-Staff-Token header ONLY.
+// Query-string and path tokens are never consulted.
+function extractToken(event) {
+  const header = getHeader(event, 'x-staff-token');
+  if (typeof header === 'string' && header.trim()) return header.trim();
+
+  const auth = getHeader(event, 'authorization');
+  if (typeof auth === 'string' && /^Bearer\s+/i.test(auth)) {
+    return auth.replace(/^Bearer\s+/i, '').trim();
+  }
+  return '';
+}
 
 exports.handler = async function (event) {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' };
@@ -68,16 +118,23 @@ exports.handler = async function (event) {
   const key    = process.env.AIRTABLE_API_KEY;
   const secret = process.env.DASHBOARD_TOKEN_SECRET;
 
-  if (!secret) return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'DASHBOARD_TOKEN_SECRET not set' }) };
+  if (!secret) {
+    // Log a category, never the variable name or its value.
+    console.error('[staff-auth] configuration incomplete: token signing');
+    return json(500, { error: MSG.UNAVAILABLE });
+  }
 
-  // ── GET: verify token ──────────────────────────────────────────────────────
+  // ── GET: verify token (header only — never a query parameter) ──────────────
   if (event.httpMethod === 'GET') {
-    const token = event.queryStringParameters?.token || '';
+    // A token supplied as ?token=... is ignored outright. There is no fallback:
+    // the query string is not read, so such a request is treated as tokenless
+    // and rejected exactly like a missing token.
+    const token   = extractToken(event);
     const payload = verifyToken(token, secret);
-    if (!payload) return { statusCode: 401, headers: cors, body: JSON.stringify({ valid: false }) };
-    return { statusCode: 200, headers: cors, body: JSON.stringify({ valid: true, staff: {
+    if (!payload) return json(401, { valid: false });
+    return json(200, { valid: true, staff: {
       staffId: payload.staffId, name: payload.name, email: payload.email, role: payload.role
-    }}) };
+    }});
   }
 
   // ── POST: login ────────────────────────────────────────────────────────────
@@ -88,76 +145,112 @@ exports.handler = async function (event) {
     // Special bootstrap: if body has { _setup: true, email, name, password, adminKey }
     // Allows creating the FIRST Admin account only — refuses if any Admin already exists.
     if (body._setup) {
-      // Guard 1: ADMIN_SETUP_KEY must be set in env AND must match — never allow if key is absent
+      // Generic 403 for every bootstrap refusal — the response must not reveal
+      // that a setup key exists, nor whether an Admin account is already present.
       if (!process.env.ADMIN_SETUP_KEY || body.adminKey !== process.env.ADMIN_SETUP_KEY) {
-        return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'Invalid admin key' }) };
+        console.warn('[staff-auth] bootstrap refused: setup credential');
+        return json(403, { error: MSG.FORBIDDEN });
       }
-      // Guard 2: Refuse if an Admin account already exists
-      const checkParams = new URLSearchParams();
-      checkParams.set('filterByFormula', `{Role} = "Admin"`);
-      checkParams.set('maxRecords', '1');
-      const checkRes = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${checkParams}`, {
-        headers: { 'Authorization': `Bearer ${key}` },
-      });
-      const checkData = await checkRes.json();
+      if (!base || !key) {
+        console.error('[staff-auth] configuration incomplete: datastore');
+        return json(500, { error: MSG.UNAVAILABLE });
+      }
+      // Refuse if an Admin account already exists.
+      let checkData;
+      try {
+        const checkParams = new URLSearchParams();
+        checkParams.set('filterByFormula', `{Role} = "Admin"`);
+        checkParams.set('maxRecords', '1');
+        const checkRes = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${checkParams}`, {
+          headers: { 'Authorization': `Bearer ${key}` },
+        });
+        if (!checkRes.ok) throw new Error('upstream');
+        checkData = await checkRes.json();
+      } catch {
+        console.error('[staff-auth] bootstrap: datastore lookup failed');
+        return json(500, { error: MSG.UNAVAILABLE });
+      }
       if (checkData.records && checkData.records.length > 0) {
-        return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'An Admin account already exists. Bootstrap is disabled.' }) };
+        console.warn('[staff-auth] bootstrap refused: already provisioned');
+        return json(403, { error: MSG.FORBIDDEN });
       }
-      // Guard 3: All required fields must be present
       if (!body.name || !body.email || !body.password) {
-        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Name, email, and password are required.' }) };
+        return json(400, { error: MSG.MISSING });
       }
       const hash = makeHash(body.password);
-      const res = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: {
-          Name: body.name, Email: body.email,
-          'Password Hash': hash, Role: 'Admin', Active: true,
-        }}),
-      });
-      const data = await res.json();
-      if (!res.ok) return { statusCode: 500, headers: cors, body: JSON.stringify({ error: data.error?.message }) };
-      return { statusCode: 200, headers: cors, body: JSON.stringify({ success: true, staffId: data.id }) };
+      try {
+        const res = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: {
+            Name: body.name, Email: body.email,
+            'Password Hash': hash, Role: 'Admin', Active: true,
+          }}),
+        });
+        if (!res.ok) throw new Error('upstream');
+        const data = await res.json();
+        return json(200, { success: true, staffId: data.id });
+      } catch {
+        // Never echo the upstream payload or a stack trace.
+        console.error('[staff-auth] bootstrap: datastore write failed');
+        return json(500, { error: MSG.UNAVAILABLE });
+      }
     }
 
     const { email, password } = body;
     if (!email || !password) {
-      return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Email and password required' }) };
+      return json(400, { error: MSG.MISSING });
     }
 
-    // Lookup staff by email
-    const params = new URLSearchParams();
-    params.set('filterByFormula', `LOWER({Email}) = "${email.toLowerCase().replace(/"/g, '')}"`);
-    params.set('maxRecords', '1');
-    const lookup = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${params}`, {
-      headers: { 'Authorization': `Bearer ${key}` },
-    });
-    const staffData = await lookup.json();
-    const staffRecord = staffData.records?.[0];
+    if (!base || !key) {
+      console.error('[staff-auth] configuration incomplete: datastore');
+      return json(500, { error: MSG.UNAVAILABLE });
+    }
+
+    // Lookup staff by email. Never log the submitted address or password.
+    let staffRecord;
+    try {
+      const params = new URLSearchParams();
+      params.set('filterByFormula', `LOWER({Email}) = "${email.toLowerCase().replace(/"/g, '')}"`);
+      params.set('maxRecords', '1');
+      const lookup = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${params}`, {
+        headers: { 'Authorization': `Bearer ${key}` },
+      });
+      if (!lookup.ok) throw new Error('upstream');
+      const staffData = await lookup.json();
+      staffRecord = staffData.records?.[0];
+    } catch {
+      console.error('[staff-auth] login: datastore lookup failed');
+      return json(500, { error: MSG.UNAVAILABLE });
+    }
 
     if (!staffRecord) {
       await new Promise(r => setTimeout(r, 500));
-      return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid email or password' }) };
+      return json(401, { error: MSG.CREDENTIALS });
     }
 
     const sf = staffRecord.fields;
     if (!sf.Active) {
-      return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'Account is inactive. Contact your admin.' }) };
+      return json(403, { error: MSG.INACTIVE });
     }
 
     const storedHash = sf['Password Hash'] || '';
     if (!storedHash || !checkPassword(password, storedHash)) {
       await new Promise(r => setTimeout(r, 500));
-      return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid email or password' }) };
+      return json(401, { error: MSG.CREDENTIALS });
     }
 
-    // Update last login
-    await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}/${staffRecord.id}`, {
-      method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: { 'Last Login': new Date().toISOString() } }),
-    });
+    // Update last login. A failure here must not block a valid sign-in, and
+    // must not surface upstream detail to the caller.
+    try {
+      await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}/${staffRecord.id}`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: { 'Last Login': new Date().toISOString() } }),
+      });
+    } catch {
+      console.warn('[staff-auth] login: last-login update failed');
+    }
 
     const tokenPayload = {
       staffId: staffRecord.id,
@@ -167,13 +260,15 @@ exports.handler = async function (event) {
       exp:     Date.now() + TOKEN_TTL_MS,
     };
     const token = makeToken(tokenPayload, secret);
-    return { statusCode: 200, headers: cors, body: JSON.stringify({
+    // The token is returned in the response BODY only — never in a redirect,
+    // a Location header, or any URL.
+    return json(200, {
       token,
       staff: { staffId: staffRecord.id, name: sf.Name, email: sf.Email, role: sf.Role },
-    })};
+    });
   }
 
-  return { statusCode: 405, headers: cors, body: 'Method Not Allowed' };
+  return json(405, { error: MSG.METHOD });
 };
 
 // Export hash utility for setup scripts

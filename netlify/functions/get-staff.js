@@ -12,6 +12,17 @@ const {
 
 const STAFF_TABLE = 'tblFGsQpsOJFF2r2V';
 
+// Positive allowlist of the Staff fields the dashboard may receive.
+// 'Password Hash' is intentionally NOT in this list and must never be added.
+const STAFF_FIELDS = Object.freeze([
+  'Name',
+  'Email',
+  'Role',
+  'Active',
+  'Last Login',
+  'Notes',
+]);
+
 exports.handler = async function (event) {
   if (event.httpMethod !== 'GET') return methodNotAllowed();
 
@@ -34,12 +45,14 @@ exports.handler = async function (event) {
   try {
     const params = new URLSearchParams();
     params.set('sort[0][field]', 'Name');
-    params.set('fields[]', 'Name');
-    params.set('fields[]', 'Email');
-    params.set('fields[]', 'Role');
-    params.set('fields[]', 'Active');
-    params.set('fields[]', 'Last Login');
-    // Never return Password Hash to the frontend.
+
+    // `fields[]` is a REPEATED parameter — it must be appended, not set.
+    // URLSearchParams.set() overwrites any existing entry with the same key, so
+    // the previous set()-per-field version sent only the LAST field and Airtable
+    // returned nothing but 'Last Login' (Staff Management rendered "Unknown").
+    for (const field of STAFF_FIELDS) params.append('fields[]', field);
+    // Password Hash is deliberately absent from STAFF_FIELDS and is therefore
+    // never requested from Airtable and never returned to the frontend.
 
     const res  = await fetch(`https://api.airtable.com/v0/${base}/${STAFF_TABLE}?${params}`,
       { headers: { 'Authorization': `Bearer ${key}` } });
